@@ -90,11 +90,7 @@ bString[-grep("\\+", model$reacID)] <- 1
 edgecol <- rep("black", length(model$reacID[-grep("\\+", model$reacID)]))
 edgecol[grep("!", model$reacID[-grep("\\+", model$reacID)])] <- "red"
 
-pdf("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_super_pkn.pdf", height = 20, width = 10)
-
 plotDnf(model$reacID[-grep("\\+", model$reacID)], legend = 0, width = 0.5, edgecol = edgecol)
-
-dev.off()
 
 length(model$reacID)
 
@@ -199,7 +195,7 @@ par(mfrow=c(1,2))
 plotDnf(model1$reacID[as.logical(TN)], CNOlist = CNOlist, legend = 0)
 plotDnf(model1$reacID[as.logical(RN)], CNOlist = CNOlist, legend = 0)
 
-## save(CNOlist, CNOresults, CNOinput, file = "superpkn_priorII.RData")
+## save(CNOlist, CNOresults, CNOinput, file = "superpkn_prior2.RData")
 
 sens <- spec <- time <- sens.h <- spec.h <- matrix(0, length(CNOresults), length(CNOresults[[1]]))
 

@@ -1,5 +1,13 @@
 X11.options(type="Xlib")
 
+##### old
+
+## load("Kube011_BCR_CD40_Inhibitoren/vonMartin/BCRCD40MycCombat.RData")
+
+## data <- BCRCD40MycCombat[, -1]
+
+## rownames(data) <- BCRCD40MycCombat[, 1]
+
 ##### new
 
 data <- data.combat
@@ -33,41 +41,6 @@ colnames(data) <- gsub("Erk1xErk2", "Erk", colnames(data))
 
 inhibitors <- c("Erk", "Ikk2", "Jnk", "p38", "Myc", "Pi3k", "Tak1")
 
-######### plot distributions:
-
-plot(density(data[, 1]))
-
-for (i in 2:ncol(data)) {
-  lines(density(data[, i]), col = i) 
-}
-
-################ ma-plots:
-
-par(ask=T)
-for (i in 1:(ncol(data)/2)) {
-  plot((data[, i] + data[, (i+(ncol(data)/2))])/2, data[, i] - data[, (i+(ncol(data)/2))])
-  abline(h = 0, col = "blue")
-  lines(lowess((data[, i] + data[, (i+(ncol(data)/2))])/2, data[, i] - data[, (i+(ncol(data)/2))]), col = "red")
-}
-
-par(ask=F)
-
-########## take out lowly expressed genes:
-
-library(matrixStats)
-
-## dim(data)
-
-## hist(data)
-
-## cutoff <- 12 # median(colMedians(data))
-
-## genes.median <- apply(data, 1, median)
-
-## data <- data[which(genes.median >= cutoff), ]
-
-## dim(data)
-
 ####################### limma:
 
 NEMlist <- list()
@@ -93,28 +66,58 @@ inhibitors <- c("Vivit", "JSH", inhibitors)
 
 ###################### test for ebayes prior:
 
-fit <- lmFit(data, design)
+## fit <- lmFit(data, design)
 
-pcnt <- seq(0.001,0.1, 0.001)
+## pcnt <- seq(0.001,0.1, 0.001)
 
-de.genes <- numeric(length(pcnt))
+## de.genes <- numeric(length(pcnt))
 
-for (j in 1:length(pcnt)) {
-  i <- colnames(design)[2]
-  contDiff <- paste(i, "-Ctrl", sep = "")
-  contrast.matrix <- makeContrasts(contDiff, levels=design)
-  fit2 <- contrasts.fit(fit, contrast.matrix)
-  fit2 <- eBayes(fit2, proportion = pcnt[j]/100)
-  Bs <- topTable(fit2, n = nrow(data))$B
-  post.odds <- exp(Bs)/(exp(Bs)+1)
-  de.genes[j] <- sum(post.odds > 0.95)
+## for (j in 1:length(pcnt)) {
+##   i <- colnames(design)[2]
+##   contDiff <- paste(i, "-Ctrl", sep = "")
+##   contrast.matrix <- makeContrasts(contDiff, levels=design)
+##   fit2 <- contrasts.fit(fit, contrast.matrix)
+##   fit2 <- eBayes(fit2, proportion = pcnt[j]/100)
+##   Bs <- topTable(fit2, n = nrow(data))$B
+##   post.odds <- exp(Bs)/(exp(Bs)+1)
+##   de.genes[j] <- sum(post.odds > 0.95)
+## }
+
+## plot(de.genes)
+
+## lines(lowess(de.genes), col = "red")
+
+## abline(h=median(de.genes, na.rm = T), col = "green")
+
+########### summarize probe sets:
+
+library(annotate)
+library(hgu133plus2.db)
+
+## data.backup <- data
+
+data <- data.backup
+
+rownames(data) <- mget(rownames(data), hgu133plus2SYMBOL)
+
+data2 <- matrix(0, length(unique(rownames(data))), ncol(data))
+
+count <- 0
+
+for (i in unique(rownames(data))) {
+  if (sum(rownames(data) %in% i) > 1) {
+    count <- count + 1
+    data2[count, ] <- apply(data[which(rownames(data) %in% i), ], 2, median)
+  } else {
+    data2[count, ] <- data[which(rownames(data) %in% i), ]
+  }
 }
 
-plot(de.genes)
-
-lines(lowess(de.genes), col = "red")
-
-abline(h=median(de.genes, na.rm = T), col = "green")
+colnames(data2) <- colnames(data)
+rownames(data2) <- unique(rownames(data))
+data <- data2
+     
+dim(data)
 
 ###################### actual foldchanges:
 
@@ -132,7 +135,7 @@ NEMlist$fc <- numeric()
 NEMlist$pvals <- numeric()
 NEMlist$B <- numeric()
 
-set.prior <- 0.01
+set.prior <- 0.01 # standard
 
 stimgrep <- intersect(grep(paste(stimuli, collapse = "|"), colnames(design)), grep(paste(inhibitors, collapse = "|"), colnames(design), invert=TRUE))
 inhibgrep <- intersect(grep(paste(inhibitors, collapse = "|"), colnames(design)), grep(paste(stimuli, collapse = "|"), colnames(design), invert=TRUE))
@@ -194,5 +197,5 @@ NEMlist$fc <- NEMlist$fc[, sort(colnames(NEMlist$fc))]
 NEMlist$pvals <- NEMlist$pvals[, sort(colnames(NEMlist$pvals))]
 NEMlist$B <- NEMlist$B[, sort(colnames(NEMlist$B))]
 
-save(NEMlist, file = "Kube011_BCR_CD40_Inhibitoren/publication/NEMlist.RData")
+save(NEMlist, file = "Kube011_BCR_CD40_Inhibitoren/publication/NEMlist.combat.summarized.RData")
 

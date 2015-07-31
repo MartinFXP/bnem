@@ -1,0 +1,11 @@
+exportVars <- function(type = "ga") { # type: ga, loc, ex
+  if ("ga" %in% type) {
+    return(c("computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc", "cutModel2",  "computeSm", "relFit", "sizeFac", "method", "removeCycles", "dnf2adj", "verbose", "plotBinary", "getHierarchy", "absorption", "checkMethod"))
+  }
+  if ("loc" %in% type) {
+    return(c("computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc", "cutModel2",  "computeSm", "relFit", "sizeFac", "method", "absorptionII", "max.steps", "max.time", "removeCycles", "node", "dnf2adj", "verbose", "plotBinary", "absorpII", "draw", "getHierarchy", "absorption", "bitStrings", "checkMethod"))
+  }
+  if ("ex" %in% type) {
+    return(c("computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc", "cutModel2",  "computeSm", "relFit", "sizeFac", "method", "removeCycles", "dnf2adj", "verbose", "plotBinary", "getHierarchy", "absorption", "checkMethod", "NEMlist"))
+  }
+}
