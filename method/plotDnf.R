@@ -155,7 +155,6 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
   count <- 0
   
   for (i in dnf) {
-    print(i)
     tmp <- unlist(strsplit(i, "="))
     if (length(tmp)==1) {
       Eneg[[tmp]][["edges"]] <- c(Eneg[[tmp]][["edges"]], NULL)
@@ -173,16 +172,12 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           E[[j]][["edges"]] <- c(E[[j]][["edges"]], which(V %in% paste("and", count, sep = "")))
         }
       } else {
-        print(tmp)
-        print(tmp2)
         Eneg[[tmp2]][["edges"]] <- c(Eneg[[tmp2]][["edges"]], which(Vneg %in% tmp[2]))
         tmp2 <- gsub("!", "", tmp2)
         E[[tmp2]][["edges"]] <- c(E[[tmp2]][["edges"]], which(V %in% tmp[2]))
       }
     }
   }
-
-  print(names(Eneg))
 
   g <- new("graphNEL",nodes=V,edgeL=E,edgemode="directed")
 
@@ -208,22 +203,26 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
 
   edgesnegnew <- list()
   
-  for (i in names(edgesneg)[order(gsub("!", "", names(edgesneg)))]) {
+  for (i in names(edgesneg)) {#[order(gsub("!", "", names(edgesneg)))]) {
     edgesnegnew <- c(edgesnegnew, edgesneg[[i]])
   }
 
-  names(edgesnegnew) <- names(edgesneg)[order(gsub("!", "", names(edgesneg)))]
+  names(edgesnegnew) <- names(edgesneg)#[order(gsub("!", "", names(edgesneg)))]
 
   edgesneg <- edgesnegnew
-
-  print(names(edges))
-  print(names(edgesneg))
 
   if (verbose) {
     print(paste("order of nodes: ", paste(names(nodes), collapse = ", "), sep = ""))
     print(paste("order of edges: ", paste(names(edges), collapse = ", "), sep = ""))
   }
 
+  edges <- edgesneg
+  names(edges) <- gsub("!", "", names(edges))
+
+  for (i in 1:length(edges)) {
+    edges[[i]]@from <- gsub("!", "", edges[[i]]@from)
+  }
+  
   nodeshape2 <- nodeshape
   nodeshape <- list()
   if (length(nodeshape2) == 1 & !(is.list(nodeshape2))) {
@@ -362,7 +361,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           }
         } else {
           edges[[i]]@attrs$arrowhead <- "open"
-          edges[[i]]@attrs$color <- "green"
+          edges[[i]]@attrs$color <- "black"
           if (gsub("and.*", "and", tmp[1]) %in% "and") {
             if (!is.null(edgecol)) {
               if (!is.na(edgecol[grep("\\+", dnf)[k]])) {
@@ -442,7 +441,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
             }
           }
           edges[[i]]@attrs$arrowhead <- "open"
-          edges[[i]]@attrs$color <- "green"
+          edges[[i]]@attrs$color <- "black"
           if (!is.null(edgecol)) {
             if (!is.na(edgecol[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
               edges[[i]]@attrs$color <- edgecol[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
@@ -631,8 +630,8 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
       g@edgeData@data[["active|NOTHING"]][["weight"]] <- 1
       g@edgeData@data[["inactive|active"]][["weight"]] <- 1
       arrowheads <- c(arrowheads, "LEGEND:~STIMULUS" = "none", "STIMULUS~INHIBITOR" = "open", "INHIBITOR~SIGNAL" = "tee", "SIGNAL~NOTHING" = "odiamond", "NOTHING~active" = "open", "active~inactive" = "tee", "active~NOTHING" = "tee", "inactive~active" = "open")
-      arrowcolors <- c(arrowcolors, "LEGEND:~STIMULUS" = "transparent", "STIMULUS~INHIBITOR" = "green", "INHIBITOR~SIGNAL" = "red", "SIGNAL~NOTHING" = "black", "NOTHING~active" = "green", "active~inactive" = "red", "active~NOTHING" = "red", "inactive~active" = "green")
-      arrowlabels <- c(arrowlabels, "LEGEND:~STIMULUS" = "", "STIMULUS~INHIBITOR" = "positive", "INHIBITOR~SIGNAL" = "negative", "SIGNAL~NOTHING" = "ambiguous\npositive\nnegative", "NOTHING~active" = "bidirectional\ndifferent", "active~inactive" = "bidirectional\ndifferent", "active~NOTHING" = "", "inactive~active" = "")
+      arrowcolors <- c(arrowcolors, "LEGEND:~STIMULUS" = "transparent", "STIMULUS~INHIBITOR" = "black", "INHIBITOR~SIGNAL" = "red", "SIGNAL~NOTHING" = "blue", "NOTHING~active" = "black", "active~inactive" = "red", "active~NOTHING" = "red", "inactive~active" = "black")
+      arrowlabels <- c(arrowlabels, "LEGEND:~STIMULUS" = "", "STIMULUS~INHIBITOR" = "    positive", "INHIBITOR~SIGNAL" = "    negative", "SIGNAL~NOTHING" = "    ambiguous\npositive\nnegative", "NOTHING~active" = "    bidirectional\ndifferent", "active~inactive" = "    bidirectional\ndifferent", "active~NOTHING" = "", "inactive~active" = "")
       nodecolors <- c(nodecolors, "LEGEND:" = "white", "STIMULUS" = "white", "INHIBITOR" = "white", "SIGNAL" = "lightblue", "NOTHING" = "white", "active" = "green", "inactive" = "white")
       nodeheight <- c(nodeheight, "LEGEND:" = 0, "STIMULUS" = as.character(max(nodeheight)), "INHIBITOR" = as.character(max(nodeheight)), "SIGNAL" = as.character(max(nodeheight)), "NOTHING" = as.character(max(nodeheight)), "active" = as.character(max(nodeheight)), "inactive" = as.character(max(nodeheight)))
       nodewidth <- c(nodewidth, "LEGEND:" = as.character(max(nodewidth)), "STIMULUS" = as.character(max(nodewidth)), "INHIBITOR" = as.character(max(nodewidth)), "SIGNAL" = as.character(max(nodewidth)), "NOTHING" = as.character(max(nodewidth)), "active" = as.character(max(nodewidth)), "inactive" = as.character(max(nodewidth)))
@@ -667,31 +666,33 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           input <- unlist(strsplit(i, "~"))
           output <- input[2]
           input <- input[1]
-          if (paste("!", input, "=", output, sep = "") %in% dnf) {
-            g@renderInfo@edges$arrowhead[pos] <- "tee"
-          } else {
-            g@renderInfo@edges$arrowhead[pos] <- "open"
-          }
-          if (paste("!", output, "=", input, sep = "") %in% dnf) {
-            g@renderInfo@edges$arrowtail[pos] <- "tee"
-          } else {
-            g@renderInfo@edges$arrowtail[pos] <- "open"
-          }
-          if (paste("!", output, "=", input, sep = "") %in% dnf & paste("", output, "=", input, sep = "") %in% dnf) {
-            g@renderInfo@edges$arrowtail[pos] <- "odiamond"
-          }
-          if (paste("!", input, "=", output, sep = "") %in% dnf & paste("", input, "=", output, sep = "") %in% dnf) {
-            g@renderInfo@edges$arrowhead[pos] <- "odiamond"
+          if (is.null(edgehead)) {
+            if (paste("!", input, "=", output, sep = "") %in% dnf) {
+              g@renderInfo@edges$arrowhead[pos] <- "tee"
+            } else {
+              g@renderInfo@edges$arrowhead[pos] <- "open"
+            }
+            if (paste("!", output, "=", input, sep = "") %in% dnf) {
+              g@renderInfo@edges$arrowtail[pos] <- "tee"
+            } else {
+              g@renderInfo@edges$arrowtail[pos] <- "open"
+            }
+            if (paste("!", output, "=", input, sep = "") %in% dnf & paste("", output, "=", input, sep = "") %in% dnf) {
+              g@renderInfo@edges$arrowtail[pos] <- "odiamond"
+            }
+            if (paste("!", input, "=", output, sep = "") %in% dnf & paste("", input, "=", output, sep = "") %in% dnf) {
+              g@renderInfo@edges$arrowhead[pos] <- "odiamond"
+            }
           }
           if (is.null(edgecol)) {
             if (g@renderInfo@edges$arrowtail[pos] == "open" & g@renderInfo@edges$arrowhead[pos] == "open") {
-              g@renderInfo@edges$col[pos] <- "green"
+              g@renderInfo@edges$col[pos] <- "black"
             }
             if (g@renderInfo@edges$arrowtail[pos] == "tee" & g@renderInfo@edges$arrowhead[pos] == "tee") {
               g@renderInfo@edges$col[pos] <- "red"
             }
             if (g@renderInfo@edges$arrowtail[pos] == "odiamond" & g@renderInfo@edges$arrowhead[pos] == "odiamond") {
-              g@renderInfo@edges$col[pos] <- "black"
+              g@renderInfo@edges$col[pos] <- "blue"
             }
             if (g@renderInfo@edges$arrowtail[pos] != g@renderInfo@edges$arrowhead[pos]) {
               g@renderInfo@edges$col[pos] <- "brown"
@@ -699,13 +700,13 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           } else {
             if (is.null(edgecol)) { # is.na(edgecol[pos])
               if (g@renderInfo@edges$arrowtail[pos] == "open" & g@renderInfo@edges$arrowhead[pos] == "open") {
-                g@renderInfo@edges$col[pos] <- "green"
+                g@renderInfo@edges$col[pos] <- "black"
               }
               if (g@renderInfo@edges$arrowtail[pos] == "tee" & g@renderInfo@edges$arrowhead[pos] == "tee") {
                 g@renderInfo@edges$col[pos] <- "red"
               }
               if (g@renderInfo@edges$arrowtail[pos] == "odiamond" & g@renderInfo@edges$arrowhead[pos] == "odiamond") {
-                g@renderInfo@edges$col[pos] <- "black"
+                g@renderInfo@edges$col[pos] <- "blue"
               }
               if (g@renderInfo@edges$arrowtail[pos] != g@renderInfo@edges$arrowhead[pos]) {
                 g@renderInfo@edges$col[pos] <- "brown"
