@@ -69,7 +69,7 @@ dataRed <- function(NEMlist, stimuli, stimmult, receptors = NULL, inhibitors, cu
   if (abs(cutoff4) > 0) { 
     targets <- numeric()
     for (i in inhibitors) {
-      targets <- c(targets, which(abs(NEMlist1$fc[, paste("Ctrl_vs_", i, sep = "")]) > cutoff3))
+      targets <- c(targets, which(abs(NEMlist1$fc[, paste("Ctrl_vs_", i, sep = "")]) > cutoff4))
     }
     targets1 <- intersect(targets, targets1)
   } else {
@@ -81,7 +81,7 @@ dataRed <- function(NEMlist, stimuli, stimmult, receptors = NULL, inhibitors, cu
   NEMlist1$fc <- NEMlist1$fc[unique(targets1), ]
   NEMlist1$exprs <- NEMlist1$exprs[unique(targets1), ]
 
-  if (cutoff == cutoff2 & cutoff2 == cutoff3 & cutoff == 0) {
+  if (cutoff == cutoff2 & cutoff2 == cutoff3 & cutoff3 == cutoff4 & cutoff == 0) {
     return(NEMlist)
   } else {
     return(NEMlist1)
