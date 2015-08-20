@@ -254,8 +254,18 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
       } else {
         MSEE <- numeric()
         R <- R+NEMlist$geneGrid
-        R[is.na(R)] <- 0
-        MSEE <- rowMins(R)
+        R[is.na(R)] <- Inf
+        if (is.null(NEMlist$weights)) {
+          MSEE <- rowMins(R)
+        } else {
+          R[is.infinite(R)] <- 0
+          topNsum <- function(x, N) {
+            y <- sum(x[order(x)[1:N]])
+            return(y)
+          }
+          MSEE <- apply(R, 1, topNsum, ncol(CNOlist@signals[[1]]))
+          MSEE <- MSEE*NEMlist$weights
+        }
       }
     }
   }
@@ -310,7 +320,11 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
     topEgenes <- 0
     subtopo <- matrix(0, nrow = length(MSEE), ncol = ncol(CNOlist@signals[[1]]))
     colnames(subtopo) <- colnames(CNOlist@signals[[1]])
-    Epos <- which(R == MSEE, arr.ind = T)
+    if (is.null(NEMlist$weights)) {
+      Epos <- which(R == MSEE, arr.ind = T)
+    } else {
+      Epos <- which(NEMlist$geneGrid[, 1:ncol(CNOlist@signals[[1]])] == 0, arr.ind = T)
+    }
     if (length(Epos) != 0) {
       if (is.null(dim(Epos))) {
         Epos <- t(as.matrix(Epos))

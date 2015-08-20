@@ -65,6 +65,9 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
     sgeneAdd[which(sgeneAddCheck == Inf), ] <- 0
     NEMlist$geneGrid <- sgeneAdd
   }
+  if (!is.null(NEMlistTmp$weights)) {
+    NEMlist$weights <- NEMlistTmp$weights
+  }
   NEMlist$signalStates <- NEMlistTmp$signalStates
   return(NEMlist)
 }
