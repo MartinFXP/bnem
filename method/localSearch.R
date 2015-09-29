@@ -136,6 +136,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
     save.scores <- numeric()
     edges.changed <- numeric()
     edge.history <- character()
+    counter <- 0
     while(!stop) {
       score <- computeScoreNemT1(CNOlist, model = model, bitString, sizeFac = sizeFac, NAFac = 1, NEMlist = NEMlist, tellme = 0, parameters = parameters, method = method)
       save.scores <-c(save.scores, score)
@@ -269,6 +270,8 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
           edge.history <- c(edge.history, model$reacID[whichGate])
         }
         if (verbose) {
+          counter <- counter + 1
+          print(paste("Iter step: ", counter, sep = ""))
           if (bitString[whichGate] == 1) {
             print(paste("Added gate ", model$reacID[whichGate], sep = ""))
             if (!(verbose %in% "part")) {

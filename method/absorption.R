@@ -1,5 +1,9 @@
-absorption <- function(bString, model) {
-  graph <- model$reacID[which(bString == 1)]
+absorption <- function(bString, model=NULL) {
+  if (is.null(model)) {
+    graph <- bString
+  } else {
+    graph <- model$reacID[which(bString == 1)]
+  }
   for (i in graph) {
     targets <- grep(paste("(?=.*", gsub("\\+", ")(?=.*", gsub("=", ")(?=.*=", i)), ")", sep = ""), graph, perl = TRUE)
     toomuch <- grep(paste("!", gsub("\\+", "|!", gsub("=.*", "", i)), "", sep = ""), graph[targets])
@@ -8,15 +12,24 @@ absorption <- function(bString, model) {
     }
     if (length(targets) > 1) {
       targets <- targets[-which(targets == which(graph %in% i))]
-      bString[which(model$reacID %in% graph[targets])] <- 0
+      if (is.null(model)) {
+        bString <- bString[-which(bString %in% graph[targets])]
+      } else {
+        bString[which(model$reacID %in% graph[targets])] <- 0
+      }
     }
   }
   return(bString)
 }
 
-absorptionII <- function(bString, model) {
-  graph <- model$reacID[which(bString == 1)]
-  nodes <- model$namesSpecies
+absorptionII <- function(bString, model=NULL) {
+  if (is.null(model)) {
+    graph <- bString
+    nodes <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(graph, "=")), "\\+"))))
+  } else {
+    graph <- model$reacID[which(bString == 1)]
+    nodes <- model$namesSpecies
+  }
   for (i in graph) {
     players <- unlist(strsplit(gsub("=.*", "", i), "\\+"))
     target <- gsub(".*=", "", i)
@@ -37,7 +50,11 @@ absorptionII <- function(bString, model) {
     }
     if (length(targets) > 1) {
       targets <- targets[-which(targets %in% which(graph %in% i))]
-      bString[which(model$reacID %in% graph[targets])] <- 0
+      if (is.null(model)) {
+        bString <- bString[-which(bString %in% graph[targets])]
+      } else {
+        bString[which(model$reacID %in% graph[targets])] <- 0
+      }
     }
   }
   return(bString)

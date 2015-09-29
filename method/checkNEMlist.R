@@ -14,6 +14,13 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
         print("data is not discretized/normed to (0,1); performing simple normalization")
         NEMlist$norm <- simpleNorm(NEMlist$exprs)
       }
+      if ("kmeans" %in% approach) {
+        print("data is not discretized/normed to (0,1); performing two means normalization")
+        NEMlist$norm <- pamNorm(NEMlist$exprs)
+      } else {
+        print("data is not discretized/normed to (0,1); performing simple normalization")
+        NEMlist$norm <- simpleNorm(NEMlist$exprs)
+      }
     }
     if ("spearman" %in% method) {
       colnames.exprs <- colnames(NEMlist$exprs)
@@ -49,9 +56,9 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
     }
   }
   if (!is.null(NEMlist$egenes) & is.null(NEMlist$geneGrid)) {
-    sgeneAdd <- matrix(Inf, nrow = nrow(NEMlist$exprs), ncol = (ncol(CNOlist@signals[[1]])*2))
-    for (i in 1:nrow(NEMlist$exprs)) {
-      egeneName <- rownames(NEMlist$exprs)[i]
+    sgeneAdd <- matrix(Inf, nrow = nrow(NEMlist$fc), ncol = (ncol(CNOlist@signals[[1]])*2))
+    for (i in 1:nrow(NEMlist$fc)) {
+      egeneName <- rownames(NEMlist$fc)[i]
       sgeneCols <- numeric()
       for (j in 1:length(NEMlist$egenes)) {
         if (egeneName %in% NEMlist$egenes[[j]]) {
@@ -70,4 +77,16 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
   }
   NEMlist$signalStates <- NEMlistTmp$signalStates
   return(NEMlist)
+}
+
+myCN2bioCN <- function(x, stimuli, inhibitors) {
+  y <- gsub("_vs_", ") vs (", x)
+  for (i in inhibitors) {
+    y <- gsub(i, paste(i, "\\-", sep = ""), y)
+  }
+  for (i in stimuli) {
+    y <- gsub(i, paste(i, "\\+", sep = ""), y)
+  }
+  y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
+  return(y)
 }

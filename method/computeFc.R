@@ -31,6 +31,16 @@ computeFc <- function (CNOlist, y, test = 1) {
       CompMat <- cbind(CompMat, y[, grepStims] - y[, grepCtrl])
       CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", stimuliNames, sep = ""))
     }
+    ## get stim_vs_stim:
+    combiNames2 <- NULL
+    for (i in grepStims) {
+      combiNames2 <- c(combiNames2, paste(names(which(CNOlist@stimuli[i, ] >= 1)), collapse = "_"))
+    }
+    if (length(grepStims) > 0) {
+      CompMat <- cbind(CompMat, y[, rep(grepStims, length(grepStims))] - y[, sort(rep(grepStims, length(grepStims)))])
+      orderStims2 <- order(rep(grepStims, length(grepStims)))
+      CompMatNames <- c(CompMatNames, paste(rep(stimuliNames, length(combiNames2))[orderStims2], "_vs_", rep(combiNames2, length(stimuliNames)), sep = ""))
+    }
     ## get stim_vs_stim_kd:
     combiNames <- NULL
     for (i in grepStimsKds) {
@@ -51,6 +61,7 @@ computeFc <- function (CNOlist, y, test = 1) {
       orderKds <- order(rep(grepKds, length(grepStimsKds)))
       CompMatNames <- c(CompMatNames, paste(rep(inhibitorsNames, length(combiNames))[orderKds], "_vs_", rep(combiNames, length(inhibitorsNames)), sep = ""))
     }
+    ### combine:
     colnames(CompMat) <- CompMatNames
     if (sum(duplicated(colnames(CompMat)) == TRUE)) {
       CompMat <- CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]

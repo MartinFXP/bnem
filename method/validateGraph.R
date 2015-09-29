@@ -1,6 +1,6 @@
 validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1, 
                           parameters = list(cutOffs = c(0.5,0.5), scoring = c(1,0.75)), plot = TRUE,
-                          disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = FALSE, colSideColors = NULL, affychip = "hgu133plus2", method = "pearson", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 0.1, ...) {
+                          disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = FALSE, colSideColors = NULL, affychip = "hgu133plus2", method = "pearson", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 0.1, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
   colSideColorsSave <- NULL
   bad.data <- FALSE
   errorMat <- function() {
@@ -16,14 +16,31 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
     colnames(error.mat) <- 1:((7*3+8)+5)
     error.mat <- error.mat
     error.mat <- error.mat
-    error.mat <- error.mat + rnorm(length(error.mat), 0, 0.5)
+    error.mat <- error.mat[rep(1:nrow(error.mat), each = 10), rep(1:ncol(error.mat), each = 10)]
+    error.mat <- smoothMatrix(error.mat, 10, torus = F)
     return(error.mat)
   }
   CNOlist <- checkCNOlist(CNOlist)
   NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist, parameters = parameters, approach = approach, method = method)
-  tmp <- computeScoreNemT1(CNOlist, model = model, bString, simList = NULL, indexList = NULL, NAFac = 1, approach = approach, NEMlist = NEMlist, tellme = 1, parameters = parameters, sim = sim, relFit = relFit, method = method, sizeFac = sizeFac)
+  tmp <- computeScoreNemT1(CNOlist, model = model, bString, simList = NULL, indexList = NULL, NAFac = 1, approach = approach, NEMlist = NEMlist, tellme = 1, parameters = parameters, sim = sim, relFit = relFit, method = method, sizeFac = sizeFac, verbose = F)
   EtoS <- tmp$EtoS
-  
+  if (verbose) {
+    print(paste(Sgene, ".", colnames(CNOlist@signals[[1]])[Sgene], ": ", sum(EtoS[, 2] == Sgene), sep = ""))
+    print(paste("Activated: ", sum(EtoS[, 2] == Sgene & EtoS[, 3] == 1), sep = ""))
+    print(paste("Inhibited: ", sum(EtoS[, 2] == Sgene & EtoS[, 3] == -1), sep = ""))
+    print("Summary Score:")
+    print(summary(EtoS[which(EtoS[, 2] == Sgene), 4]))
+    dups <- sum(duplicated(rownames(EtoS)) == TRUE)
+    if (dups > 0) {
+      used <- length(unique(rownames(EtoS)))
+    } else {
+      used <- nrow(EtoS)
+    }
+    print(paste("Unique genes used: ", (used), " (", round((used/nrow(NEMlist$fc))*100, 2), " %)", sep = ""))
+    print(paste("Duplicated genes: ", dups, sep = ""))
+    print("Overall fit:")
+    print(summary(EtoS[, 4]))
+  }
   indexList <- NULL
   if (is.null(indexList) == TRUE) {
     indexList = indexFinder(CNOlist, model)
@@ -94,7 +111,7 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
   if (Egenes == 0) {
     mainlab <- paste("Regulated by ", rownames(check.model)[Sgene], "\n", sep = "")
     if (plot) {
-      print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "Paired", coln = 12, breaks = seq(0,8, 0.1)), ...)
+      print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "RdBu", coln = 12, breaks = seq(0,8, 0.1)), ...)
     }
     genesInfo <- as.matrix(0)
     rownames(genesInfo) <- "dummy"
@@ -121,7 +138,7 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
   count <- 0
   for (i in 1:nrow(EtoS)) {
     if (EtoS[i, 2] == Sgene) {
-      egenefit[count+2,] <- check.data[EtoS[i, 1], ]
+      egenefit[count+2,] <- check.data[which(rownames(check.data) %in% rownames(EtoS)[i]), ]
       rownames(egenefit)[count+2] <- rownames(EtoS)[i]
       if (EtoS[i, 3] == 1) {
         activatedEgenes[count+2] <- 1
@@ -317,6 +334,9 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
           } else {
             Rowv = F
           }
+          if ("bio" %in% colnames) {
+            colnames(egenefit) <- myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
+          }
           print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = real.breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, col = col, ...))
         } else {
           print("one effect is not a matrix")
@@ -432,6 +452,9 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         if (is.null(breaks)) {
           breaks <- c(-2,-0.5,0.5,2)
         }
+          if ("bio" %in% colnames) {
+            colnames(egenefit2) <- myCN2bioCN(colnames(egenefit2), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
+          }
         print(heatmapOP(egenefit2, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, ...))
         ##print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = c(0,low,ncol(egenefit)-high,ncol(egenefit)), coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, ...))
         ##print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = seq(-2,2,0.1), coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, ...))
@@ -440,13 +463,36 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         if (is.null(breaks)) {
           breaks <- seq(-1,1,0.1)
         }
+        if (order %in% "rank") {
+          egenefit_genes <- egenefit[1:(nrow(egenefit)-2), ]
+          namereset <- FALSE
+          if (!is.matrix(egenefit_genes)) {
+            egenefit_genes <- t(as.matrix(egenefit_genes))
+            namereset <- TRUE
+          } else {
+            geneorder <- rownames(EtoS)[which(EtoS[, 2] == Sgene)[1:Egenes]]
+            egenefit_genes <- egenefit_genes[order(match(rownames(egenefit_genes), geneorder), decreasing = T), ]
+          }
+          egenefit <- rbind(egenefit_genes, egenefit[(nrow(egenefit)-1):nrow(egenefit), ])
+          if (namereset) {
+            rownames(egenefit)[1] <- names(which(EtoS[, 2] == Sgene))
+          }
+        }
+        if (order %in% "names") {
+          tmp <- egenefit[1:(nrow(egenefit)-2), ]
+          tmp <- tmp[order(rownames(tmp)), ]
+          egenefit[1:(nrow(egenefit)-2), ] <- tmp
+        }
+        if ("bio" %in% colnames) {
+          colnames(egenefit) <- myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
+        }
         print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, ...))
       }
     }
   } else {
     mainlab <- paste("Regulated by ", rownames(check.model)[Sgene], "\n", sep = "")
     if (plot) {
-      print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "Paired", coln = 12, breaks = seq(0,8,0.1)), ...)
+      print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "RdBu", coln = 12, breaks = seq(0,8,0.1)), ...)
     }
     print("min equals max in data matrix")
     bad.data <- TRUE
@@ -455,7 +501,7 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
     if (!bad.data) {
       mainlab <- paste("Regulated by ", rownames(check.model)[Sgene], "\n", sep = "")
       if (plot) {
-        print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "Dark2", coln = 12, breaks = seq(0,8,0.1)), ...)
+        print(heatmapOP(errorMat(), main = mainlab, sub = "", Colv = F, Rowv = F, col = "RdBu", coln = 12, breaks = seq(0,8,0.1)), ...)
       }
       return(NULL)
     }

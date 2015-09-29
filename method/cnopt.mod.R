@@ -76,6 +76,7 @@ source("github/trunk/method/heatmapOP.R")
 source("github/trunk/method/convertGraph.R")
 source("github/trunk/method/transClose.R")
 source("github/trunk/method/transRed.R")
+source("github/trunk/method/smoothMatrix.R")
 
 # get internal original functions: (v 1.4)
 

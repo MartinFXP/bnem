@@ -76,6 +76,7 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
     SCompMat[SCompMat > 0] <- 1
     SCompMat[SCompMat < 0] <- -1
     SCompMat <- t(SCompMat)
+    ## print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))]) # for debugging
     ## make Sgene matrix and Egene matrix foldchanges have the same number and/or order of experiments:
     if (is.null(rownames(SCompMat))) {
       SCompMat <- SCompMat[, colnames(NEMlist$fc)]
@@ -388,20 +389,24 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
   if ("mLL" %in% method) {
     deviationPen <- -sum(MSEE)
   } else {
-    if (parameters$cutOffs[3] > 1 & parameters$cutOffs[3] <= length(MSEE)) {
+    if (parameters$cutOffs[3] > 1 & parameters$cutOffs[3] <= length(MSEE) & tellme == 0) {
       MSEE <- MSEE[order(MSEE, decreasing = F)[1:parameters$cutOffs[3]]]
     }
-    if (parameters$cutOffs[3] > 0 & parameters$cutOffs[3] <= 1) {
+    if (parameters$cutOffs[3] > 0 & parameters$cutOffs[3] <= 1 & tellme == 0) {
       MSEE <- MSEE[which(MSEE < -parameters$cutOffs[3])]
     }
-    if (parameters$cutOffs[3] < 0 & parameters$cutOffs[3] > -1) {
+    if (parameters$cutOffs[3] < 0 & parameters$cutOffs[3] > -1 & tellme == 0) { # that is just bad and not working for obvious reasons
       score.quantile <- quantile(MSEE, -parameters$cutOffs[3])
       MSEE <- MSEE[which(MSEE < score.quantile)]
     }
     if ("cp" %in% method) {
       deviationPen <- sum(MSEE[!is.na(MSEE)])/nrow(NEMlist$fc) # sum over all the mse for all the egenes
     } else {
-      deviationPen <- 1 + sum(MSEE[!is.na(MSEE)])/nrow(NEMlist$fc) # sum over all the mse for all the egenes
+      if (parameters$cutOffs[3] > 1 & parameters$cutOffs[3] <= length(MSEE) & tellme == 0) {
+        deviationPen <- 1 + sum(MSEE[!is.na(MSEE)])/parameters$cutOffs[3] # sum over all the mse for all the egenes
+      } else {
+        deviationPen <- 1 + sum(MSEE[!is.na(MSEE)])/nrow(NEMlist$fc) # sum over all the mse for all the egenes
+      }
     }
   }
   # END of my code

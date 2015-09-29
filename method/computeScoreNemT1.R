@@ -7,7 +7,7 @@ computeScoreNemT1 <- function(CNOlist,
                               NEMlist = NULL, tellme = 0, sim = 0,
                               relFit = FALSE,
                               method = "none",
-                              verbose = TRUE,
+                              verbose = FALSE,
                               opt = "min"
                               ) {
   CNOlist <- checkCNOlist(CNOlist)

@@ -25,14 +25,18 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
               add1 <- 1
             }
             if (j2 %in% children2) {
-              #subGraph <- graph[-grep(paste(".*", j2, ".*=", node, sep = ""), graph)]
-              #subGraph <- graph[-grep(paste(".*=", node, sep = ""), graph)] # seems to work
-              subGraph <- graph[-grep(paste(".*=", node, "|.*", j2, ".*=.*", sep = ""), graph)] # not needed is it? I think it is!!!
-              signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates, graph = subGraph, children = NULL, NEMlist)
-              if ((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2 != ceiling((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2)) {
-                ## negative feedback loop calculation does not seem to be general enough and also not feasible:
-              } else {
-              }
+              subGraph <- graph
+              ## subGraph <- graph[-grep(paste(".*", j2, ".*=", node, sep = ""), graph)] # same as setting j2* == 0 and recursively learning j2
+              ## subGraph <- graph[-grep(paste(".*=", node, sep = ""), graph)] # seems to work: same as setting node == 0 and learning j2
+              #subGraph <- subGraph[-grep(paste(".*=", node, "|.*", j2, ".*=.*", sep = ""), subGraph)]
+              #signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist) # signalStatesTmp makes stuff go infinite
+              signalStates2 <- signalStates
+              signalStates2[, node] <- 0
+              signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates2, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist) # signalStatesTmp makes stuff go infinite
+              ## if ((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2 != ceiling((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2)) {
+              ##   ## negative feedback loop calculation does not seem to be general enough and also not feasible:
+              ## } else {
+              ## }
               if (add1 == 0) {
                 pobMult <- signalStatesTmp[, j2]
               } else {
@@ -79,7 +83,7 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
   bString <- reduceGraph(bString, model, CNOlist)
   stimuli <- colnames(CNOlist@stimuli)
   signals <- c(colnames(CNOlist@inhibitors), model$namesSpecies[-which(model$namesSpecies %in% c(stimuli,colnames(CNOlist@inhibitors)))])
-  graph <- model$reacID[which(bString == 1)]
+  graph0 <- model$reacID[which(bString == 1)]
   stimuliStates <- CNOlist@stimuli
   if (!is.null(NEMlist$signalStates)) {
     signalStates <- NEMlist$signalStates
@@ -91,7 +95,7 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
   }
   for (k in signals) {
     if (sum(is.na(signalStates[, k]) == T) == length(signalStates[, k])) {
-      signalStates <- getState(CNOlist = CNOlist, node = k, signalStates = signalStates, graph = graph, children = NULL, NEMlist)
+      signalStates <- getState(CNOlist = CNOlist, node = k, signalStates = signalStates, graph = graph0, children = NULL, NEMlist)
     }
   }
   signalStates <- signalStates[, which(colnames(signalStates) %in% colnames(CNOlist@signals[[1]]))]
