@@ -27,6 +27,7 @@ gaBinaryNemT1 <- function (CNOlist,
                            method = "none",
                            type = "SOCK",
                            exhaustive = FALSE,
+                           delcyc = TRUE,
                            ...
                            ) {
   method <- checkMethod(method)
@@ -192,6 +193,13 @@ gaBinaryNemT1 <- function (CNOlist,
     likelihoods <- numeric()
     lh.samples <- character()
     while (!stop) {
+      if (delcyc) {
+        if (!is.null(parallel)) {
+          Pop <- t(sfApply(Pop, 1, removeCycles, model))
+        } else {
+          Pop <- t(apply(Pop, 1, removeCycles, model))
+        }
+      }
       bestReduced <- reduceGraph(Pop[popSize, ], model, CNOlist)
       if (sum((Pop[popSize, ] - bestReduced) != 0) > 0) {
         Pop[1, ] <- bestReduced

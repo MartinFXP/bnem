@@ -2,6 +2,28 @@ exSearch <- function(CNOlist,model,sizeFac,NAFac,NEMlist,parameters,simList = NU
 
   CNOlist <- checkCNOlist(CNOlist)
   
+  cutModel2 <- function (model, bString) {
+    if (sum(bString == 1) > 0) {
+      bs = as.logical(bString)
+      newmodel <- list()
+      if (is.null(dim(model$interMat))) {
+        newmodel$interMat <- model$interMat[bs]
+        newmodel$notMat <- model$notMat[bs]
+        newmodel$reacID <- model$reacID[bs]
+        newmodel$namesSpecies <- model$namesSpecies
+      } else {
+        newmodel$interMat <- model$interMat[, bs]
+        newmodel$notMat <- model$notMat[, bs]
+        newmodel$reacID <- model$reacID[bs]
+        newmodel$namesSpecies <- model$namesSpecies
+      }
+    } else {
+      newmodel <- model
+    }
+    return(newmodel)
+  }
+
+
   bin2dec <- function(x) {
     exp2 <- 2^c((length(x)-1):0)
     y <- exp2%*%x
@@ -86,54 +108,4 @@ exSearch <- function(CNOlist,model,sizeFac,NAFac,NEMlist,parameters,simList = NU
   }
   names(res) <- samples
   return(list(bString = bString, score = min(res), bStrings = pop, scores = res, dtmRatio = dtmRatio))
-}
-
-cutModel2 <- function (model, bString) {
-  if (sum(bString == 1) > 0) {
-    bs = as.logical(bString)
-    newmodel <- list()
-    if (is.null(dim(model$interMat))) {
-      newmodel$interMat <- model$interMat[bs]
-      newmodel$notMat <- model$notMat[bs]
-      newmodel$reacID <- model$reacID[bs]
-      newmodel$namesSpecies <- model$namesSpecies
-    } else {
-      newmodel$interMat <- model$interMat[, bs]
-      newmodel$notMat <- model$notMat[, bs]
-      newmodel$reacID <- model$reacID[bs]
-      newmodel$namesSpecies <- model$namesSpecies
-    }
-  } else {
-    newmodel <- model
-  }
-  return(newmodel)
-}
-
-
-bin2dec <- function(x) {
-  exp2 <- 2^c((length(x)-1):0)
-  y <- exp2%*%x
-  return(y)
-}
-
-dec2bin <- function(x) {
-  if (x == 0) {
-    y <- 0
-  } else {
-    xTmp <- x
-    start <- floor(log(xTmp)/log(2))
-    y <- numeric(start)
-    count <- 0
-    for (i in start:0) {
-      count <- count + 1
-      exp <- floor(log(xTmp)/log(2))
-      if (i == exp) {
-        y[count] <- 1
-        xTmp <- xTmp - 2^exp
-      } else {
-        y[count] <- 0
-      }
-    }
-  }
-  return(y)
 }

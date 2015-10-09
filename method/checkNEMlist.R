@@ -78,15 +78,3 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
   NEMlist$signalStates <- NEMlistTmp$signalStates
   return(NEMlist)
 }
-
-myCN2bioCN <- function(x, stimuli, inhibitors) {
-  y <- gsub("_vs_", ") vs (", x)
-  for (i in inhibitors) {
-    y <- gsub(i, paste(i, "\\-", sep = ""), y)
-  }
-  for (i in stimuli) {
-    y <- gsub(i, paste(i, "\\+", sep = ""), y)
-  }
-  y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
-  return(y)
-}

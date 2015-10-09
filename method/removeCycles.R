@@ -1,18 +1,3 @@
-removeCyclesold <- function(bString, model) {
-  graph <- model$reacID[which(bString == 1)]
-  hierarchy <- getHierarchy(graph)
-  for (i in 2:length(hierarchy)) {
-    for (j in 1:i) {
-      for (k in hierarchy[[i]]) {
-        for (l in hierarchy[[j]]) {
-          bString[grep(paste(".*", k, ".*=", l, sep = ""), model$reacID)] <- 0
-        }
-      }
-    }
-  }
-  return(bString)
-}
-
 removeCycles <- function(bString, model) {
   if (any(bString != 0)) {
     graph <- model$reacID[which(bString == 1)]
@@ -35,5 +20,22 @@ removeCycles <- function(bString, model) {
       cycles <- which(lower.tri(adjmat) == TRUE & adjmat == 1, arr.ind = TRUE)
     }
     return(bString)
+  } else {
+    return(bString)
   }
 }
+
+## removeCyclesold <- function(bString, model) {
+##   graph <- model$reacID[which(bString == 1)]
+##   hierarchy <- getHierarchy(graph)
+##   for (i in 2:length(hierarchy)) {
+##     for (j in 1:i) {
+##       for (k in hierarchy[[i]]) {
+##         for (l in hierarchy[[j]]) {
+##           bString[grep(paste(".*", k, ".*=", l, sep = ""), model$reacID)] <- 0
+##         }
+##       }
+##     }
+##   }
+##   return(bString)
+## }

@@ -1,6 +1,19 @@
 validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1, 
                           parameters = list(cutOffs = c(0.5,0.5), scoring = c(1,0.75)), plot = TRUE,
                           disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = FALSE, colSideColors = NULL, affychip = "hgu133plus2", method = "pearson", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 0.1, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
+  
+  myCN2bioCN <- function(x, stimuli, inhibitors) {
+    y <- gsub("_vs_", ") vs (", x)
+    for (i in inhibitors) {
+      y <- gsub(i, paste(i, "\\-", sep = ""), y)
+    }
+    for (i in stimuli) {
+      y <- gsub(i, paste(i, "\\+", sep = ""), y)
+    }
+    y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
+    return(y)
+  }
+
   colSideColorsSave <- NULL
   bad.data <- FALSE
   errorMat <- function() {
@@ -16,8 +29,8 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
     colnames(error.mat) <- 1:((7*3+8)+5)
     error.mat <- error.mat
     error.mat <- error.mat
-    error.mat <- error.mat[rep(1:nrow(error.mat), each = 10), rep(1:ncol(error.mat), each = 10)]
-    error.mat <- smoothMatrix(error.mat, 10, torus = F)
+    error.mat <- error.mat[rep(1:nrow(error.mat), each = 1), rep(1:ncol(error.mat), each = 5)]
+    error.mat <- smoothMatrix(error.mat, 5, torus = F)
     return(error.mat)
   }
   CNOlist <- checkCNOlist(CNOlist)

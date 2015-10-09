@@ -8,7 +8,7 @@ library(CellNOptR)
 library(annotate)
 library(hgu133plus2.db)
 
-load("Kube011_BCR_CD40_Inhibitoren/publication/NEMlist.Combat.RData")
+load("publications/BNEM/NEMlist.Combat.RData")
 
 ################### start:
 
@@ -142,7 +142,7 @@ bString[grep(paste(paste("M", 1:100, sep = ""), collapse = "|"), model$reacID)] 
 
 source("github/trunk/method/cnopt.mod.R")
 
-pdf("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_pkn.pdf", height = 5, width = 5)
+pdf("publications/BNEM/BCR_pkn.pdf", height = 5, width = 5)
 
 graph <- model$reacID[-grep("\\+", model$reacID)]
 
@@ -248,9 +248,9 @@ for (i in 1:trainruns) {
 
 }
 
-## save(CNOresults, targets, zetas, file = "Kube011_BCR_CD40_Inhibitoren/publication/BCR_zeta_train_recon.RData")
+## save(CNOresults, targets, zetas, file = "publications/BNEM/BCR_zeta_train_recon.RData")
 
-load("Kube011_BCR_CD40_Inhibitoren/publication/BCR_zeta_train_recon.RData")
+load("publications/BNEM/BCR_zeta_train_recon.RData")
 
 source("github/trunk/method/cnopt.mod.R")
 
@@ -313,7 +313,7 @@ node.num <- (node.num/ncol(CNOlist@signals[[1]]))*100
 
 lwd <- 2
 
-pdf("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_zeta.pdf", width = 6, height = 6)
+pdf("publications/BNEM/BCR_zeta.pdf", width = 6, height = 6)
 
 par(mfrow=c(1,1), mar=c(4, 4, 4, 4) + 0.1)
 
@@ -368,7 +368,7 @@ for (i in 1:10) {
                  method = method
                  )
 
-  save(CNOresult, NEMlist, CNOlist, model, parameters, sizeFac, popSize, file = paste("Kube011_BCR_CD40_Inhibitoren/publication/results/", paste(stimuli, collapse = "_"), "_moduls_result", format(Sys.time(), "%Y.%m.%d.%H:%m:%S"), ".RData", sep = ""))
+  save(CNOresult, NEMlist, CNOlist, model, parameters, sizeFac, popSize, file = paste("publications/BNEM/results/", paste(stimuli, collapse = "_"), "_moduls_result", format(Sys.time(), "%Y.%m.%d.%H:%m:%S"), ".RData", sep = ""))
 
 }
 
@@ -384,16 +384,16 @@ egenes <- 602
 
 modellen <- 54
 
-for (i in list.files("Kube011_BCR_CD40_Inhibitoren/publication/results/")) {
+for (i in list.files("publications/BNEM/results/")) {
   if (length(grep(paste(paste(stimuli, collapse = "_"), "_moduls_result", sep = ""), i)) > 0) {
     popSize <- 1
-    load(paste("Kube011_BCR_CD40_Inhibitoren/publication/results/", i, sep = ""))
+    load(paste("publications/BNEM/results/", i, sep = ""))
     if (dim(NEMlist$fc)[1] != egenes | length(model$reacID) != modellen) {
       next()
     }
     count <- count + 1
     CNOruns[[count]] <- CNOresult
-    files[count] <- paste("Kube011_BCR_CD40_Inhibitoren/publication/results/", i, sep = "")
+    files[count] <- paste("publications/BNEM/results/", i, sep = "")
     scores[count] <- computeScoreNemT1(CNOlist, model = model, CNOresult$bString, NEMlist = NEMlist, tellme = 0, parameters = parameters, sizeFac = sizeFac, method = method)
     print(scores[count])
     print(dim(NEMlist$fc))
@@ -414,7 +414,7 @@ min.score <- computeScoreNemT1(CNOlist, model = model, bString, NEMlist = NEMlis
 
 plotDnf(model$reacID[as.logical(bString)])
 
-pdf("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_res.pdf", height = 7, width = 7)
+pdf("publications/BNEM/BCR_res.pdf", height = 7, width = 7)
 
 #plotDnf(c("BCR=PI3K", "BCR=TAK1", "PI3K=OR1", "TAK1=OR1", "OR1=IKK2", "TAK1=ERK", "PI3K=JNK", "PI3K=AND", "IKK2=AND", "JNK=OR2", "AND=OR2", "OR2=P38"), stimuli = "BCR", nodewidth = list(BCR=1,PI3K=1,TAK1=1,IKK2=1,JNK=1,P38=1,ERK=1,OR1=0.5,OR2=0.5,AND=0.5), nodeheight = list(BCR=1,PI3K=1,TAK1=1,IKK2=1,JNK=1,P38=1,ERK=1,OR1=0.5,OR2=0.5,AND=0.5), edgecol = "black", nodecol = list(AND = "grey", OR1 = "grey", OR2="grey"), bordercol = list(AND = "grey", OR1 = "grey", OR2="grey"), nodelabel = list(OR1 = "OR", OR2 = "OR"))
 
@@ -425,11 +425,11 @@ dev.off()
 initSeed <- bString <- CNOresult$bString
 computeScoreNemT1(CNOlist, model = model, bString, NEMlist = NEMlist, tellme = 0, parameters = parameters, sizeFac = sizeFac, method = method)
 
-initSeed <- bString <- CNOresult$bString
-bString[grep("^Jnk=p38|^Pi3k\\+Ikk2=p38", model$reacID)] <- 0
-bString[grep("^Ikk2\\+Jnk=p38", model$reacID)] <- 1
+## initSeed <- bString <- CNOresult$bString
+## bString[grep("^Jnk=p38|^Pi3k\\+Ikk2=p38", model$reacID)] <- 0
+## bString[grep("^Ikk2\\+Jnk=p38", model$reacID)] <- 1
 
-computeScoreNemT1(CNOlist, model = model, bString, NEMlist = NEMlist, tellme = 0, parameters = parameters, sizeFac = sizeFac, method = method)
+## computeScoreNemT1(CNOlist, model = model, bString, NEMlist = NEMlist, tellme = 0, parameters = parameters, sizeFac = sizeFac, method = method)
 
 ##### check on e-genes:
 
@@ -437,11 +437,11 @@ computeScoreNemT1(CNOlist, model = model, bString, NEMlist = NEMlist, tellme = 0
 
 geneLists <- list()
 source("github/trunk/method/cnopt.mod.R")
-par(ask=T)
+par(ask=F)
 for (i in 1:(ncol(CNOlist@signals[[1]]))) {
 
   geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = bString, Sgene = i, Egenes = 30, method = method, parameters=parameters, cexRow = 0.8, cexCol = 1, EtoS = TRUE, affyIds = F, soft = T, sub = "", sizeFac = sizeFac, disc = 0, Colv = T, Rowv = T, dendrogram = "col", csc = FALSE, xrot = 60, aspect = "iso", breaks = seq(-2,2,0.1))
-  dev.print("temp.pdf", device = pdf)
+  #dev.print("temp.pdf", device = pdf)
 
 }
 
@@ -461,7 +461,7 @@ genes.meta <- getBM(filters= "affy_hg_u133_plus_2",
 par(ask=F)
 for (i in 1:length(geneLists)) {
 
-  pdf(paste("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_", colnames(CNOlist@signals[[1]])[i], ".pdf", sep = ""), height = 15, width = 10)
+  pdf(paste("publications/BNEM/BCR_", colnames(CNOlist@signals[[1]])[i], ".pdf", sep = ""), height = 15, width = 10)
 
   data <- geneLists[[i]]$data
 
@@ -492,3 +492,123 @@ for (i in 1:length(geneLists)) {
   dev.off()
   
 }
+
+####################### NEM comparison:
+
+source("github/trunk/method/cnopt.mod.R")
+library(nem)
+
+## do cutoff learning:
+
+nem.data <- abs(NEMlist$fc[, grep(paste(paste(".*BCR_", inhibitors, "$", sep = ""), collapse = "|"), colnames(NEMlist$fc))])
+
+colnames(nem.data) <- gsub("BCR_vs_BCR_", "", colnames(nem.data))
+
+nem.data <- disc(nem.data, log2(1.5))
+
+nem.res <- nem(nem.data)
+
+pdf("temp.pdf", width = 5, height = 100)
+heatmapOP(nem.data, aspect = "iso")
+dev.off()
+
+plot(nem.res)
+
+tmp <- graph2adj(nem.res$graph)
+
+tmp <- transitive.reduction(tmp)
+
+tmp1 <- adj2dnf(tmp)
+
+count <- 0
+
+nodelabel <- list()
+nodecol <- list()
+bordercol <- list()
+nodeheight <- list()
+nodewidth <- list()
+
+for (i in gsub(".*=", "=", tmp1)) {
+  if (length(grep(i, tmp1)) > 1) {
+    count <- count + 1
+    tmp1 <- gsub(i, paste("=AND", count, sep = ""), tmp1)
+    tmp1 <- c(tmp1, paste("AND", count, i, sep = ""))
+    nodelabel <- c(nodelabel, "")
+    nodecol <- c(nodecol, "transparent")
+    bordercol <- c(bordercol, "transparent")
+    nodeheight <- c(nodeheight, 0)
+    nodewidth <- c(nodewidth, 0)
+  }
+}
+
+names(nodelabel) <- paste("AND", 1:count, sep = "")
+names(nodecol) <- paste("AND", 1:count, sep = "")
+names(bordercol) <- paste("AND", 1:count, sep = "")
+names(nodeheight) <- paste("AND", 1:count, sep = "")
+names(nodewidth) <- paste("AND", 1:count, sep = "")
+
+pdf("publications/BNEM/BCR_nem_res.pdf", height = 5, width = 3)
+
+plotDnf(tmp1, width = 1, nodelabel = nodelabel, nodeheight = nodeheight, nodewidth = nodewidth, nodecol = nodecol, bordercol = bordercol)
+
+dev.off()
+
+####### now with prior and model selection:
+
+hyper <- set.default.parameters(Sgenes = colnames(nem.data))
+
+hyper$Pm <- diag(6)
+
+print(colnames(nem.data)) # "Erk"  "Ikk2" "Jnk"  "Pi3k" "Tak1" "p38"
+
+hyper$Pm[4:5, c(1:3,6)] <- 1
+
+hyper$lambda = 1000
+nem.res.reg <- nem(nem.data, control=hyper)
+
+nem.res.reg <- nemModelSelection(seq(1,100, 1), nem.data, control=hyper)
+
+plot(nem.res.reg)
+
+tmp <- graph2adj(nem.res.reg$graph)
+
+tmp <- transitive.reduction(tmp)
+
+tmp2 <- adj2dnf(tmp)
+
+count <- 0
+
+nodelabel <- list()
+nodecol <- list()
+bordercol <- list()
+nodeheight <- list()
+nodewidth <- list()
+
+for (i in gsub(".*=", "=", tmp2)) {
+  if (length(grep(i, tmp2)) > 1) {
+    count <- count + 1
+    tmp2 <- gsub(i, paste("=AND", count, sep = ""), tmp2)
+    tmp2 <- c(tmp2, paste("AND", count, i, sep = ""))
+    nodelabel <- c(nodelabel, "")
+    nodecol <- c(nodecol, "transparent")
+    bordercol <- c(bordercol, "transparent")
+    nodeheight <- c(nodeheight, 0)
+    nodewidth <- c(nodewidth, 0)
+  }
+}
+
+names(nodelabel) <- paste("AND", 1:count, sep = "")
+names(nodecol) <- paste("AND", 1:count, sep = "")
+names(bordercol) <- paste("AND", 1:count, sep = "")
+names(nodeheight) <- paste("AND", 1:count, sep = "")
+names(nodewidth) <- paste("AND", 1:count, sep = "")
+
+pdf("publications/BNEM/BCR_nem_res_reg.pdf", height = 5, width = 3)
+
+plotDnf(tmp2, width = 1, nodelabel = nodelabel, nodeheight = nodeheight, nodewidth = nodewidth, nodecol = nodecol, bordercol = bordercol)
+
+dev.off()
+
+################ other stuff:
+
+# meld ~/comphome/publications/BNEM/manuscript/document.tex ~/comphome/Kube011_BCR_CD40_Inhibitoren/publication/pdf/manuscript/document.tex & # to check differences!

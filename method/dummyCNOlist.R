@@ -111,50 +111,50 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
 
 ## CNOlist <- dummyCNOlist(paste("S", 1:10, sep = ""), paste("I", 1:10, sep = ""), maxStim = 2, maxInhibit = 1)
 
-dummyCNOlistOld <- function(stimuli, inhibitors, signals = NULL, maxStim = 2, maxInhibit = 1) {
-  if (is.null(signals)) { signals <- c(stimuli, inhibitors) }
-  require(CellNOptR)
-  if (maxStim == 0 & maxInhibit == 0) {
-    cnolist <- new("CNOlist",
-                   cues = matrix(0, 1, 1), inhibitors = matrix(0, 1, 1),
-                   stimuli = matrix(0, 1, 1),
-                   signals = list(matrix(0, 1, 1), matrix(0, 1, 1)), timepoints = as.character(c(0,1)))
-  } else {
-    cues <- list()
-    for (i in 1:(length(stimuli)+length(inhibitors))) {
-      cues[[i]] <- c(0,1)
-    }
-    ## expand.grid.jc <- function(x) {
-    ##   temp <- numeric()
-    ##   for (i in 1:(length(x)-1)) {
-    ##     for (j in (i+1):length(x)) {
-    ##       temp <- cbind(temp, cbind(rep.int(x[[i]], length(x[[j]])),
-    ##                                 rep.int(x[[j]], rep.int(length(x[[i]]), length(x[[j]])))))
-    ##     }
-    ##   }
-    ##   return(temp)
-    ## }
-    experiments <- expand.grid(cues)
-    inhibitorSum <- apply(as.matrix(experiments[, (length(stimuli)+1):(length(stimuli) + length(inhibitors))]), 1, sum)
-    experiments <- experiments[which(inhibitorSum <= maxInhibit), ]
-    stimuliSum <- apply(as.matrix(experiments[, 1:length(stimuli)]), 1, sum)
-    experiments <- experiments[which(stimuliSum <= maxStim), ]
-    colnames(experiments)[1:length(stimuli)] <- stimuli
-    colnames(experiments)[(length(stimuli)+1):(length(stimuli)+length(inhibitors))] <- inhibitors
-    experiments <- as.matrix(experiments)
-    rownames(experiments) <- 1:nrow(experiments)
-    for (i in 1:nrow(experiments)) {
-      rownames(experiments)[i] <- paste(colnames(experiments)[which(experiments[i, ] == 1)], collapse = "_")
-    }
-    stimuliTemp <- as.matrix(experiments[, 1:length(stimuli)])
-    colnames(stimuliTemp) <- stimuli
-    experiments2 <- matrix(NA, nrow = nrow(experiments), ncol = length(signals))
-    rownames(experiments2) <- rownames(experiments)
-    colnames(experiments2) <- signals
-    cnolist <- new("CNOlist",
-                   cues = experiments, inhibitors = as.matrix(experiments[, (length(stimuli)+1):(length(stimuli)+length(inhibitors))]),
-                   stimuli = as.matrix(experiments[, 1:length(stimuli)]),
-                   signals = list(experiments2*0, experiments2), timepoints = as.character(c(0,1)))
-  }
-  return(cnolist)
-}
+## dummyCNOlistOld <- function(stimuli, inhibitors, signals = NULL, maxStim = 2, maxInhibit = 1) {
+##   if (is.null(signals)) { signals <- c(stimuli, inhibitors) }
+##   require(CellNOptR)
+##   if (maxStim == 0 & maxInhibit == 0) {
+##     cnolist <- new("CNOlist",
+##                    cues = matrix(0, 1, 1), inhibitors = matrix(0, 1, 1),
+##                    stimuli = matrix(0, 1, 1),
+##                    signals = list(matrix(0, 1, 1), matrix(0, 1, 1)), timepoints = as.character(c(0,1)))
+##   } else {
+##     cues <- list()
+##     for (i in 1:(length(stimuli)+length(inhibitors))) {
+##       cues[[i]] <- c(0,1)
+##     }
+##     ## expand.grid.jc <- function(x) {
+##     ##   temp <- numeric()
+##     ##   for (i in 1:(length(x)-1)) {
+##     ##     for (j in (i+1):length(x)) {
+##     ##       temp <- cbind(temp, cbind(rep.int(x[[i]], length(x[[j]])),
+##     ##                                 rep.int(x[[j]], rep.int(length(x[[i]]), length(x[[j]])))))
+##     ##     }
+##     ##   }
+##     ##   return(temp)
+##     ## }
+##     experiments <- expand.grid(cues)
+##     inhibitorSum <- apply(as.matrix(experiments[, (length(stimuli)+1):(length(stimuli) + length(inhibitors))]), 1, sum)
+##     experiments <- experiments[which(inhibitorSum <= maxInhibit), ]
+##     stimuliSum <- apply(as.matrix(experiments[, 1:length(stimuli)]), 1, sum)
+##     experiments <- experiments[which(stimuliSum <= maxStim), ]
+##     colnames(experiments)[1:length(stimuli)] <- stimuli
+##     colnames(experiments)[(length(stimuli)+1):(length(stimuli)+length(inhibitors))] <- inhibitors
+##     experiments <- as.matrix(experiments)
+##     rownames(experiments) <- 1:nrow(experiments)
+##     for (i in 1:nrow(experiments)) {
+##       rownames(experiments)[i] <- paste(colnames(experiments)[which(experiments[i, ] == 1)], collapse = "_")
+##     }
+##     stimuliTemp <- as.matrix(experiments[, 1:length(stimuli)])
+##     colnames(stimuliTemp) <- stimuli
+##     experiments2 <- matrix(NA, nrow = nrow(experiments), ncol = length(signals))
+##     rownames(experiments2) <- rownames(experiments)
+##     colnames(experiments2) <- signals
+##     cnolist <- new("CNOlist",
+##                    cues = experiments, inhibitors = as.matrix(experiments[, (length(stimuli)+1):(length(stimuli)+length(inhibitors))]),
+##                    stimuli = as.matrix(experiments[, 1:length(stimuli)]),
+##                    signals = list(experiments2*0, experiments2), timepoints = as.character(c(0,1)))
+##   }
+##   return(cnolist)
+## }

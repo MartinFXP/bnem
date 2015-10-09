@@ -60,74 +60,74 @@ absorptionII <- function(bString, model=NULL) {
   return(bString)
 }
 
-absorptionold <- function(bString, model) {
-  graph <- model$reacID[bString == 1]
-  gates <- list()
-  for (i in graph) {
-    if (is.null(gates[[i]])) {
-      tmp <- unlist(strsplit(i, "="))
-      output <- tmp[2]
-      input <- unlist(strsplit(tmp[1], "\\+"))
-      gates[[i]]$input <- input
-      gates[[i]]$output <- output
-    } else {
-      input <- gates[[i]]$input
-      output <- gates[[i]]$output
-    }
-    for (j in graph) {
-      if (i %in% j) {
-        next()
-      }
-      if (is.null(gates[[j]])) {
-        tmp <- unlist(strsplit(j, "="))
-        output2 <- tmp[2]
-        input2 <- unlist(strsplit(tmp[1], "\\+"))
-        gates[[j]]$input <- input2
-        gates[[j]]$output <- output2
-      } else {
-        input2 <- gates[[j]]$input
-        output2 <- gates[[j]]$output
-      }
-      if (all(input2 %in% input) & output %in% output2) {
-        bString[which(model$reacID %in% i)] <- 0
-      }
-    }
-  }
-  return(bString)
-}
+## absorptionold <- function(bString, model) {
+##   graph <- model$reacID[bString == 1]
+##   gates <- list()
+##   for (i in graph) {
+##     if (is.null(gates[[i]])) {
+##       tmp <- unlist(strsplit(i, "="))
+##       output <- tmp[2]
+##       input <- unlist(strsplit(tmp[1], "\\+"))
+##       gates[[i]]$input <- input
+##       gates[[i]]$output <- output
+##     } else {
+##       input <- gates[[i]]$input
+##       output <- gates[[i]]$output
+##     }
+##     for (j in graph) {
+##       if (i %in% j) {
+##         next()
+##       }
+##       if (is.null(gates[[j]])) {
+##         tmp <- unlist(strsplit(j, "="))
+##         output2 <- tmp[2]
+##         input2 <- unlist(strsplit(tmp[1], "\\+"))
+##         gates[[j]]$input <- input2
+##         gates[[j]]$output <- output2
+##       } else {
+##         input2 <- gates[[j]]$input
+##         output2 <- gates[[j]]$output
+##       }
+##       if (all(input2 %in% input) & output %in% output2) {
+##         bString[which(model$reacID %in% i)] <- 0
+##       }
+##     }
+##   }
+##   return(bString)
+## }
 
-absorptionIIold <- function(bString, model) {
-  graph <- model$reacID[bString == 1]
-  gates <- list()
-  for (i in graph) {
-    if (is.null(gates[[i]])) {
-      tmp <- unlist(strsplit(i, "="))
-      output <- tmp[2]
-      input <- unlist(strsplit(tmp[1], "\\+"))
-      gates[[i]]$input <- input
-      gates[[i]]$output <- output
-    } else {
-      input <- gates[[i]]$input
-      output <- gates[[i]]$output
-    }
-    for (j in graph) {
-      if (i %in% j) {
-        next()
-      }
-      if (is.null(gates[[j]])) {
-        tmp <- unlist(strsplit(j, "="))
-        output2 <- tmp[2]
-        input2 <- unlist(strsplit(tmp[1], "\\+"))
-        gates[[j]]$input <- input2
-        gates[[j]]$output <- output2
-      } else {
-        input2 <- gates[[j]]$input
-        output2 <- gates[[j]]$output
-      }
-      if (all(input %in% input2) & output %in% output2) {
-        bString[which(model$reacID %in% i)] <- 0
-      }
-    }
-  }
-  return(bString)
-}
+## absorptionIIold <- function(bString, model) {
+##   graph <- model$reacID[bString == 1]
+##   gates <- list()
+##   for (i in graph) {
+##     if (is.null(gates[[i]])) {
+##       tmp <- unlist(strsplit(i, "="))
+##       output <- tmp[2]
+##       input <- unlist(strsplit(tmp[1], "\\+"))
+##       gates[[i]]$input <- input
+##       gates[[i]]$output <- output
+##     } else {
+##       input <- gates[[i]]$input
+##       output <- gates[[i]]$output
+##     }
+##     for (j in graph) {
+##       if (i %in% j) {
+##         next()
+##       }
+##       if (is.null(gates[[j]])) {
+##         tmp <- unlist(strsplit(j, "="))
+##         output2 <- tmp[2]
+##         input2 <- unlist(strsplit(tmp[1], "\\+"))
+##         gates[[j]]$input <- input2
+##         gates[[j]]$output <- output2
+##       } else {
+##         input2 <- gates[[j]]$input
+##         output2 <- gates[[j]]$output
+##       }
+##       if (all(input %in% input2) & output %in% output2) {
+##         bString[which(model$reacID %in% i)] <- 0
+##       }
+##     }
+##   }
+##   return(bString)
+## }
