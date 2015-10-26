@@ -504,6 +504,10 @@ nem.data <- abs(NEMlist$fc[, grep(paste(paste(".*BCR_", inhibitors, "$", sep = "
 
 colnames(nem.data) <- gsub("BCR_vs_BCR_", "", colnames(nem.data))
 
+for (i in 1:length(letters)) {
+  colnames(nem.data) <- gsub(letters[i], LETTERS[i], colnames(nem.data))
+}
+
 nem.data <- disc(nem.data, log2(1.5))
 
 nem.res <- nem(nem.data)

@@ -17,14 +17,14 @@ transClose <- function(g, max.iter = NULL) {
       input <- intersect(input, g.out)
       output <- gsub(".*=", "", i)
       if (length(input) == 0) { next() }
-      for (j in input) {
+      for (j in unique(input)) {
         if (j %in% unlist(strsplit(unlist(strsplit(i, "="))[1], "\\+"))) {
-          tmp <- paste(sort(unique(unlist(strsplit(gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)]), "\\+")))), collapse = "+")
+          tmp <- paste(unique(sort(unlist(strsplit(gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)]), "\\+")))), collapse = "+")
           g.closed <- c(g.closed, gsub(j, tmp, i))
         } else {
           literals <- list()
           count <- 0
-          for (k in gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)])) {
+          for (k in unique(gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)]))) {
             count <- count + 1
             literals[[count]] <- gsub("!!", "", paste("!", unlist(strsplit(k, "\\+")), sep = ""))
           }
@@ -44,5 +44,13 @@ transClose <- function(g, max.iter = NULL) {
   }
   cat("\n")
   g.closed <- unique(g.closed)
+  for (j in 1:length(g.closed)) {
+    i <- g.closed[j]
+    input <- unlist(strsplit(i, "="))
+    output <- input[2]
+    input <- unlist(strsplit(input[1], "\\+"))
+    input <- unique(input)
+    g.closed[j] <- paste(paste(input, collapse = "+"), output, sep = "=")
+  }
   return(g.closed)
 }

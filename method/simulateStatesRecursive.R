@@ -25,14 +25,16 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
               add1 <- 1
             }
             if (j2 %in% children2) {
+              ## this speeds up the process and will
               subGraph <- graph
-              ## subGraph <- graph[-grep(paste(".*", j2, ".*=", node, sep = ""), graph)] # same as setting j2* == 0 and recursively learning j2
-              ## subGraph <- graph[-grep(paste(".*=", node, sep = ""), graph)] # seems to work: same as setting node == 0 and learning j2
-              #subGraph <- subGraph[-grep(paste(".*=", node, "|.*", j2, ".*=.*", sep = ""), subGraph)]
-              #signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist)
-              signalStates2 <- signalStates
-              signalStates2[, node] <- 0
-              signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates2, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist)
+              subGraph <- subGraph[-grep(paste(".*=", node, "|.*", j2, ".*=.*", sep = ""), subGraph)]
+              signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist)
+              
+              ## ## is mathematically more reasonable but takes longer:
+              ## signalStates2 <- signalStates
+              ## signalStates2[, node] <- 0
+              ## signalStatesTmp <- getState(CNOlist = CNOlist, node = j2, signalStates = signalStates2, graph = subGraph, children = children2[-which(children2 %in% node)], NEMlist)
+              
               ## if ((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2 != ceiling((length(grep("!", children[which(children2 %in% j2):length(children2)]))+add1)/2)) {
               ##   ## negative feedback loop calculation does not seem to be general enough and also not feasible:
               ## } else {

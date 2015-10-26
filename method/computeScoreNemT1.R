@@ -10,6 +10,27 @@ computeScoreNemT1 <- function(CNOlist,
                               verbose = FALSE,
                               opt = "min"
                               ) {
+  cutModel2 <- function (model, bString) {
+    if (sum(bString == 1) > 0) {
+      bs = as.logical(bString)
+      newmodel <- list()
+      if (is.null(dim(model$interMat))) {
+        newmodel$interMat <- model$interMat[bs]
+        newmodel$notMat <- model$notMat[bs]
+        newmodel$reacID <- model$reacID[bs]
+        newmodel$namesSpecies <- model$namesSpecies
+      } else {
+        newmodel$interMat <- model$interMat[, bs]
+        newmodel$notMat <- model$notMat[, bs]
+        newmodel$reacID <- model$reacID[bs]
+        newmodel$namesSpecies <- model$namesSpecies
+      }
+    } else {
+      newmodel <- model
+    }
+    return(newmodel)
+  }
+
   CNOlist <- checkCNOlist(CNOlist)
   method <- checkMethod(method)
   ## if (is.null(simList) == TRUE) {

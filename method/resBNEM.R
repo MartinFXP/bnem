@@ -85,7 +85,7 @@ resBNEM <- function(bString, CNOlist, model, NEMlist, parameters, method, sizeFa
       sfInit(parallel=TRUE, cpus=parallel, type = "SOCK")
     }
     sfLibrary(CellNOptR)
-    sfExport(list = c("checkSgene", "computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc", "cutModel2",  "computeSm", "sizeFac", "method", "removeCycles", "dnf2adj", "plotBinary", "getHierarchy", "absorption", "checkMethod", "approach", "parameters"), local = T)
+    sfExport(list = c("checkSgene", "computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc",  "computeSm", "sizeFac", "method", "removeCycles", "dnf2adj", "plotBinary", "getHierarchy", "absorption", "checkMethod", "approach", "parameters"), local = T)
   }
   
   if (!is.null(parallel)) {

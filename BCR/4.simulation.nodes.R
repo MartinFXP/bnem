@@ -96,6 +96,60 @@ dev.off()
 
 length(model$reacID)
 
+save.image("cluster/nodes.RData")
+
+####################### athene:
+
+cluster.file <- "cluster/nodes.RData"
+
+hpc.nodes <- 1
+hpc.ppn <- 8
+walltime <- "48:00:00"
+pmem <- "1000"
+
+noises <- c(0.1,0.25,0.5,0.5,1,2)
+noises <- c(3,4,5)
+types <- c(rep("disc", 0), rep("cont", 3))
+
+for (i in 1:length(noises)) {
+
+  write(paste("#!/bin/bash\n#PBS -l walltime=", walltime, "\n#PBS -l pmem=", pmem, "mb\n#PBS -l nodes=", hpc.nodes, ":ppn=", hpc.ppn, "\ncd /spang.compdiag/user/pim28150/\nRBioCscript cluster/nodes.R 'data=", cluster.file, "' 'noise=", noises[i], "' 'type=", types[i], "'", sep = ""), file = paste("cluster/nodes", i, ".sh", sep = ""))
+
+}
+
+dev.off()
+
+system("ssh -X athene", intern = F)
+
+## qsub /spang.compdiag/user/pim28150/cluster/nodes1.sh -l walltime=00:10:00 -q express -o /spang.compdiag/user/pim28150/cluster/temp.out -e /spang.compdiag/user/pim28150/cluster/temp.err
+
+## qsub /spang.compdiag/user/pim28150/cluster/temp.sh -q spang -o /spang.compdiag/user/pim28150/cluster/temp.out -e /spang.compdiag/user/pim28150/cluster/temp.err
+
+for i in `seq 1 3`; do
+
+  qsub /spang.compdiag/user/pim28150/cluster/nodes$i.sh -q serial -o /spang.compdiag/user/pim28150/cluster/nodes$i.out -e /spang.compdiag/user/pim28150/cluster/nodes$i.err
+
+  rm -f /spang.compdiag/user/pim28150/cluster/nodes$i.sh
+  sleep 5
+  done
+
+exit
+
+print("start of the script")
+
+library(methods)
+source("github/trunk/method/cnopt.mod.R")
+library(CellNOptR)
+
+args <- commandArgs()
+file <- gsub("data=", "", args[grep("data=", args)])
+noise <- as.numeric(gsub("noise=", "", args[grep("noise=", args)]))
+type <- gsub("type=", "", args[grep("type=", args)])
+
+load(file)
+
+print("everything loaded")
+
 ######################## do fundamental super pkn sim:
 
 source("Boutros10.svn/method/scripts/cnopt.mod.R")
@@ -108,9 +162,8 @@ verbose <- TRUE
 popSize <- 100
 stallGenMax <- 10
 maxGens <- Inf
-noise <- 0.1
 
-parallel <- 12#list(4, "rhskl4")
+parallel <- 8#list(4, "rhskl4")
 
 count <- 0
 
@@ -120,7 +173,7 @@ CNOresults <- list()
 
 TN.list <- list()
 
-for (n in rev(round(seq(10, 15, (30-10)/4)))) {
+for (n in rev(round(seq(10, 30, (30-10)/4)))) {
   ## n <- 30
   count <- count + 1
   CNOinput[[count]] <- list()
@@ -152,7 +205,11 @@ for (n in rev(round(seq(10, 15, (30-10)/4)))) {
       nodes.tmp <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(TN.graph, "\\+")), "="))))
       core <- gsub("!", "", unlist(strsplit(unlist(strsplit(TN.graph[sample(grep("S", TN.graph), 1)], "=")), "\\+")))
       core <- c(core, nodes.tmp[sample(grep("I2", nodes.tmp), 1)], nodes.tmp[sample(grep("I3", nodes.tmp), 1)], nodes.tmp[sample(grep("I4", nodes.tmp), 1)])
-      core <- c(core, sample(nodes.tmp[-which(nodes.tmp %in% core)], n - length(core)))
+      if (length(nodes.tmp[-which(nodes.tmp %in% core)]) < n - length(core)) {
+        core <- c(core, nodes.tmp[-which(nodes.tmp %in% core)])
+      } else {
+        core <- c(core, sample(nodes.tmp[-which(nodes.tmp %in% core)], n - length(core)))
+      }
       nodes <- core
       notnodes <- signals[-which(signals %in% core)]
       bString <- numeric(length(model$reacID))
@@ -177,8 +234,10 @@ for (n in rev(round(seq(10, 15, (30-10)/4)))) {
     NEMlist$exprs <- t(SimResults[rep(1:nrow(SimResults), 3), rep(1:ncol(SimResults), 10)])
     NEMlist$exprs <- NEMlist$exprs[, order(colnames(NEMlist$exprs))]
     colnames(NEMlist$exprs) <- paste(paste(sort(rep(rownames(SimResults), 3)), "_rep", 1:3, sep = ""), "_run1", sep = "")
-    noisy <- sample(1:length(NEMlist$exprs), floor(noise*length(NEMlist$exprs)))
-    NEMlist$exprs[noisy] <- 1 - NEMlist$exprs[noisy]
+    if ("disc" %in% type) {
+      noisy <- sample(1:length(NEMlist$exprs), floor(noise*length(NEMlist$exprs)))
+      NEMlist$exprs[noisy] <- 1 - NEMlist$exprs[noisy]
+    }
     NEMlist$fc <- computeFcII(NEMlist$exprs, stimuli[which(stimuli %in% nodes)], inhibitors[which(inhibitors %in% nodes)], paste("rep", 1:3, sep = ""), "run1")
     colnames(NEMlist$fc) <- gsub("_r.*", "", colnames(NEMlist$fc))
     relevant <- numeric()
@@ -200,6 +259,9 @@ for (n in rev(round(seq(10, 15, (30-10)/4)))) {
     initBstring <- reduceGraph(rep(0,length(model1$reacID)), model)
     CNOinput[[count]][[c]] <- list(model1 = model1, TN = TN)
     print(paste("size: ", n, " sample: ", c, sep = ""))
+    if ("cont" %in% type) {
+      NEMlist$fc <- NEMlist$fc + rnorm(length(NEMlist$fc), 0, noise)
+    }
     dim(NEMlist$fc)
     start <- Sys.time()
     CNOresults[[count]][[c]] <- gaBinaryNemT1(parallel=parallel,CNOlist=CNOlist,NEMlist=NEMlist,model=model1,initBstring=initBstring,popSize = popSize, maxTime = Inf, maxGens = maxGens, stallGenMax = stallGenMax, elitism = ceiling(popSize*0.01),inversion = ceiling(popSize*0.01),verbose=TRUE,parameters = parameters,sizeFac = sizeFac,method = method)
@@ -216,7 +278,9 @@ par(mfrow=c(1,2))
 plotDnf(model1$reacID[as.logical(TN)], CNOlist = CNOlist, legend = 0)
 plotDnf(model1$reacID[as.logical(RN)], CNOlist = CNOlist, legend = 0)
 
-## save(CNOlist, CNOresults, CNOinput, file = "superpkn_nodes3.RData")
+## save(CNOlist, CNOresults, CNOinput, file = paste("superpkn_nodes_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
+
+load(paste("superpkn_nodes_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
 
 sens <- spec <- time <- hyeds <- matrix(0, length(CNOresults), length(CNOresults[[1]]))
 
@@ -269,7 +333,7 @@ hyeds.med <- rev(hyeds.med)
 
 lwd <- 2
 
-pdf("Kube011_BCR_CD40_Inhibitoren/publication/pdf/bioinformatics/gfx/BCR_super_nodes.pdf", width = 5, height = 5)
+pdf(paste("dissertation/diss/Thesis/gfx/super_nodes_", type, "_", noise, ".pdf", sep = ""), width = 5, height = 5)
 
 par(mfrow=c(1,1), mar=c(4, 4, 4, 4) + 0.1)
 
@@ -278,13 +342,13 @@ lines(spec.med, type = "b", lty = 2, pch = 2, col = 1, lwd = lwd)
 time.med2 <- time.med - min(time.med)
 time.med2 <- time.med2/max(time.med2)
 #time.med2 <- (time.med2 + 3)/max((time.med2 + 3))
-lines(time.med2, type = "b", col = 1, lty = 3, pch = 3, lwd = lwd)
+#lines(time.med2, type = "b", col = 1, lty = 3, pch = 3, lwd = lwd)
 axis(2, seq(0,1,0.1), seq(0,1,0.1))
 axis(3, 1:length(hyeds.med), round(hyeds.med), col = "black", col.ticks = "black", col.axis = "black")
 axis(1, 1:length(time.med), round(seq(10, 30, (30-10)/4)))
-axis(4, seq(0,1,0.1), round(seq(min(time.med), max(time.med), (max(time.med) - min(time.med))/10)/60*12/60, 1), col = "black", col.ticks = "black", col.axis = "black")
+#axis(4, seq(0,1,0.1), round(seq(min(time.med), max(time.med), (max(time.med) - min(time.med))/10)/60*8/60, 1), col = "black", col.ticks = "black", col.axis = "black")
 mtext("hyper-edges", side=3, line=3, cex.lab=1,las=0, col="black")
-mtext("time in hours", side=4, line=3, cex.lab=1,las=0, col="black")
+#mtext("time in hours", side=4, line=3, cex.lab=1,las=0, col="black")
 #legend(1, 0.6, legend = c("sensitivity", "specificity", "time"), col = c(1,1,2), lty = 1:3, pch = 1:3, lwd = lwd)
 
 dev.off()

@@ -26,6 +26,8 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
           count <- count + 1
           stimDesign[count, combs[j, ]] <- 1
         }
+        ## index <- as.vector(stimn:(nrow(combs)+stimn) + (combs - 1)*nrow(stimDesign))
+        ## stimDesign[index] <- 1
       }
     }
     colnames(stimDesign) <- stimuli
@@ -53,6 +55,8 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
           count <- count + 1
           inhibDesign[count, combs[j, ]] <- 1
         }
+        ## index <- as.vector(inhibn:(nrow(combs)+inhibn) + (combs - 1)*nrow(inhibDesign))
+        ## inhibDesign[index] <- 1
       }
     }
     colnames(inhibDesign) <- inhibitors
@@ -97,10 +101,15 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
   stimDesign <- design[, 1:ncol(stimDesign)]
   inhibDesign <- design[, (ncol(stimDesign)+1):ncol(design)]
   rownames(design) <- rownames(inhibDesign) <- rownames(stimDesign) <- rownames(signalData) <- c("Ctrl", 2:nrow(design))
-  for (i in 2:nrow(design)) {
-    tmp <- paste(colnames(design)[which(design[i, ] == 1)], collapse = "_")
-    rownames(design)[i] <- rownames(inhibDesign)[i] <- rownames(stimDesign)[i] <- rownames(signalData)[i] <- tmp
+  ## for (i in 2:nrow(design)) {
+  ##   tmp <- paste(colnames(design)[which(design[i, ] == 1)], collapse = "_")
+  ##   rownames(design)[i] <- rownames(inhibDesign)[i] <- rownames(stimDesign)[i] <- rownames(signalData)[i] <- tmp
+  ## }
+  getRowname <- function(i, M) {
+    r <- paste(colnames(M)[which(M[i, ] == 1)], collapse = "_")
+    return(r)
   }
+  rownames(design)[2:nrow(design)] <- rownames(inhibDesign)[2:nrow(design)] <- rownames(stimDesign)[2:nrow(design)] <- rownames(signalData)[2:nrow(design)] <- unlist(lapply(as.list(2:nrow(design)), getRowname, design))
   cnolist <- new("CNOlist",
                  cues = design, inhibitors = inhibDesign,
                  stimuli = stimDesign,

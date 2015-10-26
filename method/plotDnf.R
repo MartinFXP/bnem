@@ -266,7 +266,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
         nodes[[i]]@attrs$color <- bordercol[[nodes[[i]]@name]]
       }
       if (is.null(nodeshape[[nodes[[i]]@name]])) {
-        nodes[[i]]@attrs$shape <- "ellipse"
+        nodes[[i]]@attrs$shape <- "box"
       } else {
         nodes[[i]]@attrs$shape <- nodeshape[[nodes[[i]]@name]]
       }
