@@ -76,7 +76,9 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
     SCompMat[SCompMat > 0] <- 1
     SCompMat[SCompMat < 0] <- -1
     SCompMat <- t(SCompMat)
-    ## print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))]); ## print(rownames(SCompMat)[which(!(rownames(SCompMat) %in% colnames(NEMlist$fc)))]) # for debugging
+    if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
+      print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))]); ## print(rownames(SCompMat)[which(!(rownames(SCompMat) %in% colnames(NEMlist$fc)))]) # for debugging
+    }
     ## make Sgene matrix and Egene matrix foldchanges have the same number and/or order of experiments:
     if (is.null(rownames(SCompMat))) {
       SCompMat <- SCompMat[, colnames(NEMlist$fc)]

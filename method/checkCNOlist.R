@@ -14,8 +14,10 @@ checkCNOlist <- function(CNOlist) {
     CNOlist@inhibitors <- CNOlist@inhibitors[, order(colnames(CNOlist@inhibitors))]
   }
   CNOlist@cues <- cbind(CNOlist@stimuli, CNOlist@inhibitors)
-  for (i in 1:length(CNOlist@signals)) {
-    CNOlist@signals[[i]] <- CNOlist@signals[[i]][, order(colnames(CNOlist@signals[[i]]))]
+  if (ncol(CNOlist@signals[[1]]) > 1) {
+    for (i in 1:length(CNOlist@signals)) {
+      CNOlist@signals[[i]] <- CNOlist@signals[[i]][, order(colnames(CNOlist@signals[[i]]))]
+    }
   }
   CNOlist@variances <- list()
   return(CNOlist)

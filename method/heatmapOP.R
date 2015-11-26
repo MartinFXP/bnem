@@ -15,7 +15,7 @@
 ## cexCol,cexRow,cexMain,cexSub - fontsize
 ## aspect = "fill" for streched squares, or "iso" for quadratic ones
 
-heatmapOP <- function(x, col = "RdYlGn", coln = 11, bordercol = "transparent", borderwidth = 0.1, breaks = NULL, main = "heatmap by Oscar Perpiñán", sub = "http://oscarperpinan.github.io/rastervis/; http://stackoverflow.com/questions/15505607/diagonal-labels-orientation-on-x-axis-in-heatmaps", dendrogram = "none", colorkey = list(space = "right"), Colv = TRUE, Rowv = TRUE, xrot = 90, yrot = 0, shrink = c(1,1), cexCol = 1, cexRow = 1, cexMain = 1, cexSub = 1, colSideColors = NULL, aspect = "fill", contour = FALSE, useRaster = FALSE, xlab = NULL, ylab = NULL, colSideColorsPos = "top", ...) {
+heatmapOP <- function(x, col = "RdYlGn", coln = 11, bordercol = "transparent", borderwidth = 0.1, breaks = NULL, main = "heatmap by Oscar Perpiñán", sub = "http://oscarperpinan.github.io/rastervis/; http://stackoverflow.com/questions/15505607/diagonal-labels-orientation-on-x-axis-in-heatmaps", dendrogram = "none", colorkey = list(space = "right"), Colv = TRUE, Rowv = TRUE, xrot = 90, yrot = 0, shrink = c(1,1), cexCol = 1, cexRow = 1, cexMain = 1, cexSub = 1, colSideColors = NULL, aspect = "fill", contour = FALSE, useRaster = FALSE, xlab = NULL, ylab = NULL, colSideColorsPos = "top", clust = NULL, ...) { ## if clust == "p","s","k" uses correlation to cluster with clust as method
   ## for info on the commands checkout ?levelplot and ?xyplot in library(lattice)
   ## heatmap © Oscar Perpiñán @ http://stackoverflow.com/questions/15505607/diagonal-labels-orientation-on-x-axis-in-heatmaps; http://oscarperpinan.github.io/rastervis/
   
@@ -56,7 +56,13 @@ heatmapOP <- function(x, col = "RdYlGn", coln = 11, bordercol = "transparent", b
   require(latticeExtra)
   
   if (Colv) {
-    dd.col <- as.dendrogram(hclust(dist(t(x))))
+    if (is.null(clust)) {
+      dd.col <- as.dendrogram(hclust(dist(t(x))))
+    } else {
+      cor.tmp <- cor(x, method = clust)
+      cor.tmp[which(is.na(cor.tmp) == TRUE)] <- 0
+      dd.col <- as.dendrogram(hclust(as.dist(1-abs(cor.tmp))))
+    }
     col.ord <- order.dendrogram(dd.col)
   } else {
     if (dendrogram %in% "both") {
@@ -70,7 +76,13 @@ heatmapOP <- function(x, col = "RdYlGn", coln = 11, bordercol = "transparent", b
   }
 
   if (Rowv) {
-    dd.row <- as.dendrogram(hclust(dist(x)))
+    if (is.null(clust)) {
+      dd.row <- as.dendrogram(hclust(dist(x)))
+    } else {
+      cor.tmp <- cor(t(x), method = clust)
+      cor.tmp[which(is.na(cor.tmp) == TRUE)] <- 0
+      dd.row <- as.dendrogram(hclust(as.dist(1-abs(cor.tmp))))
+    }
     row.ord <- rev(order.dendrogram(dd.row))
   } else {
     if (dendrogram %in% "both") {
@@ -82,6 +94,12 @@ heatmapOP <- function(x, col = "RdYlGn", coln = 11, bordercol = "transparent", b
     row.ord <- 1:nrow(x)
     legend = NULL
   }
+
+  ## is the following correct? and do I have to delete this before clsutering? without this, the clustering uses, what the eye sees...
+  ## if (length(breaks) > 1) {
+  ##   x[x < breaks[1]] <- breaks[1]
+  ##   x[x > breaks[length(breaks)]] <- breaks[length(breaks)]
+  ## }
   
   ##Blues BuGn BuPu GnBu Greens Greys Oranges OrRd PuBu PuBuGn PuRd Purples RdPu Reds
   ##YlGn YlGnBu YlOrBr YlOrRd

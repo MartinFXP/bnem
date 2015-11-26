@@ -280,7 +280,9 @@ plotDnf(model1$reacID[as.logical(RN)], CNOlist = CNOlist, legend = 0)
 
 ## save(CNOlist, CNOresults, CNOinput, file = paste("superpkn_nodes_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
 
-load(paste("superpkn_nodes_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
+prefix <- "" # prefix <- "dissertation/simulations/BNEM/"
+
+load(paste(prefix, "superpkn_nodes_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
 
 sens <- spec <- time <- hyeds <- matrix(0, length(CNOresults), length(CNOresults[[1]]))
 
@@ -333,7 +335,7 @@ hyeds.med <- rev(hyeds.med)
 
 lwd <- 2
 
-pdf(paste("dissertation/diss/Thesis/gfx/super_nodes_", type, "_", noise, ".pdf", sep = ""), width = 5, height = 5)
+pdf(paste("dissertation/diss/Thesis/gfx/super_nodes_", type, "_", gsub("\\.", "", noise), ".pdf", sep = ""), width = 5, height = 5)
 
 par(mfrow=c(1,1), mar=c(4, 4, 4, 4) + 0.1)
 

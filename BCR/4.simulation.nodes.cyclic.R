@@ -305,11 +305,11 @@ for (n in rev(round(seq(10, 30, (30-10)/4)))) {
   }
 }
 
-## save(CNOlist, CNOresults, CNOinput, file = paste("superpkn_nodes_cycles_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
+## save(CNOlist, CNOresults, CNOinput, file = paste("superpkn_nodes_cycles_", noise, "_", paste(type, collapse = "_"), "_", negative, ".RData", sep = ""))
 
 source("temp.R")
 
-load(paste("superpkn_nodes_cycles_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
+load(paste("superpkn_nodes_cycles_", noise, "_", paste(type, collapse = "_"), "_", negative, ".RData", sep = ""))
 
 sens <- spec <- time <- hyeds <- matrix(0, length(CNOresults), length(CNOresults[[1]]))
 
@@ -362,7 +362,7 @@ hyeds.med <- rev(hyeds.med)
 
 lwd <- 2
 
-pdf(paste("dissertation/diss/Thesis/gfx/super_nodes_cyclic_", type, "_", noise, ".pdf", sep = ""), width = 5, height = 5)
+pdf(paste("dissertation/diss/Thesis/gfx/super_nodes_cyclic_", type, "_", gsub("\\.", "", noise), "_", negative, ".pdf", sep = ""), width = 5, height = 5)
 
 par(mfrow=c(1,1), mar=c(4, 4, 4, 4) + 0.1)
 

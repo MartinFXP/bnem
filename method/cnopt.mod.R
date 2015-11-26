@@ -78,12 +78,25 @@ source("github/trunk/method/convertGraph.R")
 source("github/trunk/method/transClose.R")
 source("github/trunk/method/transRed.R")
 source("github/trunk/method/smoothMatrix.R")
+source("github/trunk/method/randomDnf.R")
 
 # get internal original functions: (v 1.4)
 
 simulatorT0 <- get("simulatorT0", en = asNamespace("CellNOptR"))
 addPriorKnowledge <- get("addPriorKnowledge", en = asNamespace("CellNOptR"))
 cutModel <- get("cutModel", en = asNamespace("CellNOptR"))
+
+  myCN2bioCN <- function(x, stimuli, inhibitors) {
+    y <- gsub("_vs_", ") vs (", x)
+    for (i in inhibitors) {
+      y <- gsub(i, paste(i, "\\-", sep = ""), y)
+    }
+    for (i in stimuli) {
+      y <- gsub(i, paste(i, "\\+", sep = ""), y)
+    }
+    y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
+    return(y)
+  }
 
 createCube <- function(n=3, m=n) {
   if (m > n) { m <- n }

@@ -13,7 +13,7 @@ source("Boutros10.svn/method/scripts/cnopt.mod.R")
 
 ############## first define the set of experiments (=data) available:
 
-negative <- 1
+negative <- 0
 
 stimuli <- paste("S", 1:6, sep = "")
 inhibitors <- c(paste("I", 11:16, sep = ""), paste("I", 21:26, sep = ""), paste("I", 31:36, sep = ""), paste("I", 41:46, sep = ""))
@@ -112,7 +112,7 @@ bString[-grep("\\+", model$reacID)] <- 1
 edgecol <- rep("black", length(model$reacID[-grep("\\+", model$reacID)]))
 edgecol[grep("!", model$reacID[-grep("\\+", model$reacID)])] <- "red"
 
-plotDnf(model$reacID[-grep("\\+", model$reacID)], legend = 0, width = 0.5, edgecol = edgecol)
+plotDnf(model$reacID[-grep("\\+", model$reacID)], legend = 0, edgecol = edgecol)
 
 length(model$reacID)
 
@@ -122,21 +122,22 @@ if (negative) {
   cluster.file <- "cluster/priorC.RData"
 }
 
-save.image(cluster.file)
+save.image(file = cluster.file)
 
 ####################### athene:
 
 hpc.nodes <- 1
 hpc.ppn <- 8
 walltime <- "48:00:00"
-pmem <- "1000"
+pmem <- "800"
 
 noises <- c(0.1,0.25,0.5,0.5,1,2)
+#noises <- c(2)
 types <- c(rep("disc", 3), rep("cont", 3))
 
 for (i in 1:length(noises)) {
 
-  write(paste("#!/bin/bash\n#PBS -l walltime=", walltime, "\n#PBS -l pmem=", pmem, "mb\n#PBS -l nodes=", hpc.nodes, ":ppn=", hpc.ppn, "\ncd /spang.compdiag/user/pim28150/\nRBioCscript cluster/priorC.R 'data=", cluster.file, "' 'noise=", noises[i], "' 'type=", types[i], "'", sep = ""), file = paste("cluster/priorC", i, ".sh", sep = ""))
+  write(paste("#!/bin/bash\n#PBS -l walltime=", walltime, "\n#PBS -l pmem=", pmem, "mb\n#PBS -l nodes=", hpc.nodes, ":ppn=", hpc.ppn, "\nexport ATHOS_MKL='sequential'\ncd /spang.compdiag/user/pim28150/\nRBioCscript cluster/priorC.R 'data=", cluster.file, "' 'noise=", noises[i], "' 'type=", types[i], "'", sep = ""), file = paste("cluster/priorC", i, ".sh", sep = ""))
 
 }
 
@@ -148,7 +149,7 @@ system("ssh -X athene", intern = F)
 
 ## qsub /spang.compdiag/user/pim28150/cluster/temp.sh -q spang -o /spang.compdiag/user/pim28150/cluster/temp.out -e /spang.compdiag/user/pim28150/cluster/temp.err
 
-for i in `seq 1 6`; do
+for i in `seq 1 2`; do
 
   qsub /spang.compdiag/user/pim28150/cluster/priorC$i.sh -q serial -o /spang.compdiag/user/pim28150/cluster/priorC$i.out -e /spang.compdiag/user/pim28150/cluster/priorC$i.err
 
@@ -280,7 +281,15 @@ plotDnf(model1$reacID[as.logical(RN)], CNOlist = CNOlist, legend = 0)
 
 ## save(CNOlist, CNOresults, CNOinput, file = paste("superpkn_prior_cycles_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
 
-load(paste("superpkn_prior_cycles_", noise, "_", paste(type, collapse = "_"), ".RData", sep = ""))
+prefix <- "" ## prefix <- "dissertation/simulations/BNEM/"
+
+if (negative > 0) {
+  negative2 <- "_1"
+} else {
+  negative2 <- ""
+}
+
+load(paste(prefix, "superpkn_prior_cycles_", noise, "_", paste(type, collapse = "_"), negative2, ".RData", sep = ""))
 
 sens <- spec <- time <- sens.h <- spec.h <- matrix(0, length(CNOresults), length(CNOresults[[1]]))
 
@@ -337,7 +346,14 @@ spec.h.med <- apply(spec.h, 1, median)
 
 lwd <- 2
 
-pdf(paste("dissertation/diss/Thesis/gfx/super_prior_cyclic_", type, "_", noise, ".pdf", sep = ""), width = 5, height = 5)
+
+> sens.med
+[1] 1.0000000 0.9555749 0.7932373 0.7346195 0.6677001
+> spec.med
+[1] 0.9998731 0.9886284 0.9773362 0.9739335 0.9727322
+
+
+pdf(paste("dissertation/diss/Thesis/gfx/super_prior_cyclic_", type, "_", gsub("\\.", "", noise), negative2, ".pdf", sep = ""), width = 5, height = 5)
 
 par(mfrow=c(1,1), mar=c(4, 4, 4, 4) + 0.1)
 
