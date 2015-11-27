@@ -1,14 +1,14 @@
 gaBinaryNemT1 <- function (CNOlist,
                            model,
                            initBstring = NULL, # initBstring = TRUE
-                           sizeFac = 1, 
+                           sizeFac = 10^-10, 
                            NAFac = 1,
-                           popSize = 50,
+                           popSize = 100,
                            pMutation = 0.5,
-                           maxTime = 60,
-                           maxGens = 500, 
-                           stallGenMax = 100,
-                           relTol = 0.1, 
+                           maxTime = Inf,
+                           maxGens = Inf, 
+                           stallGenMax = 10,
+                           relTol = 0.01, 
                            verbose = TRUE,
                            priorBitString = NULL,
                            selPress = c(1.2,0.0001), # 1.2
@@ -18,13 +18,13 @@ gaBinaryNemT1 <- function (CNOlist,
                            targetBstring = "none",
                            elitism = NULL,
                            inversion = NULL,
-                           graph = FALSE,
-                           parameters = list(cutOffs = c(0.7,0.7,0.7), scoring = c(0.25,0.5,2)),
+                           graph = TRUE,
+                           parameters = list(cutOffs = c(0,1,0), scoring = c(0.25,0.5,2)),
                            parallel = NULL, # parallel = N with N number of cores to use or a list with cores in the first and machines in the second entry like list(cores=c(2,4,8), machines=c("bionform1", "bioinform2", "bioinform3"))
                            parallel2 = 1,
                            selection = c("t"), # can be "t" or "s"
                            relFit = FALSE,
-                           method = "none",
+                           method = "s",
                            type = "SOCK",
                            exhaustive = FALSE,
                            delcyc = TRUE,
@@ -35,7 +35,7 @@ gaBinaryNemT1 <- function (CNOlist,
     parameters$cutOffs <- sort(parameters$cutOffs)
     print(paste("your're cutoff parameters didn't make any sense. I can't let you do this, Dave. I changed them to ", parameters$cutOffs, ".", sep = ""))
   }
-  if (is.null(elitism) == TRUE) { elitism <- 0 }
+  if (is.null(elitism) == TRUE) { elitism <- ceiling(popSize*0.1) }
   if (elitism >= popSize) { elitism <- floor(0.1*popSize) }
   if (is.null(inversion) == TRUE) { inversion <- 0 }
   if (is.null(initBstring) == TRUE) {

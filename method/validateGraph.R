@@ -3,13 +3,14 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
                           disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = FALSE, colSideColors = NULL, affychip = "hgu133plus2", method = "pearson", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 0.1, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
   
   myCN2bioCN <- function(x, stimuli, inhibitors) {
-    y <- gsub("_vs_", ") vs (", x)
+    y <- x
     for (i in inhibitors) {
-      y <- gsub(i, paste(i, "\\-", sep = ""), y)
+      y <- gsub(paste(i, "_", sep = ""), paste(i, "\\-_", sep = ""), y)
     }
     for (i in stimuli) {
-      y <- gsub(i, paste(i, "\\+", sep = ""), y)
+      y <- gsub(paste(i, "_", sep = ""), paste(i, "\\+_", sep = ""), y)
     }
+    y <- gsub("_vs_", ") vs (", y)
     y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
     return(y)
   }
@@ -141,7 +142,8 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
   rownames(egenefit) <- 1:nrow(egenefit)
   rownames(egenefit)[1] <- rownames(check.model)[Sgene]
   colnames(egenefit) <- 1:ncol(egenefit)
-  colnames(egenefit) <- gsub(".*_vs_", "", gsub("Ctrl_vs_", "", colnames(check.data)))
+  colnames(egenefit) <- colnames(check.data)
+  #colnames(egenefit) <- gsub(".*_vs_", "", gsub("Ctrl_vs_", "", colnames(check.data)))
   if (complete) {
     activatedEgenes <- numeric(sum(EtoS[, 2] == Sgene)+1)
   } else {
@@ -279,10 +281,10 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
               if (names[1] %in% colnames(CNOlist@stimuli) & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
                 colSideColors[i] <- "orange"
               }
-              if (names[1] %in% colnames(CNOlist@stimuli) & names[length(names)] %in% colnames(CNOlist@stimuli)) {
+              if (names[1] %in% "Ctrl" & names[length(names)] %in% colnames(CNOlist@stimuli)) {
                 colSideColors[i] <- "yellow"
               }
-              if (names[1] %in% colnames(CNOlist@inhibitors) & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
+              if (names[1] %in% "Ctrl" & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
                 colSideColors[i] <- "blue"
               }
             } else {
@@ -369,10 +371,10 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
             if (names[1] %in% colnames(CNOlist@stimuli) & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
               colSideColors[i] <- "orange"
             }
-            if (names[1] %in% colnames(CNOlist@stimuli) & names[length(names)] %in% colnames(CNOlist@stimuli)) {
+            if (names[1] %in% "Ctrl" & names[length(names)] %in% colnames(CNOlist@stimuli)) {
               colSideColors[i] <- "yellow"
             }
-            if (names[1] %in% colnames(CNOlist@inhibitors) & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
+            if (names[1] %in% "Ctrl" & names[length(names)] %in% colnames(CNOlist@inhibitors)) {
               colSideColors[i] <- "blue"
             }
           } else {

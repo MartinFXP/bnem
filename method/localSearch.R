@@ -1,4 +1,4 @@
-localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NULL, seeds = 0, parameters = c(cutOffs = c(0.5,0.5,0), scoring = c(0.25,0.5,2)), sizeFac = 1, NAFac = 1, relTol = 0.01, verbose = FALSE, parallel=NULL, parallel2 = 0, relFit = FALSE, method = "none", max.steps = Inf, max.time = Inf, node = NULL, absorpII = TRUE, draw = FALSE, prior = NULL) {
+localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NULL, seeds = 1, parameters = list(cutOffs = c(0,1,0), scoring = c(0.25,0.5,2)), sizeFac = 10^-10, NAFac = 1, relTol = 0.01, verbose = TRUE, parallel=NULL, parallel2 = 1, relFit = FALSE, method = "s", max.steps = Inf, max.time = Inf, node = NULL, absorpII = TRUE, draw = TRUE, prior = NULL) {
   require(matrixStats)
   if (is.null(prior)) {
     prior <- rep(0, length(model$reacID))

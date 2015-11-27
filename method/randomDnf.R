@@ -26,7 +26,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.
   if (dag) {
     dnf <- removeCycles(dnf = dnf)
   }
-  return(dnf)
+  return(unique(dnf))
 }
 
 ## dnf <- randomDnf(5, dag = T); par(mfrow=c(1,3)); plotDnf(dnf); plotDnf(transRed(dnf)); plotDnf(transClose(dnf));
