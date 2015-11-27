@@ -71,7 +71,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
   }
   
   if (!is.null(simulate)) {
-    nodestates <- simulateDnf(graph, stimuli = simulate$stimuli, inhibitors = simulate$inhibitors)
+    nodestates <- simulateDnf(graph, stimuli = simulate$stimulated, inhibitors = simulate$inhibitors)
   }
   
   if (is.null(freq)) {
