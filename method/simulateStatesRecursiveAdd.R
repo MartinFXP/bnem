@@ -175,7 +175,7 @@ simulateStatesRecursiveAdd <- function(CNOlist, model, bString, NEMlist = NULL) 
     }
     return(signalStates)
   }
-  bString <- reduceGraph(bString, CNOlist, model, NEMlist)
+  bString <- reduceGraph(bString, CNOlist, model)
   stimuli <- colnames(CNOlist@stimuli)
   inhibitors <- c(colnames(CNOlist@inhibitors), model$namesSpecies[-which(model$namesSpecies %in% c(stimuli,colnames(CNOlist@inhibitors)))]) 
   graph <- model$reacID[which(bString == 1)]

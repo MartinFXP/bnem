@@ -136,7 +136,7 @@ gaBinaryNemT1 <- function (CNOlist,
     ##   return(Score)
     ## }
     getObj <- function(x) {
-      Score <- computeScoreNemT1(CNOlist, model, x, simList, indexList, sizeFac, NAFac, approach = approach, NEMlist = NEMlist, parameters, tellme = 0, relFit = relFit, method = method, ...)
+      Score <- computeScoreNemT1(CNOlist=CNOlist, model=model, bString=x, sizeFac=sizeFac, NAFac=NAFac, approach = approach, NEMlist = NEMlist, parameters=parameters, tellme = 0, relFit = relFit, method = method, ...)
       return(Score)
     }
     t0 <- Sys.time()
@@ -433,7 +433,7 @@ gaBinaryNemT1 <- function (CNOlist,
       ## introduce a stop criteria for a target network (makes sense for simulation study)
       if (targetBstring[1] != "none" & g >= 2) {
         Criteria <- c((stallGen > stallGenMax), (as.numeric((t[length(t)] - 
-                                                             t[1]), units = "secs") > maxTime), (g > maxGens), (computeScoreNemT1(CNOlist, model, bestbit, simList, indexList, sizeFac, NAFac, approach = approach, NEMlist = NEMlist, parameters, tellme = 0, relFit = relFit, ...) <= computeScoreNemT1(CNOlist, model, targetBstring, simList, indexList, sizeFac, NAFac, approach = approach, NEMlist = NEMlist, parameters, tellme = 0, relFit = relFit, ...))) # put in here to stop if a network is found that has equal or better score than the target network
+                                                             t[1]), units = "secs") > maxTime), (g > maxGens), (computeScoreNemT1(CNOlist=CNOlist, model=model, bString=bestbit, sizeFac=sizeFac, NAFac=NAFac, approach = approach, NEMlist = NEMlist, parameters=parameters, tellme = 0, relFit = relFit, ...) <= computeScoreNemT1(CNOlist=CNOlist, model=model, bString=targetBstring, sizeFac=sizeFac, NAFac=NAFac, approach = approach, NEMlist = NEMlist, parameters=parameters, tellme = 0, relFit = relFit, ...))) # put in here to stop if a network is found that has equal or better score than the target network
       }
       if (any(Criteria)) {
         stop <- TRUE
@@ -457,7 +457,7 @@ gaBinaryNemT1 <- function (CNOlist,
         split.screen(figs = c(2, 1), screen = 1, erase = FALSE) # screen 1 split in rows 3 and 4
         graphDraw <- 0
         if (length(graphVal) > 0) {
-          if ((scores[order(scores, decreasing = TRUE)[popSize]] < graphVal[length(graphVal)]) | (stallGen %in% ceiling(stallGenMax*c(0.5,1)))) {
+          if ((scores[order(scores, decreasing = TRUE)[popSize]] < graphVal[length(graphVal)]) | (stallGen %in% ceiling(stallGenMax*c(1)))) {
             #if (stallGen %in% ceiling(stallGenMax*c(0.5,1))) {
               ModelCut <- model
               ModelCut$interMat <- ModelCut$interMat[, as.logical(Pop[popSize, ])]
@@ -487,12 +487,16 @@ gaBinaryNemT1 <- function (CNOlist,
           screen(3, new = T)
           plot(1:gUp, graphVal, col = "red", type = "l", main = paste("Score Improvement", sep = ""), xlab = "Generation", ylab = "Score", ylim = c(min(graphVal), max(c(graphVal, graphValAvg))), xaxt = "n")
           axis(1, at = 1:gUp, labels = graphAxis)
-          legend(gUp, max(c(graphVal, graphValAvg)), legend = c("Best Score", "Average Score", "Selective Pressure"), fill = c("red", "blue", "black"), xjust = 1)
           lines(1:gUp, graphValAvg, col = "blue", type = "l")
-          mtext("Selective Pressure", 4, line = 2)
-          par(new=T)
-          plot(1:gUp, graphValSp, col = "black", type = "l", axes=FALSE, ylab = "", xlab = "", yaxt = "n", ylim = c(1,max(2,ceiling(max(graphValSp)))))
-          axis(4, at = (10:max(20,(ceiling(max(graphValSp))*10)))/10, labels = (10:max(20,(ceiling(max(graphValSp))*10)))/10)
+          if (selection %in% "s") {
+            legend(gUp, max(c(graphVal, graphValAvg)), legend = c("Best Score", "Average Score", "Selective Pressure"), fill = c("red", "blue", "black"), xjust = 1)
+            mtext("Selective Pressure", 4, line = 2)
+            par(new=T)
+            plot(1:gUp, graphValSp, col = "black", type = "l", axes=FALSE, ylab = "", xlab = "", yaxt = "n", ylim = c(1,max(2,ceiling(max(graphValSp)))))
+            axis(4, at = (10:max(20,(ceiling(max(graphValSp))*10)))/10, labels = (10:max(20,(ceiling(max(graphValSp))*10)))/10)
+          } else {
+            legend(gUp, max(c(graphVal, graphValAvg)), legend = c("Best Score", "Average Score"), fill = c("red", "blue"), xjust = 1)
+          }
           screen(4, new = T)
           plot(1:gUp, graphValDist, col = "black", type = "l", main = "Best Strings Distance", xlab = "Generation", ylab = "Distance", ylim = c(min(graphValDist), max(graphValDist)), xaxt='n')
           mtext("Edge Difference", 4, line = 2)
