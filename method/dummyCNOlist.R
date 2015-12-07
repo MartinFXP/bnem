@@ -14,6 +14,9 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
       mat.size <- mat.size + choose(stimn, i)
     }
     stimDesign <- matrix(0, mat.size, stimn)
+    if (length(stimuli) == 1) {
+      stimDesign <- t(stimDesign)
+    }
     diag(stimDesign) <- 1
     count <- stimn
     if (maxStim > 1) {
@@ -43,6 +46,9 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
       mat.size <- mat.size + choose(inhibn, i)
     }
     inhibDesign <- matrix(0, mat.size, inhibn)
+    if (length(inhibitors) == 1) {
+      inhibDesign <- t(inhibDesign)
+    }
     diag(inhibDesign) <- 1
     count <- inhibn
     if (maxInhibit > 1) {
@@ -71,10 +77,16 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
     }
     if (maxStim > 0 & maxInhibit == 0) {
       inhibDesign <- matrix(0, nrow(stimDesign), inhibn)
+      if (length(inhibitors) == 1) {
+        inhibDesign <- t(inhibDesign)
+      }
       design <- cbind(stimDesign, inhibDesign)
     }
     if (maxStim == 0 & maxInhibit > 0) {
       stimDesign <- matrix(0, nrow(inhibDesign), stimn)
+      if (length(stimuli) == 1) {
+        stimDesign <- t(stimDesign)
+      }
       design <- cbind(stimDesign, inhibDesign)
     }
     if (maxStim == 0 & maxInhibit == 0) {
@@ -98,8 +110,8 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
   smult <- nrow(design)/nrow(stimDesign)
   imult <- nrow(design)/nrow(inhibDesign)
   design <- rbind(0, design)
-  stimDesign <- design[, 1:ncol(stimDesign)]
-  inhibDesign <- design[, (ncol(stimDesign)+1):ncol(design)]
+  stimDesign <- as.matrix(design[, 1:ncol(stimDesign)])
+  inhibDesign <- as.matrix(design[, (ncol(stimDesign)+1):ncol(design)])
   rownames(design) <- rownames(inhibDesign) <- rownames(stimDesign) <- rownames(signalData) <- c("Ctrl", 2:nrow(design))
   ## for (i in 2:nrow(design)) {
   ##   tmp <- paste(colnames(design)[which(design[i, ] == 1)], collapse = "_")

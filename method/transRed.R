@@ -8,11 +8,12 @@ transRed <- function(g, max.iter = NULL) { # general transitive reduction:
   for (iter in 1:max.iter) {
     for (i in 1:ncol(a)) {
       for (j in 1:ncol(a)) {
-        if (i %in% j) { next() }
+        check <- grep(paste(colnames(a)[i], ".*=", colnames(a)[j], sep = ""), g2)
+        if (i %in% j | length(check) == 0) { next() }
         for (k in 1:ncol(a)) {
           if (j %in% k | i %in% k) { next() }
-          if (length(grep(paste(colnames(a)[i], ".*=", colnames(a)[j], sep = ""), g2)) > 0 & length(grep(paste(colnames(a)[j], ".*=", colnames(a)[k], sep = ""), g2)) > 0) {
-            g2 <- g2[-grep(paste(colnames(a)[i], ".*=", colnames(a)[k], sep = ""), g2)]
+          if (length(grep(paste(colnames(a)[i], ".*=", colnames(a)[k], sep = ""), g2)) > 0 & length(grep(paste(colnames(a)[k], ".*=", colnames(a)[j], sep = ""), g2)) > 0) {
+            g2 <- g2[-check]
           }
         }
       }

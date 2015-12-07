@@ -13,7 +13,9 @@ absorption <- function(bString, model=NULL) {
     if (length(targets) > 1) {
       targets <- targets[-which(targets == which(graph %in% i))]
       if (is.null(model)) {
-        bString <- bString[-which(bString %in% graph[targets])]
+        if (sum(bString %in% graph[targets]) > 0) {
+          bString <- bString[-which(bString %in% graph[targets])]
+        }
       } else {
         bString[which(model$reacID %in% graph[targets])] <- 0
       }
@@ -51,7 +53,9 @@ absorptionII <- function(bString, model=NULL) {
     if (length(targets) > 1) {
       targets <- targets[-which(targets %in% which(graph %in% i))]
       if (is.null(model)) {
-        bString <- bString[-which(bString %in% graph[targets])]
+        if (sum(bString %in% graph[targets]) > 0) {
+          bString <- bString[-which(bString %in% graph[targets])]
+        }
       } else {
         bString[which(model$reacID %in% graph[targets])] <- 0
       }

@@ -36,7 +36,7 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
   }
   CNOlist <- checkCNOlist(CNOlist)
   NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist, parameters = parameters, approach = approach, method = method)
-  tmp <- computeScoreNemT1(CNOlist, model = model, bString, simList = NULL, indexList = NULL, NAFac = 1, approach = approach, NEMlist = NEMlist, tellme = 1, parameters = parameters, sim = sim, relFit = relFit, method = method, sizeFac = sizeFac, verbose = F)
+  tmp <- computeScoreNemT1(CNOlist, model = model, bString, NAFac = 1, approach = approach, NEMlist = NEMlist, tellme = 1, parameters = parameters, sim = sim, relFit = relFit, method = method, sizeFac = sizeFac, verbose = F)
   EtoS <- tmp$EtoS
   if (verbose) {
     print(paste(Sgene, ".", colnames(CNOlist@signals[[1]])[Sgene], ": ", sum(EtoS[, 2] == Sgene), sep = ""))

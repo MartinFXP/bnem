@@ -1,7 +1,7 @@
 randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.edges = NULL, dag = FALSE) {
   dnf <- NULL
   if (is.numeric(vertices)) {
-    vertices <- LETTERS[1:vertices]
+    vertices <- LETTERS[-which(LETTERS %in% "F")][1:vertices]
   }
   if (is.null(max.edge.size)) {
     max.edge.size <- length(vertices) - 1
