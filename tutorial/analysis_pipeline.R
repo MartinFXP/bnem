@@ -2,11 +2,11 @@
 
 X11.options(type="Xlib")
 
-source(".../cnopt.mod.R") # load all functions
+source(".../cnopt.mod.R") # load all functions # source("github/trunk/method/cnopt.mod.R")
 
 library(CellNOptR) # CNO package required
 
-# first we define vertices which can be stimulated and vertices whcih can be inhibited. currently there is no overlap allowed. however this can be circumvented if for one vertice which can be both an additional stimuli vertice is introduced which can only go into the vertice which can be inhibited.
+# first we define vertices which can be stimulated and vertices which can be inhibited. currently there is no overlap allowed. however this can be circumvented. we assume S-gene "A" is experimentally inhibited and stimulated in different experiments. we then introduce an additional stimuli vertice "stimA". this has an activating edge into "A" and no other S-gene. now we reannotate the experiments/metainformation to have "A" inhibited only and "stimA" stimulated. Also not allowed is names as certain subsets. E.g. one vertice named TNF and one vertice named TNFR1 is not allowed. TNF and somethingTNF is.
 
 stimuli <- "dummy" # just to get the while loop started
 
@@ -70,7 +70,7 @@ bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model) 
 
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString) # we simulate the steady states for all possible conditions
 
-steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] <- steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] + CNOlist@inhibitors
+steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] <- steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] + CNOlist@inhibitors # this is to find constitutively active S-genes
 
 while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) { # this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active
 
@@ -100,11 +100,13 @@ flip <- sample(1:nrow(NEMlist$fc), floor(0.33*nrow(NEMlist$fc)))
 NEMlist$fc[flip, ] <- NEMlist$fc[flip, ]*(-1) # some E-genes are negatively regulated
 rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_")
 
-# If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network. The NEMlist$exprs/fc objects correspond to your data. The exprs data is not used (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
+# If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network (=unknown GTN). The NEMlist$exprs/fc objects correspond to your data. The exprs data is not used (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". Or you can use pvalues subtracted from 1 and multiplied by the sign of the foldchanges. It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
 
 initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get better results.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
 
 parallel <- 8 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4")) # parallel calculation of edge improvements
+
+# verbose = FALSE can be set for all search algorithms
 
 # try greedy search:
 
@@ -113,7 +115,7 @@ res <- localSearch(
          NEMlist=NEMlist,
          model=model,
          parallel=parallel,
-         initSeed=bString#initBstring
+         initSeed=initBstring
          )
 
 par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
@@ -139,7 +141,7 @@ sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from lear
 geneLists <- list()
 par(ask=T)
 for (i in 1:ncol(CNOlist@signals[[1]])) {
-  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = res$bStrings[1, ], Sgene = i, Egenes = 1000, parameters=parameters, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, method = method, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
+  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = res$bStrings[1, ], Sgene = i, Egenes = 1000, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
   dev.print("temp.pdf", device = pdf, width = 40, height = 10) # take a closer look
 }; names(geneLists) <- colnames(CNOlist@signals[[1]]); par(ask=F)
 
@@ -152,7 +154,8 @@ gaRun <- gaBinaryNemT1(
            model=model,
            initBstring=initBstring,
            popSize = 100,
-           stallGenMax = 10
+           stallGenMax = 10,
+           draw = TRUE # FALSE does not draw the network evolution and can be faster
            )
 
 par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
@@ -178,14 +181,11 @@ sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from lear
 geneLists <- list()
 par(ask=T)
 for (i in 1:ncol(CNOlist@signals[[1]])) {
-  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = gaRun$bString, Sgene = i, Egenes = 10, parameters=parameters, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, method = method, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
+  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = gaRun$bString, Sgene = i, Egenes = 10, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
   dev.print("temp.pdf", device = pdf, width = 20, height = 15) # take a closer look
-}
-
-names(geneLists) <- colnames(CNOlist@signals[[1]])
-
-par(ask=F)
+}; names(geneLists) <- colnames(CNOlist@signals[[1]]); par(ask=F)
 
 # one important parameters, which should be trained before the final optimization starts is zeta. This controls the sparseness of the solution and is set to 10^-10 by default. You can change that with "szeFac=a" with any number a in the optimization functions localSearch or gaBinaryNemT1.
 
 # have fun with your own analysis
+

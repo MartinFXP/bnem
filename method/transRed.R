@@ -20,7 +20,9 @@ transRed <- function(g, max.iter = NULL) { # general transitive reduction:
     }
   }
   g3 <- transClose(g2)
-  g4 <- g[-which(g %in% g3)]
+  if (sum(g %in% g3) > 0) {
+    g4 <- g[-which(g %in% g3)]
+  }
   g5 <- c(g2, g4)
   return(g5)
 }
