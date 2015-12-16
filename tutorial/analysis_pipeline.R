@@ -82,7 +82,7 @@ while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)
 
 }
 
-plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli) # let's look at our gtn
+plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli) # let's look at our gtn.
 
 NEMlist <- list() # this list includes the real data (expression values and foldchanges)
 
@@ -102,7 +102,7 @@ rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_
 
 # If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network (=unknown GTN). The NEMlist$exprs/fc objects correspond to your data. The exprs data is not used (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". Or you can use pvalues subtracted from 1 and multiplied by the sign of the foldchanges. It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
 
-initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get better results.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
+initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get a better/worse/same result.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
 
 parallel <- 8 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4")) # parallel calculation of edge improvements
 
@@ -115,7 +115,8 @@ res <- localSearch(
          NEMlist=NEMlist,
          model=model,
          parallel=parallel,
-         initSeed=initBstring
+         initSeed=initBstring,
+         draw = TRUE # FALSE does not draw the network evolution and can be faster
          )
 
 par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
@@ -137,6 +138,7 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from learned network should be high even though the network can look different
 
 # lets look at the data and how well it fits the resolved network:
+# with experience you can use this to identify missing edges in your prior network. obviously not in the toy example since the GTN is a subnetwork of the extended prior.
 
 geneLists <- list()
 par(ask=T)
@@ -155,7 +157,7 @@ gaRun <- gaBinaryNemT1(
            initBstring=initBstring,
            popSize = 100,
            stallGenMax = 10,
-           draw = TRUE # FALSE does not draw the network evolution and can be faster
+           graph = TRUE # FALSE does not draw the network evolution and can be faster
            )
 
 par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
@@ -177,6 +179,7 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from learned network should be high even though the network can look different
 
 # lets look at the data and how well it fits the resolved network:
+# with experience you can use this to identify missing edges in your prior network. obviously not in the toy example since the GTN is a subnetwork of the extended prior.
 
 geneLists <- list()
 par(ask=T)
@@ -185,7 +188,110 @@ for (i in 1:ncol(CNOlist@signals[[1]])) {
   dev.print("temp.pdf", device = pdf, width = 20, height = 15) # take a closer look
 }; names(geneLists) <- colnames(CNOlist@signals[[1]]); par(ask=F)
 
-# one important parameters, which should be trained before the final optimization starts is zeta. This controls the sparseness of the solution and is set to 10^-10 by default. You can change that with "szeFac=a" with any number a in the optimization functions localSearch or gaBinaryNemT1.
-
 # have fun with your own analysis
 
+# one important parameter, which can be trained before the final optimization starts is zeta. This controls the sparseness of the solution and is set to 10^-10 by default. You can change that with "szeFac=a" with any number a in the optimization functions localSearch or gaBinaryNemT1.
+
+# training zeta:
+
+results <- list()
+
+targets <- list()
+
+count <- 0
+
+zetas <- c(1, rev(seq(10^-5,1,0.2)^2), 0)
+
+plot(c(rev(seq(10^-5,1,length.out=100)^2), 0), type = "l")
+
+plot(zetas, type = "b")
+
+trainruns <- 100
+
+for (i in 1:trainruns) {
+
+  NEMlist2 <- NEMlist
+
+  targets[[i]] <- sample(1:nrow(NEMlist2$fc), floor(0.5*nrow(NEMlist2$fc)))
+
+  NEMlist2$fc <- NEMlist2$fc[targets[[i]], ]
+
+  for (j in zetas) {
+
+    par(ask=F, mfrow=c(1,1))
+    count <- count + 1
+    results[[count]] <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist2, model=model, parallel=parallel, initSeed = rep(0, length(model$reacID)), sizeFac = j)
+
+  }
+
+}
+
+save(results, CNOlist, model, NEMlist, targets, file = "temp.RData")
+
+rep <- matrix(0, length(zetas), trainruns)
+pred <- matrix(0, length(zetas), trainruns)
+graph.size <- matrix(0, length(zetas), trainruns)
+node.num <- matrix(0, length(zetas), trainruns)
+
+count <- 0
+
+for (i in 1:trainruns) {
+
+  NEMlist2 <- NEMlist
+  NEMlist2$fc <- NEMlist2$fc[targets[[i]], ]
+  NEMlist3 <- NEMlist
+  NEMlist3$fc <- NEMlist3$fc[-targets[[i]], ]
+
+  for (j in 1:length(zetas)) {
+
+    count <- count + 1
+    
+    pred[j, i] <- computeScoreNemT1(CNOlist, model = model, results[[count]]$bString, NEMlist = NEMlist3, sizeFac = 0)
+    rep[j, i] <- computeScoreNemT1(CNOlist, model = model, results[[count]]$bString, NEMlist = NEMlist2, sizeFac = zetas[j]*0)
+    graph.tmp <- model$reacID[as.logical(results[[count]]$bString)]
+    if (length(graph.tmp) > 0) {
+      nodes.tmp <- length(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(graph.tmp, "=")), "\\+")))))
+    } else {
+      nodes.tmp <- 0
+    }
+    graph.size[j, i] <- length(unlist(strsplit(graph.tmp, "\\+")))
+    node.num[j, i] <- nodes.tmp
+
+  }
+
+}
+
+if (min(rowMeans(rep)) < min(rowMeans(pred))) {
+  ymin <- min(rowMeans(rep))
+  rep2 <- rowMeans(rep) - min(rowMeans(rep))
+  pred2 <- rowMeans(pred) - min(rowMeans(rep))
+} else {
+  ymin <- min(rowMeans(pred))
+  rep2 <- rowMeans(rep) - min(rowMeans(pred))
+  pred2 <- rowMeans(pred) - min(rowMeans(pred))
+}
+if (max(rep2) > max(pred2)) {
+  ymax <- max(rowMeans(rep))
+  pred2 <- pred2/max(rep2)
+  rep2 <- rep2/max(rep2)
+} else {
+  ymax <- max(rowMeans(pred))
+  rep2 <- rep2/max(pred)
+  pred2 <- pred2/max(pred2)
+}
+
+graph.size2 <- rowMeans(graph.size)/length(model$reacID)
+
+node.num2 <- rowMeans(node.num)/length(c(stimuli, inhibitors))
+
+plot(pred2, type = "b", xaxt = "n", yaxt = "n", xlab = "zetas", ylab = "test set scores", pch = "T", ylim = c(0,1))
+axis(1, 1:7, c(round(zetas, 2)[1:5], zetas[6:7]))
+axis(2, seq(1,100,length.out=10)/100, round(seq(ymin, ymax, length.out=10), 2))
+lines(rep2, type = "b", pch = "L")
+lines(graph.size2, type = "b", pch = "G")
+lines(node.num2, type = "b", pch = "N")
+axis(4, seq(1,100,length.out=10)/100, seq(1, 100, length.out=10))
+abline(v=5, col = "red", lty = 3)
+abline(h=min(pred2), col = "blue", lty = 3)
+abline(h=graph.size2[which.min(pred2)], col = "blue", lty = 3)
+abline(h=node.num2[which.min(pred2)], col = "blue", lty = 3)
