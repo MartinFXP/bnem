@@ -8,6 +8,9 @@ adj2dnf <- function(A) {
       if (A[i, j] == 1) {
         dnf <- c(dnf, paste(colnames(A)[i], rownames(A)[j], sep = "="))
       }
+      if (A[i, j] == -1) {
+        dnf <- c(dnf, paste("!", colnames(A)[i], "=", rownames(A)[j], sep = ""))
+      }
     }
   }
 

@@ -44,6 +44,7 @@ source("github/trunk/method/checkMethod.R")
 source("github/trunk/method/drawLocal.R")
 source("github/trunk/method/exportVars.R")
 source("github/trunk/method/plotDnf.R")
+source("github/trunk/method/compressDnf.R")
 source("github/trunk/method/simulateDnf.R")
 source("github/trunk/method/resBNEM.R")
 source("github/trunk/method/addEdge.R")
@@ -51,6 +52,7 @@ source("github/trunk/method/deleteEdge.R")
 source("github/trunk/method/addSignal.R")
 source("github/trunk/method/deleteSignal.R")
 source("github/trunk/method/dataRed.R")
+source("github/trunk/method/compressDnf.R")
 
 #preprocessing:
 source("github/trunk/method/optScore.R")
@@ -86,17 +88,28 @@ simulatorT0 <- get("simulatorT0", en = asNamespace("CellNOptR"))
 addPriorKnowledge <- get("addPriorKnowledge", en = asNamespace("CellNOptR"))
 cutModel <- get("cutModel", en = asNamespace("CellNOptR"))
 
-  myCN2bioCN <- function(x, stimuli, inhibitors) {
-    y <- gsub("_vs_", ") vs (", x)
-    for (i in inhibitors) {
-      y <- gsub(i, paste(i, "\\-", sep = ""), y)
-    }
-    for (i in stimuli) {
-      y <- gsub(i, paste(i, "\\+", sep = ""), y)
-    }
-    y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
-    return(y)
+gene2protein <- function(genes) {
+  gene2prot <- cbind(
+                 c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8", "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH", "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
+                 c("Apc", "Atf2", "cIAP1", "cIAP2", "Casp4", "Casp8", "CFlip", "Ikk1", "BetaCatenin", "Dkk1", "Dkk4", "Flash", "Ikk2", "Nemo", "cJun", "Mekk", "Nik", "Tak1", "Jnk", "Pik3", "Hoil1", "p65", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2", "Tcf4", "Tcf4", "Trailr1", "Trailr2", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
+                 )
+  for (i in 1:nrow(gene2prot)) {
+    genes <- gsub(gene2prot[i, 1], gene2prot[i, 2], genes)
   }
+  return(genes)
+}
+    
+myCN2bioCN <- function(x, stimuli, inhibitors) {
+  y <- gsub("_vs_", ") vs (", x)
+  for (i in inhibitors) {
+    y <- gsub(i, paste(i, "\\-", sep = ""), y)
+  }
+  for (i in stimuli) {
+    y <- gsub(i, paste(i, "\\+", sep = ""), y)
+  }
+  y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
+  return(y)
+}
 
 createCube <- function(n=3, m=n) {
   if (m > n) { m <- n }

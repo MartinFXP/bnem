@@ -11,11 +11,17 @@ dnf2adj <- function(dnf) {
     adjmat <- matrix(0, length(nodes), length(nodes))
     colnames(adjmat) <- nodes
     rownames(adjmat) <- nodes
-    for (i in gsub("!", "", dnf)) {
+    for (i in dnf) {
       tmp <- unlist(strsplit(i, "="))
       child <- tmp[2]
       parents <- unlist(strsplit(tmp[1], "\\+"))
-      adjmat[which(rownames(adjmat) %in% parents), which(colnames(adjmat) %in% child)] <- 1
+      for (j in parents) {
+        if (gsub("!", "", j) %in% j) {
+          adjmat[which(rownames(adjmat) %in% j), which(colnames(adjmat) %in% child)] <- 1
+        } else {
+          adjmat[which(rownames(adjmat) %in% gsub("!", "", j)), which(colnames(adjmat) %in% child)] <- -1
+        }
+      }
     }
     diag(adjmat) <- 1
     stop <- FALSE
@@ -29,6 +35,7 @@ dnf2adj <- function(dnf) {
       }
     }
     adjmat[adjmat > 1] <- 1
+    adjmat[adjmat < -1] <- -1
     return(adjmat)
   }
 }

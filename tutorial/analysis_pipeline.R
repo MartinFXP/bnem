@@ -110,7 +110,7 @@ parallel <- 8 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine
 
 # try greedy search:
 
-res <- localSearch(
+locRun <- localSearch(
          CNOlist=CNOlist,
          NEMlist=NEMlist,
          model=model,
@@ -119,33 +119,7 @@ res <- localSearch(
          draw = TRUE # FALSE does not draw the network evolution and can be faster
          )
 
-par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
-
-plotDnf(model$reacID[as.logical(bString)])
-
-plotDnf(model$reacID[as.logical(res$bStrings[1, ])])
-
-sum(bString == 1 & res$bStrings[1, ] == 1)/(sum(bString == 1 & res$bStrings[1, ] == 1) + sum(bString == 1 & res$bStrings[1, ] == 0)) # hyper-edge sensitivity
-
-sum(bString == 0 & res$bStrings[1, ] == 0)/(sum(bString == 0 & res$bStrings[1, ] == 0) + sum(bString == 0 & res$bStrings[1, ] == 1)) # hyper-edge specificity
-
-# the algorithm looks for the smallest best fitting network; thus it can be that the GTN is actually not the best network having that ERS and there are smaller but equivalent networks
-
-ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, res$bStrings[1, ])))
-
-ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
-
-sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from learned network should be high even though the network can look different
-
-# lets look at the data and how well it fits the resolved network:
-# with experience you can use this to identify missing edges in your prior network. obviously not in the toy example since the GTN is a subnetwork of the extended prior.
-
-geneLists <- list()
-par(ask=T)
-for (i in 1:ncol(CNOlist@signals[[1]])) {
-  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = res$bStrings[1, ], Sgene = i, Egenes = 1000, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
-  dev.print("temp.pdf", device = pdf, width = 40, height = 10) # take a closer look
-}; names(geneLists) <- colnames(CNOlist@signals[[1]]); par(ask=F)
+resString <- locRun$bStrings[1, ]
 
 # or genetic algorithm:
 
@@ -160,19 +134,34 @@ gaRun <- gaBinaryNemT1(
            graph = TRUE # FALSE does not draw the network evolution and can be faster
            )
 
+resString <- gaRun$bString
+
+# exhaustive search (only recommended for very small search spaces; < 20 hyper-edges):
+
+exRun <- exSearch(
+           parallel = parallel,
+           CNOlist=CNOlist,
+           NEMlist = NEMlist,
+           model=model, reduce = F
+           )
+
+resString <- exRun$bString
+
+# analyse the result:
+
 par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
 
 plotDnf(model$reacID[as.logical(bString)])
 
-plotDnf(model$reacID[as.logical(gaRun$bString)])
+plotDnf(model$reacID[as.logical(resString)])
 
-sum(bString == 1 & gaRun$bString == 1)/(sum(bString == 1 & gaRun$bString == 1) + sum(bString == 1 & gaRun$bString == 0)) # hyper-edge sensitivity
+sum(bString == 1 & resString == 1)/(sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)) # hyper-edge sensitivity
 
-sum(bString == 0 & gaRun$bString == 0)/(sum(bString == 0 & gaRun$bString == 0) + sum(bString == 0 & gaRun$bString == 1)) # hyper-edge specificity
+sum(bString == 0 & resString == 0)/(sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)) # hyper-edge specificity
 
 # the algorithm looks for the smallest best fitting network; thus it can be that the GTN is actually not the best network having that ERS and there are smaller but equivalent networks
 
-ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, gaRun$bString)))
+ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString)))
 
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 
@@ -184,13 +173,13 @@ sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from lear
 geneLists <- list()
 par(ask=T)
 for (i in 1:ncol(CNOlist@signals[[1]])) {
-  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = gaRun$bString, Sgene = i, Egenes = 10, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
-  dev.print("temp.pdf", device = pdf, width = 20, height = 15) # take a closer look
+  geneLists[[i]] <- validateGraph(CNOlist, NEMlist, model = model, bString = resString, Sgene = i, Egenes = 1000, cexRow = 0.8, soft = T, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "grey", aspect = "iso", sub = "")
+  dev.print("temp.pdf", device = pdf, width = 40, height = 10) # take a closer look
 }; names(geneLists) <- colnames(CNOlist@signals[[1]]); par(ask=F)
 
 # have fun with your own analysis
 
-# one important parameter, which can be trained before the final optimization starts is zeta. This controls the sparseness of the solution and is set to 10^-10 by default. You can change that with "szeFac=a" with any number a in the optimization functions localSearch or gaBinaryNemT1.
+# one important parameter, which can be trained before the final optimization starts is zeta. This controls the sparseness of the solution and is set to 10^-10 by default. You can change that with "sizeFac=a" with any number a in the optimization functions localSearch or gaBinaryNemT1.
 
 # training zeta:
 
@@ -226,7 +215,9 @@ for (i in 1:trainruns) {
 
 }
 
-save(results, CNOlist, model, NEMlist, targets, file = "temp.RData")
+## save(results, CNOlist, model, NEMlist, targets, file = "temp.RData")
+
+load("temp.RData")
 
 rep <- matrix(0, length(zetas), trainruns)
 pred <- matrix(0, length(zetas), trainruns)
@@ -284,14 +275,14 @@ graph.size2 <- rowMeans(graph.size)/length(model$reacID)
 
 node.num2 <- rowMeans(node.num)/length(c(stimuli, inhibitors))
 
-plot(pred2, type = "b", xaxt = "n", yaxt = "n", xlab = "zetas", ylab = "test set scores", pch = "T", ylim = c(0,1))
+plot(pred2, type = "b", xaxt = "n", yaxt = "n", xlab = "zetas", ylab = "test set scores", pch = "T", ylim = c(0,1), sub = "test set scores (T), train set scores (L), number of connected nodes (N), graph size (G)")
 axis(1, 1:7, c(round(zetas, 2)[1:5], zetas[6:7]))
 axis(2, seq(1,100,length.out=10)/100, round(seq(ymin, ymax, length.out=10), 2))
 lines(rep2, type = "b", pch = "L")
 lines(graph.size2, type = "b", pch = "G")
 lines(node.num2, type = "b", pch = "N")
 axis(4, seq(1,100,length.out=10)/100, seq(1, 100, length.out=10))
-abline(v=5, col = "red", lty = 3)
+abline(v=which.min(pred2), col = "red", lty = 3)
 abline(h=min(pred2), col = "blue", lty = 3)
 abline(h=graph.size2[which.min(pred2)], col = "blue", lty = 3)
 abline(h=node.num2[which.min(pred2)], col = "blue", lty = 3)

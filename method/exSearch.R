@@ -126,7 +126,20 @@ exSearch <- function(CNOlist,model,sizeFac=10^-10,NAFac=1,NEMlist,parameters=lis
   ##   pop[j, ] <- c(rep(0, (ncol(pop)-length(essential))), essential)
   ##   samples <- c(samples, toString(pop[j, ]))
   ## }
-  bString <- (pop[realSpace, ])[which(res == min(res))[1], ]
+  if (sizeFac == 0) {
+    getSize <- function(x) {
+      dnf <- model$reacID[as.logical(x)]
+      nTmp <- unlist(strsplit(dnf, "\\+"))
+      return(length(nTmp))
+    }
+    sizes <- apply(pop[realSpace, ], 1, getSize)
+    minscores <- which(res == min(res))
+    minscore <- minscores[order(sizes[minscores], decreasing = F)[1]]
+    bString <- (pop[realSpace, ])[minscore, ]
+  } else {
+    bString <- (pop[realSpace, ])[which(res == min(res))[1], ]
+  }
+  print(bString)
   dtmRatio <- mean(abs(res - mean(res)))/abs(min(res) - mean(res))
   dtmRatio2 <- 1 - abs(min(res) - mean(res))/abs(min(res) - max(res))
   print("best network found:")
