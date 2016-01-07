@@ -5,11 +5,11 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
     iter.max <- length(unseen)
   }
   if (length(unseen) > 0) {
-    tmp <- NULL
     count <- 0
     while(count < iter.max) {
       for (i in unseen) {
-        edges <- dnf[grep(paste("=", i, sep = ""), dnf)]
+        tmp <- NULL
+        edges <- dnf[grep(paste("=", i, "$", sep = ""), dnf)]
         if (sum(dnf %in% edges) > 0) {
           dnf <- dnf[-which(dnf %in% edges)]
         }
@@ -33,13 +33,14 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
             tmp <- c(tmp, paste("!", j, k, sep = "="))
           }
         }
-        dnf <- c(dnf, tmp)
+        tmp <- gsub("!=", "!", tmp)
+        dnf <- unique(c(dnf, tmp))
       }
       count <- count + 1
     }
     dnf <- gsub("!!", "", dnf)
-    if (length(grep(paste(unseen, collapse = "|"), dnf)) > 0) {
-      dnf <- dnf[-grep(paste(unseen, collapse = "|"), dnf)]
+    if (length(grep(paste(paste(unseen, "$", sep = ""), collapse = "|"), dnf)) > 0) {
+      dnf <- dnf[-grep(paste(paste(unseen, "$", sep = ""), collapse = "|"), dnf)]
     }
     if (length(grep("!=", dnf)) > 0) {
       dnf <- dnf[-grep("!=", dnf)]

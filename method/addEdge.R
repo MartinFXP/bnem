@@ -14,8 +14,9 @@ addEdge <- function(edges, CNOlist, model, n = 100, full = FALSE) {
     PKN2 <- readSIF("temp.sif")
     unlink("temp.sif")
     checkSignals(CNOlist,PKN2)
-    indices<-indexFinder(CNOlist,PKN2,verbose=FALSE)
-    NCNOindices<-findNONC(PKN2,indices,verbose=FALSE)
+    verbose <- FALSE
+    indices<-indexFinder(CNOlist,PKN2,verbose=verbose)
+    NCNOindices<-findNONC(PKN2,indices,verbose=verbose)
     NCNOcut<-cutNONC(PKN2,NCNOindices)
     indicesNCNOcut<-indexFinder(CNOlist,NCNOcut)
     NCNOcutComp<-compressModel(NCNOcut,indicesNCNOcut)

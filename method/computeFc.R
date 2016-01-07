@@ -25,7 +25,11 @@ computeFc <- function (CNOlist, y, test = 1) {
     ## get ctrl_vs_stim:
     stimuliNames <- NULL
     for (i in grepStims) {
-      stimuliNames <- c(stimuliNames, paste(names(which(CNOlist@stimuli[i, ] >= 1)), collapse = "_"))
+      if (sum(CNOlist@stimuli[i, ] >= 1) > 1) {
+        stimuliNames <- c(stimuliNames, paste(names(which(CNOlist@stimuli[i, ] >= 1)), collapse = "_"))
+      } else {
+        stimuliNames <- c(stimuliNames, colnames(CNOlist@stimuli)[which(CNOlist@stimuli[i, ] >= 1)])
+      }
     }
     if (length(grepStims) > 0) {
       CompMat <- cbind(CompMat, y[, grepStims] - y[, grepCtrl])

@@ -122,6 +122,9 @@ dummyCNOlist <- function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhi
     return(r)
   }
   rownames(design)[2:nrow(design)] <- rownames(inhibDesign)[2:nrow(design)] <- rownames(stimDesign)[2:nrow(design)] <- rownames(signalData)[2:nrow(design)] <- unlist(lapply(as.list(2:nrow(design)), getRowname, design))
+  if (ncol(stimDesign) == 1) {
+    colnames(stimDesign) <- stimuli
+  }
   cnolist <- new("CNOlist",
                  cues = design, inhibitors = inhibDesign,
                  stimuli = stimDesign,
