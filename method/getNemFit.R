@@ -50,7 +50,7 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
     if (any(c("spearman", "pearson", "kendall") %in% method)) {
       if ("spearman" %in% method) {
         E.mat <- NEMlist$exprs
-        S.mat.ranks <- t(apply(S.mat, 1, rank))
+        S.mat.ranks <- t(S.mat) # t(apply(S.mat, 1, rank)) # ranking a binary vector is just a scale and shift operation
         cosine.sim <- -t(cor(S.mat.ranks, t(E.mat), method = "p"))
       } else {
         E.mat <- NEMlist$exprs
@@ -128,7 +128,7 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
           cosine.sim <- -t(cor(t(S.mat), t(E.mat), method = "p", use = "pairwise.complete.obs"))
         }
         if ("spearman" %in% method) {
-          S.mat.ranks <- apply(S.mat, 1, rank)
+          S.mat.ranks <- t(S.mat) # apply(S.mat, 1, rank) # ranking a 1,0,-1 vector is just a shift and scale operation
           cosine.sim <- -t(cor(S.mat.ranks, t(E.mat), method = "p", use = "pairwise.complete.obs"))
         }
         if ("kendall" %in% method) {
@@ -295,7 +295,7 @@ getNemFit <- function (simResults, CNOlist, model, indexList, # VERSION of CNO: 
       cosine.sim <- -t(cor(t(S.mat), t(E.mat), method = "p", use = "pairwise.complete.obs"))
     }
     if ("spearman" %in% method) {
-      S.mat.ranks <- apply(S.mat, 1, rank)
+      S.mat.ranks <- t(S.mat) # apply(S.mat, 1, rank) # ranking a 1,0,-1 vector is just a shift and scale operation
       cosine.sim <- -t(cor(S.mat.ranks, t(E.mat), method = "p", use = "pairwise.complete.obs"))
     }
     cosine.sim[is.na(cosine.sim)] <- 0

@@ -7,7 +7,8 @@ reduceGraph <- function(bString, model, CNOlist) {
     tmp <- unique(gsub("!", "", tmp))
     for (i in tmp) {
       if (!(i %in% stimuli) & length(grep(paste("=", i, sep = ""), graph)) == 0) {
-        get <- grep(paste("\\+", i, "|^", i, sep = ""), graph)
+        ## get <- grep(paste("\\+", i, "|^", i, sep = ""), graph) # this is not good
+        get <- grep(paste("^", i, sep = ""), graph) # this is better; more conservative
         if (length(get) > 0) {
           graph <- graph[-get]
         }

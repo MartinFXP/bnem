@@ -153,7 +153,7 @@ gaBinaryNemT1 <- function (CNOlist,
       graphValSp <- numeric()
       gUp <- 0
       graphAxis <- numeric()
-      graphics.off()
+      ## graphics.off()
       par(bg = "white")
       graphValDist <- numeric()
       bestMemTurn <- 0

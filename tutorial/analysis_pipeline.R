@@ -10,9 +10,9 @@ library(CellNOptR) # CNO package required
 
 stimuli <- "dummy" # just to get the while loop started
 
-while(length(stimuli) != 2) { # we want exactly two stimuli
+while(length(stimuli) != 2) { # we want exactly two stimuli. not necessary.
 
-  dnf <- randomDnf(10, max.edges = 100, max.edge.size = 1, dag = TRUE) # create random disjunctive normal form (dnf) of 10 literals (=vertices, S-genes) with at max 1 parent per edge and 25 edges and no cycles
+  dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = T) # create random disjunctive normal form (dnf) of 10 literals (=vertices, S-genes) with at max 1 parent per edge and at max 25 edges and no cycles. dag = T can lead to empty graph and error! just copy the while loop till your good or do not use the while loop at all.
 
   cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+"))))) # get all the vertices/S-genes
 
@@ -21,6 +21,8 @@ while(length(stimuli) != 2) { # we want exactly two stimuli
   outputs <- unique(gsub(".*=", "", dnf)) # which vertices are children
 
   stimuli <- inputs[which(!(inputs %in% outputs))] # vertices without parents are stimuli
+
+  print(stimuli)
 
 }
 
@@ -55,14 +57,15 @@ unlink("temp.sif")
 
 CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL) # this is used for meta information, e.g. all possible conditions with at max two stimuli active and one vertice inhibited
 
-checkSignals(CNOlist,PKN) # this is used as in the cno package to create the model with all possible hyper-edges:
-indices<-indexFinder(CNOlist,PKN,verbose=TRUE)
-NCNOindices<-findNONC(PKN,indices,verbose=TRUE)
-NCNOcut<-cutNONC(PKN,NCNOindices)
-indicesNCNOcut<-indexFinder(CNOlist,NCNOcut)
-NCNOcutComp<-compressModel(NCNOcut,indicesNCNOcut)
-indicesNCNOcutComp<-indexFinder(CNOlist,NCNOcutComp)
-model<-expandNEM(NCNOcutComp, maxInputsPerGate=100)
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100) # this is used as in the cno package to create the model with all possible hyper-edges
+## checkSignals(CNOlist,PKN) 
+## indices<-indexFinder(CNOlist,PKN,verbose=TRUE)
+## NCNOindices<-findNONC(PKN,indices,verbose=TRUE)
+## NCNOcut<-cutNONC(PKN,NCNOindices)
+## indicesNCNOcut<-indexFinder(CNOlist,NCNOcut)
+## NCNOcutComp<-compressModel(NCNOcut,indicesNCNOcut)
+## indicesNCNOcutComp<-indexFinder(CNOlist,NCNOcutComp)
+## model<-expandNEM(NCNOcutComp, maxInputsPerGate=100)
 
 plotDnf(model$reacID[-grep("\\+", model$reacID)])
 
@@ -70,9 +73,9 @@ bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model) 
 
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString) # we simulate the steady states for all possible conditions
 
-steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] <- steadyState[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState))] + CNOlist@inhibitors # this is to find constitutively active S-genes
+steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors # this is to find constitutively active S-genes
 
-while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) { # this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active
+while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) { # this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active. not necessary.
 
   bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 
@@ -92,7 +95,7 @@ ERS <- computeFc(CNOlist, t(steadyState)) # we calculate the foldchanges or expe
 
 stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_") # the next step reduce the ERS to a sensible set of comparisons; e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition)
 
-ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))] # this is the usual setup. But "computeFc" calculates a lot mor contrasts, which can also be used if preferred.
+ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))] # this is the usual setup. But "computeFc" calculates a lot more contrasts, which can also be used if preferred.
 
 NEMlist$fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)] # same as before with the expression values, we have 10 E-genes each and 3 replicates
 NEMlist$fc <- NEMlist$fc + rnorm(length(NEMlist$fc), 0, 1) # we add Gaussian noise
@@ -100,9 +103,9 @@ flip <- sample(1:nrow(NEMlist$fc), floor(0.33*nrow(NEMlist$fc)))
 NEMlist$fc[flip, ] <- NEMlist$fc[flip, ]*(-1) # some E-genes are negatively regulated
 rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_")
 
-# If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network (=unknown GTN). The NEMlist$exprs/fc objects correspond to your data. The exprs data is not used (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". Or you can use pvalues subtracted from 1 and multiplied by the sign of the foldchanges. It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
+# If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network (=unknown GTN). The NEMlist$exprs/fc objects correspond to your data. The exprs data is not supported (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". Or you can use pvalues subtracted from 1 and multiplied by the sign of the foldchanges. It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
 
-initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get a better/worse/same result.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
+initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get a better/worse/same result.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
 
 parallel <- 8 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4")) # parallel calculation of edge improvements
 
@@ -136,13 +139,13 @@ gaRun <- gaBinaryNemT1(
 
 resString <- gaRun$bString
 
-# exhaustive search (only recommended for very small search spaces; < 20 hyper-edges):
+# exhaustive search (only recommended for very "small" search spaces; < 20 hyper-edges):
 
 exRun <- exSearch(
            parallel = parallel,
            CNOlist=CNOlist,
            NEMlist = NEMlist,
-           model=model, reduce = F
+           model=model
            )
 
 resString <- exRun$bString
@@ -195,7 +198,7 @@ plot(c(rev(seq(10^-5,1,length.out=100)^2), 0), type = "l")
 
 plot(zetas, type = "b")
 
-trainruns <- 100
+trainruns <- 2
 
 for (i in 1:trainruns) {
 
@@ -238,7 +241,7 @@ for (i in 1:trainruns) {
     count <- count + 1
     
     pred[j, i] <- computeScoreNemT1(CNOlist, model = model, results[[count]]$bString, NEMlist = NEMlist3, sizeFac = 0)
-    rep[j, i] <- computeScoreNemT1(CNOlist, model = model, results[[count]]$bString, NEMlist = NEMlist2, sizeFac = zetas[j]*0)
+    rep[j, i] <- computeScoreNemT1(CNOlist, model = model, results[[count]]$bString, NEMlist = NEMlist2, sizeFac = zetas[j])
     graph.tmp <- model$reacID[as.logical(results[[count]]$bString)]
     if (length(graph.tmp) > 0) {
       nodes.tmp <- length(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(graph.tmp, "=")), "\\+")))))
@@ -275,10 +278,10 @@ graph.size2 <- rowMeans(graph.size)/length(model$reacID)
 
 node.num2 <- rowMeans(node.num)/length(c(stimuli, inhibitors))
 
-plot(pred2, type = "b", xaxt = "n", yaxt = "n", xlab = "zetas", ylab = "test set scores", pch = "T", ylim = c(0,1), sub = "test set scores (T), train set scores (L), number of connected nodes (N), graph size (G)")
+plot(1 - pred2, type = "b", xaxt = "n", yaxt = "n", xlab = "zetas", ylab = "test set scores", pch = "T", ylim = c(0,1), sub = "test set scores (T), train set scores (L), number of connected nodes (N) in %, graph size (G) in %")
 axis(1, 1:7, c(round(zetas, 2)[1:5], zetas[6:7]))
 axis(2, seq(1,100,length.out=10)/100, round(seq(ymin, ymax, length.out=10), 2))
-lines(rep2, type = "b", pch = "L")
+lines(1 - rep2, type = "b", pch = "L")
 lines(graph.size2, type = "b", pch = "G")
 lines(node.num2, type = "b", pch = "N")
 axis(4, seq(1,100,length.out=10)/100, seq(1, 100, length.out=10))

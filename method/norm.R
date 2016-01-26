@@ -27,7 +27,7 @@ kmeansNorm <- function(x, k = 2) {
 
     if (sd(x[i, ]) == 0) { next() }
     
-    cat('\r', paste(i/nrow(x)*100, "%", sep = ""))
+    cat('\r', paste(round(i/nrow(x)*100), "%", sep = ""))
     flush.console()
         
     x.clust <- kmeans(x[i, ], k)

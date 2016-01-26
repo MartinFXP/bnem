@@ -1,17 +1,20 @@
-transClose <- function(g, max.iter = NULL) {
+transClose <- function(g, max.iter = NULL, verbose = FALSE) {
   v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")), "\\+"))))
   if (is.null(max.iter)) {
     max.iter <- length(v) - 2
   }
-  print(paste("maximum iterations: ", max.iter, sep = ""))
+  if (verbose) {
+    print(paste("maximum iterations: ", max.iter, sep = ""))
+  }
   g.out <- unique(gsub(".*=", "", g))
   g.closed <- g
   for (iter in 1:max.iter) {
     g.old <- g.closed
     
-    cat('\r', paste("iteration: ", iter, sep = ""))
-    flush.console()
-        
+    if (verbose) {
+      cat('\r', paste("iteration: ", iter, sep = ""))
+      flush.console()
+    }
     for (i in g.closed) {
       input <- gsub("!", "", unlist(strsplit(unlist(strsplit(i, "="))[1], "\\+")))
       input <- intersect(input, g.out)
@@ -37,12 +40,16 @@ transClose <- function(g, max.iter = NULL) {
       }
     }
     if (all(g.closed %in% g.old)) {
-      cat("\n")
-      print(paste("successfull convergence", sep = ""))
+      if (verbose) {
+        cat("\n")
+        print(paste("successfull convergence", sep = ""))
+      }
       break()
     }
   }
-  cat("\n")
+  if (verbose) {
+    cat("\n")
+  }
   g.closed <- unique(g.closed)
   for (j in 1:length(g.closed)) {
     i <- g.closed[j]
@@ -51,6 +58,9 @@ transClose <- function(g, max.iter = NULL) {
     input <- unlist(strsplit(input[1], "\\+"))
     input <- unique(input)
     g.closed[j] <- paste(paste(input, collapse = "+"), output, sep = "=")
+  }
+  if (length(grep(paste(paste(v, ".*", v, ".*=", sep = ""), collapse = "|"), g.closed)) > 0) {
+    g.closed <- g.closed[-grep(paste(paste(v, ".*", v, ".*=", sep = ""), collapse = "|"), g.closed)]
   }
   return(g.closed)
 }

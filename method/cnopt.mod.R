@@ -88,15 +88,40 @@ simulatorT0 <- get("simulatorT0", en = asNamespace("CellNOptR"))
 addPriorKnowledge <- get("addPriorKnowledge", en = asNamespace("CellNOptR"))
 cutModel <- get("cutModel", en = asNamespace("CellNOptR"))
 
-gene2protein <- function(genes) {
-  gene2prot <- cbind(
-                 c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8", "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH", "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
-                 c("Apc", "Atf2", "cIAP1", "cIAP2", "Casp4", "Casp8", "CFlip", "Ikk1", "BetaCatenin", "Dkk1", "Dkk4", "Flash", "Ikk2", "Nemo", "cJun", "Mekk", "Nik", "Tak1", "Jnk", "Pik3", "Hoil1", "p65", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2", "Tcf4", "Tcf4", "Trailr1", "Trailr2", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
-                 )
+gene2protein <- function(genes, strict = FALSE) {
+  if (strict) {
+    gene2prot <- cbind(
+                   c("^APC$", "^ATF2$", "^BIRC2$", "^BIRC3$", "^CASP4$", "^CASP8$", "^CFLAR$", "^CHUK$", "^CTNNB1$", "^DKK1$", "^DKK4$", "^FLASH$", "^IKBKB$", "^IKBKG$", "^JUN$", "^MAP2K1$", "^MAP3K14$", "^MAP3K7$", "^MAPK8$", "^PIK3CA$", "^RBCK1$", "^RELA$", "^RIPK1$", "^RIPK3$", "^RNF31$", "^SHARPIN$", "^TAB2$", "^TCF4$", "^TCF7L2$", "^TNFRSF10A$", "^TNFRSF10B$", "^TNFRSF1A$", "^TNIK$", "^TRAF2$", "^USP2$", "^WLS$", "^WNT11$", "^WNT5A$", "^TNFa$", "^TRAIL"),
+                   c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8", "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4", "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik", "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4", "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
+                   )
+  } else {
+    gene2prot <- cbind(
+                   c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8", "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH", "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
+                   c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8", "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4", "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik", "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4", "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
+                   )
+  }
   for (i in 1:nrow(gene2prot)) {
     genes <- gsub(gene2prot[i, 1], gene2prot[i, 2], genes)
   }
   return(genes)
+}
+
+protein2gene <- function(proteins, strict = FALSE) {
+  if (strict) {
+    gene2prot <- cbind(
+                   c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8", "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH", "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
+                   c("^Apc$", "^Atf2$", "^cIap1$", "^cIap2$", "^Casp4$", "^Casp8$", "^c-Flip$", "^Ikka$", "^Beta-Cat.$", "^Dkk1$", "^Dkk4$", "^Casp8ap2$", "^Ikkb$", "^Nemo$", "^cJun$", "^Mekk$", "^Nik$", "^Tak1$", "^Jnk$", "^Pi3k$", "^Hoil1$", "^RelA$", "^Rip1$", "^Rip3$", "^Hoip$", "^Sharpin$", "^Tab2$", "^fake$", "^Tcf4$", "^Dr4$", "^Dr5$", "^Tnfr1$", "^Tnik$", "^Traf2$", "^Usp2$", "^Evi$", "^Wnt11$", "^Wnt5A$", "^Tnfa$", "^Trail$")
+                   )
+  } else {
+    gene2prot <- cbind(
+                   c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8", "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH", "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
+                   c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8", "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4", "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik", "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4", "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
+                   )
+  }
+  for (i in 1:nrow(gene2prot)) {
+    proteins <- gsub(gene2prot[i, 2], gene2prot[i, 1], proteins)
+  }
+  return(proteins)
 }
     
 myCN2bioCN <- function(x, stimuli, inhibitors) {
@@ -336,3 +361,6 @@ whiskplot <- function(x, width = 1, length = 1, lines = FALSE, ylim = NULL, rang
 ## theme_set(opar)
 
                    
+
+
+    

@@ -1,7 +1,7 @@
 randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.edges = NULL, dag = FALSE) {
   dnf <- NULL
   if (is.numeric(vertices)) {
-    vertices <- LETTERS[-which(LETTERS %in% "F")][1:vertices]
+    vertices <- paste("S", 1:vertices, "g", sep = "")
   }
   if (is.null(max.edge.size)) {
     max.edge.size <- length(vertices) - 1
@@ -21,6 +21,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.
     } else {
       pre <- rep("", edge.size)
     }
+    inputs <- sort(inputs)
     dnf <- c(dnf, paste(c(paste(paste(pre, inputs, sep = ""), collapse = "+"), "=", output), collapse = ""))
   }
   if (dag) {

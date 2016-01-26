@@ -8,6 +8,8 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
   if (verbose %in% "part") {
     verbose2 <- "part"
     verbose <- TRUE
+  } else {
+    verbose2 <- ""
   }
   if (seeds == "max") {
     seeds <- length(model$reacID)*2
@@ -121,7 +123,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
     fullScore <- computeScoreNemT1(CNOlist, model = model, bitString, sizeFac = sizeFac, NAFac = 1, NEMlist = NEMlist, tellme = 0, parameters = parameters, method = method)
     if (verbose) {
       print(paste("Seed Network ", row, "/", n, sep = ""))
-      if (!(verbose %in% "part")) {
+      if (!(verbose2 %in% "part")) {
         print(toString(bitString))
       }
       print(paste(" - Score: ", fullScore, sep = ""))
@@ -294,7 +296,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
             print(paste("Iter step: ", counter, sep = ""))
             if (bitString[whichGate] == 1) {
               print(paste("Added gate ", model$reacID[whichGate], sep = ""))
-              if (!(verbose %in% "part")) {
+              if (!(verbose2 %in% "part")) {
                 print(toString(bitString))
               }
               print(paste(" - Score: ", topScore, sep = ""))
@@ -302,7 +304,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
               print("--------------------------------------------------")
             } else {
               print(paste("Deleted gate ", model$reacID[whichGate], sep = ""))
-              if (!(verbose %in% "part")) {
+              if (!(verbose2 %in% "part")) {
                 print(toString(bitString))
               }
               print(paste(" - Score: ", topScore, sep = ""))
@@ -364,7 +366,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
             print(paste("Iter step: ", counter, sep = ""))
             if (bitString[whichGate] == 1) {
               print(paste("Added gate ", model$reacID[whichGate], sep = ""))
-              if (!(verbose %in% "part")) {
+              if (!(verbose2 %in% "part")) {
                 print(toString(bitString))
               }
               print(paste(" - Score: ", topScore, sep = ""))
@@ -373,7 +375,7 @@ localSearch <- function(CNOlist, NEMlist, model, approach = "fc", initSeed = NUL
               print("--------------------------------------------------")
             } else {
               print(paste("Deleted gate ", model$reacID[whichGate], sep = ""))
-              if (!(verbose %in% "part")) {
+              if (!(verbose2 %in% "part")) {
                 print(toString(bitString))
               }
               print(paste(" - Score: ", topScore, sep = ""))

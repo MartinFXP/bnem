@@ -84,7 +84,7 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
   }
   bString <- reduceGraph(bString, model, CNOlist)
   stimuli <- colnames(CNOlist@stimuli)
-  signals <- c(colnames(CNOlist@inhibitors), model$namesSpecies[-which(model$namesSpecies %in% c(stimuli,colnames(CNOlist@inhibitors)))])
+  signals <- sort(c(colnames(CNOlist@inhibitors), model$namesSpecies[-which(model$namesSpecies %in% c(stimuli,colnames(CNOlist@inhibitors)))]))
   graph0 <- model$reacID[which(bString == 1)]
   stimuliStates <- CNOlist@stimuli
   if (!is.null(NEMlist$signalStates)) {
@@ -101,7 +101,12 @@ simulateStatesRecursive <- function(CNOlist, model, bString, NEMlist = NULL) {
     }
   }
   signalStates <- signalStates[, which(colnames(signalStates) %in% colnames(CNOlist@signals[[1]]))]
-  signalStates <- signalStates[, order(colnames(signalStates))]
+  if (ncol(CNOlist@signals[[1]]) != 1) {
+    signalStates <- signalStates[, order(colnames(signalStates))]
+  } else {
+    signalStates <- as.matrix(signalStates)
+    colnames(signalStates) <- colnames(CNOlist@signals[[1]])
+  }
   return(signalStates = signalStates)
 }
 

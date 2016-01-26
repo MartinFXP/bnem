@@ -2,7 +2,7 @@ removeCycles <- function(bString, model, dnf = NULL) {
   if (is.null(dnf)) {
     if (any(bString != 0)) {
       graph <- model$reacID[which(bString == 1)]
-      adjmat <- dnf2adj(graph)
+      adjmat <- abs(dnf2adj(graph))
       get.order <- apply(adjmat, 2, sum)
       adjmat <- adjmat[order(get.order), order(get.order)]
       cycles <- which(lower.tri(adjmat) == TRUE & adjmat == 1, arr.ind = TRUE)
@@ -15,7 +15,7 @@ removeCycles <- function(bString, model, dnf = NULL) {
             break()
           }
         }
-        adjmat <- dnf2adj(graph)
+        adjmat <- abs(dnf2adj(graph))
         get.order <- apply(adjmat, 2, sum)
         adjmat <- adjmat[order(get.order), order(get.order)]
         cycles <- which(lower.tri(adjmat) == TRUE & adjmat == 1, arr.ind = TRUE)
@@ -26,7 +26,7 @@ removeCycles <- function(bString, model, dnf = NULL) {
     }
   } else {
     graph <- dnf
-    adjmat <- dnf2adj(graph)
+    adjmat <- abs(dnf2adj(graph))
     get.order <- apply(adjmat, 2, sum)
     adjmat <- adjmat[order(get.order), order(get.order)]
     cycles <- which(lower.tri(adjmat) == TRUE & adjmat == 1, arr.ind = TRUE)
@@ -38,7 +38,7 @@ removeCycles <- function(bString, model, dnf = NULL) {
           break()
         }
       }
-      adjmat <- dnf2adj(graph)
+      adjmat <- abs(dnf2adj(graph))
       get.order <- apply(adjmat, 2, sum)
       adjmat <- adjmat[order(get.order), order(get.order)]
       cycles <- which(lower.tri(adjmat) == TRUE & adjmat == 1, arr.ind = TRUE)
