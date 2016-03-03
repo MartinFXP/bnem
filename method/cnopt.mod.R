@@ -166,7 +166,23 @@ createCube <- function(n=3, m=n) {
   return(e)
 }
 
-                                  
+bin2dec <- function(x) {
+  exp2 <- 2^c((length(x)-1):0)
+  y <- exp2%*%x
+  return(y)
+}
+
+dec2bin <- function(x) {
+  if (x == 0) {
+    y <- 0
+  } else {
+    tmp <- rev(as.integer(intToBits(x)))
+    y <- tmp[which(tmp != 0)[1]:length(tmp)] # this is faster than my dec2bin
+  }
+  return(y)
+}
+
+
 gsub2 <- function(pattern, replace, x) {
   p <- list()
   y <- x

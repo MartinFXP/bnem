@@ -13,7 +13,7 @@ source("Boutros10.svn/method/scripts/cnopt.mod.R")
 
 ############## first define the set of experiments (=data) available:
 
-negative <- 0
+negative <- 1
 
 stimuli <- paste("S", 1:6, sep = "")
 inhibitors <- c(paste("I", 11:16, sep = ""), paste("I", 21:26, sep = ""), paste("I", 31:36, sep = ""), paste("I", 41:46, sep = ""))
@@ -345,13 +345,6 @@ sens.h.med <- apply(sens.h, 1, median)
 spec.h.med <- apply(spec.h, 1, median)
 
 lwd <- 2
-
-
-> sens.med
-[1] 1.0000000 0.9555749 0.7932373 0.7346195 0.6677001
-> spec.med
-[1] 0.9998731 0.9886284 0.9773362 0.9739335 0.9727322
-
 
 pdf(paste("dissertation/diss/Thesis/gfx/super_prior_cyclic_", type, "_", gsub("\\.", "", noise), negative2, ".pdf", sep = ""), width = 5, height = 5)
 

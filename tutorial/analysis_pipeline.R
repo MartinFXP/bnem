@@ -2,110 +2,54 @@
 
 X11.options(type="Xlib")
 
-source(".../cnopt.mod.R") # load all functions # source("github/trunk/method/cnopt.mod.R")
+source(".../cnopt.mod.R") # load all functions; adjust your working directory or the paths in cnopt.mod.R # source("github/trunk/method/cnopt.mod.R")
 
 library(CellNOptR) # CNO package required
 
-# first we define vertices which can be stimulated and vertices which can be inhibited. currently there is no overlap allowed. however this can be circumvented. we assume S-gene "A" is experimentally inhibited and stimulated in different experiments. we then introduce an additional stimuli vertice "stimA". this has an activating edge into "A" and no other S-gene. now we reannotate the experiments/metainformation to have "A" inhibited only and "stimA" stimulated. Also not allowed is names as certain subsets. E.g. one vertice named TNF and one vertice named TNFR1 is not allowed. TNF and somethingTNF is.
+## with your own data you obviously skip the next step and continue with "NEMlist <- list()".
 
-stimuli <- "dummy" # just to get the while loop started
+data <- matrix(rnorm(100*5), 100, 5) # this should be your data
+rownames(data) <- 1:100
+colnames(data) <- c("Ctrl_vs_S", paste("S_vs_S_", LETTERS[1:4], sep = "")) # typical NEM setup with one stimulation S and four single knock-downs A-D
 
-while(length(stimuli) != 2) { # we want exactly two stimuli. not necessary.
+# NOTE: stimulations and inhibited S-genes can overlap. E.g. if you have one S-gene X, which is stimulated in one experiment and inhibited in another. Rename X to Xi and add the node Xs. Later you must add only the edge Xs -> Xi c("Xs", 1, "Xi") in your PKN. Xs is not directly connected to anything else! This way you do have two different S-genes Xs and Xi in your model, but in practice it works as if you only have X and it can be stimulated in one and inhibited in another experiment. Note, that the inhibition of X overrules the stimulation in this scenario.
 
-  dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = T) # create random disjunctive normal form (dnf) of 10 literals (=vertices, S-genes) with at max 1 parent per edge and at max 25 edges and no cycles. dag = T can lead to empty graph and error! just copy the while loop till your good or do not use the while loop at all.
+NEMlist <- list()
+NEMlist$exprs <- NULL
+NEMlist$fc <- data # these are your foldchanges, e.g. limma contrasts (Smyth et al.) with featers (genes/mRNA) as rows and contrasts as of different conditions as columns.
 
-  cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+"))))) # get all the vertices/S-genes
+## The data has to be anntated correctly. For the contrast "S1 - control" the corresponding sample/column is named
+## "Ctrl_vs_S1" (= stimulation effect, if S1 is a stimulation). For the contrast "S1_Sk - S1" the
+## sample/column has to be named "S1_vs_S1_Sk" (=correspondign silencing effect of Sk during S1 stimulation). "S1_Sk" is the condition with S1 stimulated and Sk inhibited. Look at the toy_example.R for a more detailed description
 
-  inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "="))) # which vertices are parents
+stimuli <- c("S")
+inhibitors <- LETTERS[1:4]
+CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1)
 
-  outputs <- unique(gsub(".*=", "", dnf)) # which vertices are children
+Sgenes <- c(stimuli, inhibitors)
 
-  stimuli <- inputs[which(!(inputs %in% outputs))] # vertices without parents are stimuli
-
-  print(stimuli)
-
-}
-
-inhibitors <- unique(c(inputs, outputs))
-inhibitors <- inhibitors[-which(inhibitors %in% stimuli)] # we want all vertices not stimuli as inhibitors
-
-par(mfrow=c(1,2))
-
-plotDnf(dnf, legend = 1, stimuli = stimuli, inhibitors = inhibitors, signals = c(stimuli, inhibitors)) # diamond heads denote activation and negation in one arrow; use plotDnf(legend=1)
-
-plotDnf(dnf, legend = 1, stimuli = stimuli, inhibitors = inhibitors, signals = c(stimuli, inhibitors), simulate = list(stimulated = stimuli[1], inhibited = inhibitors[1]))
-
-# next we need to build the model from a prior network
-
-sifMatrix <- NULL # we want to load a prior knowledge network (pkn) from a sif file as it is done in the CNO package
-
-for (i in dnf) { # we take the dnf and write the edges in sif format:
-  inputs2 <- unique(unlist(strsplit(gsub("=.*", "", i), "=")))
-  output <- unique(gsub(".*=", "", i))
-  for (j in inputs2) {
-    j2 <- gsub("!", "", j)
-    if (j %in% j2) {
-      sifMatrix <- rbind(sifMatrix, c(j, 1, output))
-    } else {
-      sifMatrix <- rbind(sifMatrix, c(j2, -1, output))
-    }
+## if you do want to do full reconstruction:
+sifMatrix <- numeric()
+for (i in Sgenes) {
+  for (j in Sgenes) {
+    if (i %in% j) { next() }
+    sifMatrix <- rbind(sifMatrix, c(i, 1, j))
+    sifMatrix <- rbind(sifMatrix, c(i, -1, j)) # if you want negative edges
   }
 }
 write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-PKN <- readSIF("temp.sif") # we load the pkn (load your own pkn sif file for your data)
+PKN <- readSIF("temp.sif")
 unlink("temp.sif")
 
-CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL) # this is used for meta information, e.g. all possible conditions with at max two stimuli active and one vertice inhibited
+## if you want to use prior knowledge:
+PKN <- readSIF(".../yourPKN.sif") # sif is tab-delimited. Every line has one interaction. A 1 B (=A activates B). A -1 B (=A inhibits B).
 
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100) # this is used as in the cno package to create the model with all possible hyper-edges
-## checkSignals(CNOlist,PKN) 
-## indices<-indexFinder(CNOlist,PKN,verbose=TRUE)
-## NCNOindices<-findNONC(PKN,indices,verbose=TRUE)
-## NCNOcut<-cutNONC(PKN,NCNOindices)
-## indicesNCNOcut<-indexFinder(CNOlist,NCNOcut)
-## NCNOcutComp<-compressModel(NCNOcut,indicesNCNOcut)
-## indicesNCNOcutComp<-indexFinder(CNOlist,NCNOcutComp)
-## model<-expandNEM(NCNOcutComp, maxInputsPerGate=100)
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
 
-plotDnf(model$reacID[-grep("\\+", model$reacID)])
+## now comes the inference:
 
-bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model) # we define a random ground truth network (gtn)
-
-steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString) # we simulate the steady states for all possible conditions
-
-steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors # this is to find constitutively active S-genes
-
-while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) { # this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active. not necessary.
-
-  bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
-
-  steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-
-  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
-
-}
-
-plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli) # let's look at our gtn.
-
-NEMlist <- list() # this list includes the real data (expression values and foldchanges)
-
-NEMlist$exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 5)] # every vertices directly affects the transcription of 10 mRNA products or E-genes
-
-ERS <- computeFc(CNOlist, t(steadyState)) # we calculate the foldchanges or expected S-gene response scheme (ERS) between certain condtion (e.g. control vs stimulation)
-
-stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_") # the next step reduce the ERS to a sensible set of comparisons; e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition)
-
-ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))] # this is the usual setup. But "computeFc" calculates a lot more contrasts, which can also be used if preferred.
-
-NEMlist$fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)] # same as before with the expression values, we have 10 E-genes each and 3 replicates
-NEMlist$fc <- NEMlist$fc + rnorm(length(NEMlist$fc), 0, 1) # we add Gaussian noise
-flip <- sample(1:nrow(NEMlist$fc), floor(0.33*nrow(NEMlist$fc)))
-NEMlist$fc[flip, ] <- NEMlist$fc[flip, ]*(-1) # some E-genes are negatively regulated
-rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_")
-
-# If you want to do a real world analysis, you can mostly do everything except the data generation as described above. Obviously you have to provide your own pkn and the data is not coming from a known network (=unknown GTN). The NEMlist$exprs/fc objects correspond to your data. The exprs data is not supported (officially). The fc data are your foldchanges from limma/DEseq/edgeR/"favourite differential expression tool". Or you can use pvalues subtracted from 1 and multiplied by the sign of the foldchanges. It is important that you name your colnames correctly. E.g. let's assume one of your stimulations is called A. If you have a contrast "A - control", you have to give the column the name "Ctrl_vs_A". If B is another stimulation and C an inhibitor vertice the contrast "(B,C) - B" (the condition with B stimulated and C inhibited against only B stimulated) must be named "B_vs_B_C". For two stimulations you must have the name "A_B_vs_A_B_C". The alphabetical order is also very important. So "B_A_vs_B_A_C" is incorrect. Or if D is another inhibitor "A_vs_A_D_C" or "A_B_vs_A_B_D_C" are also incorrect. Look at colnames(NEMlist$fc) for examples, but have in mind what is a stimuli and what an inhibitor.
-
-initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist) # start with empty graph; change 0 to 1 to start with PKN (usually takes long, but can get a better/worse/same result.) Use different (random) starting networks to reduce the chance of a local optimum. E.g. you can draw a random start and also use its opposite "1 - initBstring" to cover more space efficiently.
+initBstring <- rep(0, length(model$reacID)) # start with the empty network
+initBstring <- absorption(rep(1, length(model$reacID))) # or fully connected OR-gates only.
 
 parallel <- 8 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4")) # parallel calculation of edge improvements
 
@@ -149,26 +93,6 @@ exRun <- exSearch(
            )
 
 resString <- exRun$bString
-
-# analyse the result:
-
-par(mfrow=c(1,2), main = "ground truth network (left) and learned network (right)") # plot the result vs the gtn
-
-plotDnf(model$reacID[as.logical(bString)])
-
-plotDnf(model$reacID[as.logical(resString)])
-
-sum(bString == 1 & resString == 1)/(sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)) # hyper-edge sensitivity
-
-sum(bString == 0 & resString == 0)/(sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)) # hyper-edge specificity
-
-# the algorithm looks for the smallest best fitting network; thus it can be that the GTN is actually not the best network having that ERS and there are smaller but equivalent networks
-
-ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString)))
-
-ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
-
-sum(ERS.res == ERS)/length(ERS) # accuracy of expected response scheme from learned network should be high even though the network can look different
 
 # lets look at the data and how well it fits the resolved network:
 # with experience you can use this to identify missing edges in your prior network. obviously not in the toy example since the GTN is a subnetwork of the extended prior.
