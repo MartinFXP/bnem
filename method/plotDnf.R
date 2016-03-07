@@ -28,45 +28,42 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
       graph2 <- unique(graph2)
     }
     hgraph <- NULL
+    hgraph2 <- NULL
     for (i in 1:(length(hierarchy)-1)) {
       for (j in hierarchy[[i]]) {
         for (k in hierarchy[[i+1]]) {
           hgraph <- c(hgraph, paste(j, k, sep = "="))
+          hgraph2 <- c(hgraph2, paste(k, j, sep = "="))
         }
       }
     }
     if (sum(hgraph %in% graph2) > 0) {
       hgraph <- hgraph[-which(hgraph %in% graph2)]
     }
-    dnf <- c(hgraph, graph)
+    if (sum(hgraph2 %in% graph2) > 0) {
+      hgraph <- hgraph[-which(hgraph2 %in% graph2)]
+    }
+    dnf <- c(graph, hgraph)
     ## update all the parameters e.g. edgestyle...
     if (is.null(edgecol)) {
-      edgecol <- c(rep("transparent", length(hgraph)), rep("black", length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))))
+      edgecol <- c(rep("black", length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))), rep("transparent", length(hgraph)))
+      dnf2 <- dnf
+      dnf2[-grep("\\+", dnf2)] <- gsub("=", "", dnf2[-grep("\\+", dnf2)])
+      edgecol[grep("!", unlist(strsplit(unlist(strsplit(dnf2, "\\+")), "=")))] <- "red"
     } else {
       if (length(edgecol) == 1) {
-        edgecol <- c(rep("transparent", length(hgraph)), rep(edgecol, length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))))
+        edgecol <- c(rep(edgecol, length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))), rep("transparent", length(hgraph)))
       } else {
-        edgecol <- c(rep("transparent", length(hgraph)), edgecol)
+        edgecol <- c(edgecol, rep("transparent", length(hgraph)))
       }
-    }
-    if (is.null(lty)) {
-      lty <- c(rep("solid", length(hgraph)), rep("solid", length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))))
-    } else {
-      lty <- c(rep("solid", length(hgraph)), lty)
-    }
-    if (is.null(edgewidth)) {
-      edgewidth <- c(rep(1, length(hgraph)), rep(1, length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))))
-    } else {
-      edgewidth <- c(rep(1, length(hgraph)), edgewidth)
-    }
-    if (!is.null(labels)) {
-      labels <- c(rep(1, length(hgraph)), labels)
     }
   } else {
     if (is.null(lty) & !is.null(dnf)) {
       lty <- c(rep("solid", length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))))
     }
   }
+
+  graph <- dnf
 
   dolegend <- FALSE
   if (is.null(dnf)) {
@@ -346,6 +343,23 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
         k <- grep("and", tmp)
         inputN <- length(grep(tmp[k], edges))
         k <- as.numeric(gsub("and", "", tmp[k]))
+        ## try to get the index of the correct edgecol:
+        k2 <- grep("\\+", dnf)[k]
+        if (grep("and", tmp) == 2) {
+          inputN2 <- which(gsub("!", "", unlist(strsplit(gsub("=.*", "", dnf[k2]), "\\+"))) %in% tmp[1])
+        } else {
+          inputN2 <- length(unlist(strsplit(gsub("=.*", "", dnf[k2]), "\\+"))) + 1
+        }
+        if (k2 == 1) {
+          edgecolindex <- inputN2
+        } else {
+          if (length(grep("\\+", graph[1:(k2-1)])) == 0) {
+            edgecolindex <- length(graph[1:(k2-1)]) + inputN2
+          } else {
+            edgecolindex <- length(unlist(strsplit(dnf[1:(k2-1)], "\\+"))) + length(grep("\\+", dnf[1:(k2-1)])) + inputN2
+          }
+        }
+        ## end
         inputN2 <- grep(tmp[1], unlist(strsplit(dnf[grep("\\+", dnf)[k]], "\\+")))-1
         edges[[i]]@attrs$style <- lty[grep("\\+", dnf)[k]]
         edges[[i]]@attrs$label <- labels[grep("\\+", dnf)[k]]
@@ -358,12 +372,12 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
         }
         if (!is.null(edgestyle)) {
           if (!is.na(edgestyle[grep("\\+", dnf)[k]])) {
-            edges[[i]]@attrs$style <- edgestyle[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+            edges[[i]]@attrs$style <- edgestyle[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
           }
         }
         if (!is.null(edgelabel)) {
           if (!is.na(edgelabel[grep("\\+", dnf)[k]])) {
-            edges[[i]]@attrs$label <- edgelabel[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+            edges[[i]]@attrs$label <- edgelabel[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
           }
         }
         if (length(grep("!", names(edgesneg)[i])) > 0) {
@@ -371,17 +385,17 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           edges[[i]]@attrs$color <- "red"
           if (!is.null(edgecol)) {
             if (!is.na(edgecol[grep("\\+", dnf)[k]])) {
-              edges[[i]]@attrs$color <- edgecol[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+              edges[[i]]@attrs$color <- edgecol[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
             }
           }
           if (!is.null(edgehead)) {
             if (!is.na(edgehead[grep("\\+", dnf)[k]])) {
-              edges[[i]]@attrs$arrowhead <- edgehead[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+              edges[[i]]@attrs$arrowhead <- edgehead[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
             }
           }
           if (!is.null(edgetail)) {
             if (!is.na(edgetail[grep("\\+", dnf)[k]])) {
-              edges[[i]]@attrs$arrowtail <- edgetail[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+              edges[[i]]@attrs$arrowtail <- edgetail[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
             }
           }
         } else {
@@ -390,39 +404,55 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           if (gsub("and.*", "and", tmp[1]) %in% "and") {
             if (!is.null(edgecol)) {
               if (!is.na(edgecol[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$color <- edgecol[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
+                edges[[i]]@attrs$color <- edgecol[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
               }
             }
             if (!is.null(edgehead)) {
               if (!is.na(edgehead[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$arrowhead <- edgehead[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
+                edges[[i]]@attrs$arrowhead <- edgehead[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
               }
             }
             if (!is.null(edgetail)) {
               if (!is.na(edgetail[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$arrowtail <- edgetail[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
+                edges[[i]]@attrs$arrowtail <- edgetail[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k])])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k])])) > 1)]
               }
             }
           } else {
             if (!is.null(edgecol)) {
               if (!is.na(edgecol[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$color <- edgecol[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+                edges[[i]]@attrs$color <- edgecol[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
               }
             }
             if (!is.null(edgehead)) {
               if (!is.na(edgehead[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$arrowhead <- edgehead[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+                edges[[i]]@attrs$arrowhead <- edgehead[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
               }
             }
             if (!is.null(edgetail)) {
               if (!is.na(edgetail[grep("\\+", dnf)[k]])) {
-                edges[[i]]@attrs$arrowtail <- edgetail[grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
+                edges[[i]]@attrs$arrowtail <- edgetail[edgecolindex] # [grep("\\+", dnf)[k]+inputN+sum(unlist(gregexpr("\\+", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep("\\+", dnf)[k]-1)])) > 1)+inputN2]
               }
             }
           }
         }
       } else {
         tmp <- unlist(strsplit(names(edges)[i], "~"))
+        ## try to get the index of the correct edgecol:
+        if (length(grep("!", names(edgesneg)[i])) == 0) {
+          k2 <- grep(paste("^", tmp[1], "=", tmp[2], sep = ""), dnf)
+        } else {
+          k2 <- grep(paste("^!", tmp[1], "=", tmp[2], sep = ""), dnf)
+        }
+        if (k2 == 1) {
+          edgecolindex <- k2
+        } else {
+          if (length(grep("\\+", dnf[1:(k2-1)])) == 0) {
+            edgecolindex <- k2
+          } else {
+            edgecolindex <- length(unlist(strsplit(dnf[1:(k2-1)], "\\+"))) + length(grep("\\+", dnf[1:(k2-1)])) + 1
+          }
+        }
+        ## end
         if (length(grep("!", names(edgesneg)[i])) > 0) {
           edges[[i]]@attrs$style <- lty[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)]
           edges[[i]]@attrs$label <- labels[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)]
@@ -435,29 +465,29 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           }
           if (!is.null(edgestyle)) {
             if (!is.na(edgestyle[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$style <- edgestyle[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$style <- edgestyle[edgecolindex] # [grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgelabel)) {
             if (!is.na(edgelabel[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$label <- edgelabel[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$label <- edgelabel[edgecolindex] # [grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           edges[[i]]@attrs$arrowhead <- "tee"
           edges[[i]]@attrs$color <- "red"
           if (!is.null(edgecol)) {
             if (!is.na(edgecol[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$color <- edgecol[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$color <- edgecol[edgecolindex] # [grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgehead)) {
             if (!is.na(edgehead[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$arrowhead <- edgehead[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$arrowhead <- edgehead[edgecolindex] # [grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgetail)) {
             if (!is.na(edgetail[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$arrowtail <- edgetail[grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$arrowtail <- edgetail[edgecolindex] # [grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^!", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
         } else {
@@ -472,29 +502,29 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
           }
           if (!is.null(edgestyle)) {
             if (!is.na(edgestyle[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$style <- edgestyle[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$style <- edgestyle[edgecolindex] # [grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgelabel)) {
             if (!is.na(edgelabel[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$label <- edgelabel[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$label <- edgelabel[edgecolindex] # [grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           edges[[i]]@attrs$arrowhead <- "open"
           edges[[i]]@attrs$color <- "black"
           if (!is.null(edgecol)) {
             if (!is.na(edgecol[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$color <- edgecol[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$color <- edgecol[edgecolindex] # [grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgehead)) {
             if (!is.na(edgehead[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$arrowhead <- edgehead[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$arrowhead <- edgehead[edgecolindex] # [grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
           if (!is.null(edgetail)) {
             if (!is.na(edgetail[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)])) {
-              edges[[i]]@attrs$arrowtail <- edgetail[grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
+              edges[[i]]@attrs$arrowtail <- edgetail[edgecolindex] # [grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)+sum(unlist(gregexpr("\\+", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)+sum(unlist(gregexpr("\\+.*=.*", graph[1:(grep(paste("^", tmp[1], "=", tmp[2], "$", sep = ""), dnf)-1)])) > 1)]
             }
           }
         }
@@ -959,7 +989,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
       g@renderInfo@graph$bbox[2,2] <- g@renderInfo@graph$bbox[2,2] + 25
     }
     g <- g
-    renderGraph(g, lwd = lwd, ...)
+    renderGraph(g, lwd = lwd, recipEdges = "distinct", ...)
   }
   if (legend == 2 | legend == 3) {
     legend(x = x, y = y, legend = c("signals are blue", "stimuli are diamonds/boxes", "inhibitors have a red border", "positive regulation is green ->", "negative regulation is red -|", "ambiguous regulation is black -o"), fill = c("lightblue", "white", "red", "green", "red", "black"), col = c("lightblue", "white", "red", "green", "red", "black"), yjust = yjust, xjust = xjust)
