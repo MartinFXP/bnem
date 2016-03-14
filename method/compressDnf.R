@@ -12,8 +12,8 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
           dnf <- dnf[-grep(paste(i, i, sep = "="), dnf)]
         }
         parents <- unlist(strsplit(gsub("!|=.*", "", dnf[grep(paste("=", i, sep = ""), dnf)]), "\\+"))
-        if (length(parents) == 0 & length(grep(i, dnf)) > 0) {
-          dnf <- dnf[-grep(i, dnf)]
+        if (length(parents) == 0 & length(grep(paste("\\+", i, "=|\\+", i, "\\+|^", i, "\\+|^", i, "=", sep = ""), dnf)) > 0) {
+          dnf <- dnf[-grep(paste("\\+", i, "=|\\+", i, "\\+|^", i, "\\+|^", i, "=", sep = ""), dnf)]
           next()
         }
         tmp <- NULL
@@ -30,8 +30,8 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
             }
           }
         }
-        if (length(grep(paste(i, "$", sep = ""), dnf)) > 0) {
-          dnf <- dnf[-grep(paste(i, "$", sep = ""), dnf)]
+        if (length(grep(paste("=", i, "$", sep = ""), dnf)) > 0) {
+          dnf <- dnf[-grep(paste("=", i, "$", sep = ""), dnf)]
         }
         if (length(grep(paste("^", i, "=", sep = ""), dnf)) > 0) {
           dnf <- dnf[-grep(paste("^", i, "=", sep = ""), dnf)]
@@ -40,8 +40,8 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
           dnf <- dnf[-grep(paste(i, i, sep = "="), dnf)]
         }
         parents <- unlist(strsplit(gsub("!|=.*", "", dnf[grep(paste("=", i, sep = ""), dnf)]), "\\+"))
-        if (length(parents) == 0 & length(grep(i, dnf)) > 0) {
-          dnf <- dnf[-grep(i, dnf)]
+        if (length(parents) == 0 & length(grep(paste("\\+", i, "=|\\+", i, "\\+|^", i, "\\+|^", i, "=", sep = ""), dnf)) > 0) {
+          dnf <- dnf[-grep(paste("\\+", i, "=|\\+", i, "\\+|^", i, "\\+|^", i, "=", sep = ""), dnf)]
           next()
         }
       }
@@ -52,8 +52,8 @@ compressDnf <- function(dnf, sgenes, iter.max = NULL) {
       }
     }
     dnf <- gsub("!!", "", dnf)
-    if (length(grep(paste(paste(unseen, "$", sep = ""), collapse = "|"), dnf)) > 0) {
-      dnf <- dnf[-grep(paste(paste(unseen, "$", sep = ""), collapse = "|"), dnf)]
+    if (length(grep(paste(paste("=", unseen, "$", sep = ""), collapse = "|"), dnf)) > 0) {
+      dnf <- dnf[-grep(paste(paste("=", unseen, "$", sep = ""), collapse = "|"), dnf)]
     }
     if (length(grep("!=", dnf)) > 0) {
       dnf <- dnf[-grep("!=", dnf)]

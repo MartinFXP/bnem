@@ -1,19 +1,6 @@
 validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1, 
                           parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), plot = TRUE,
                           disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = TRUE, colSideColors = NULL, affychip = "hgu133plus2", method = "s", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 10^-10, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
-  
-  myCN2bioCN <- function(x, stimuli, inhibitors) {
-    y <- x
-    for (i in inhibitors) {
-      y <- gsub(paste(i, "_", sep = ""), paste(i, "\\-_", sep = ""), y)
-    }
-    for (i in stimuli) {
-      y <- gsub(paste(i, "_", sep = ""), paste(i, "\\+_", sep = ""), y)
-    }
-    y <- gsub("_vs_", ") vs (", y)
-    y <- gsub("Ctrl", "control", paste("(", gsub("_", ",", y), ")", sep = ""))
-    return(y)
-  }
 
   colSideColorsSave <- NULL
   bad.data <- FALSE
