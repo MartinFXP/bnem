@@ -327,6 +327,29 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         } else {
           colSideColors <- NULL
         }
+        if (order %in% "rank") {
+          Rowv <- FALSE
+          egenefit_genes <- egenefit[1:(nrow(egenefit)-2), ]
+          namereset <- FALSE
+          if (!is.matrix(egenefit_genes)) {
+            egenefit_genes <- t(as.matrix(egenefit_genes))
+            namereset <- TRUE
+          } else {
+            geneorder <- rownames(EtoS)[which(EtoS[, 2] == Sgene)[1:Egenes]]
+            egenefit_genes <- egenefit_genes[order(match(rownames(egenefit_genes), geneorder), decreasing = T), ]
+          }
+          egenefit <- rbind(egenefit_genes, egenefit[(nrow(egenefit)-1):nrow(egenefit), ])
+          if (namereset) {
+            rownames(egenefit)[1] <- names(which(EtoS[, 2] == Sgene))
+          }
+        }
+        if (order %in% "names") {
+          Rowv <- FALSE
+          tmp <- egenefit[1:(nrow(egenefit)-2), ]
+          tmp <- tmp[order(rownames(tmp)), ]
+          rownames(egenefit)[1:(nrow(egenefit)-2)] <- rownames(tmp)
+          egenefit[1:(nrow(egenefit)-2), ] <- tmp
+        }
         if (!is.null(dim(egenefit)) & plot) {
           if (Rowv & nrow(egenefit) > 3) {
             Rowv <- F
@@ -336,10 +359,15 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
           } else {
             Rowv = F
           }
-          if ("bio" %in% colnames) {
-            colnames(egenefit) <- myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
+          if (Colv) {
+            clusterdata <- egenefit
+            clusterdata[nrow(egenefit), ] <- 0
+            clusterdata <- NULL
           }
-          print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = real.breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, col = col, ...))
+          if ("bio" %in% colnames) {
+            colnames(egenefit) <- gene2protein(myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors)))
+          }
+          print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = real.breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, col = col, clusterx = clusterdata, ...))
         } else {
           print("one effect is not a matrix")
         }
@@ -419,6 +447,29 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
       }
       mainlab <- paste("Regulated by ", rownames(check.model)[Sgene], "\n", sep = "")
       egenefit[nrow(egenefit), ] <- egenefit[nrow(egenefit), ]*max(abs(egenefit))
+      if (order %in% "rank") {
+        Rowv <- FALSE
+        egenefit_genes <- egenefit[1:(nrow(egenefit)-2), ]
+        namereset <- FALSE
+        if (!is.matrix(egenefit_genes)) {
+          egenefit_genes <- t(as.matrix(egenefit_genes))
+          namereset <- TRUE
+        } else {
+          geneorder <- rownames(EtoS)[which(EtoS[, 2] == Sgene)[1:Egenes]]
+          egenefit_genes <- egenefit_genes[order(match(rownames(egenefit_genes), geneorder), decreasing = T), ]
+        }
+        egenefit <- rbind(egenefit_genes, egenefit[(nrow(egenefit)-1):nrow(egenefit), ])
+        if (namereset) {
+          rownames(egenefit)[1] <- names(which(EtoS[, 2] == Sgene))
+        }
+      }
+      if (order %in% "names") {
+        Rowv <- FALSE
+        tmp <- egenefit[1:(nrow(egenefit)-2), ]
+        tmp <- tmp[sort(rownames(tmp)), ]
+        rownames(egenefit)[1:(nrow(egenefit)-2)] <- rownames(tmp)
+        egenefit[1:(nrow(egenefit)-2), ] <- tmp
+      }
       if (Rowv & nrow(egenefit) > 3) {
         Rowv <- F
         d <- dist(egenefit[-c(nrow(egenefit)-1, nrow(egenefit)), ])
@@ -426,6 +477,11 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         egenefit <- egenefit[c(hc$order, nrow(egenefit)-1, nrow(egenefit)), ]
       } else {
         Rowv = F
+      }
+      if (Colv) {
+        clusterdata <- egenefit
+        clusterdata[nrow(egenefit), ] <- 0
+        clusterdata <- NULL
       }
       low <- sum(egenefit[nrow(egenefit), ] == min(egenefit[nrow(egenefit), ]))
       high <- sum(egenefit[nrow(egenefit), ] == max(egenefit[nrow(egenefit), ]))
@@ -454,10 +510,10 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         if (is.null(breaks)) {
           breaks <- c(-2,-0.5,0.5,2)
         }
-          if ("bio" %in% colnames) {
-            colnames(egenefit2) <- myCN2bioCN(colnames(egenefit2), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
-          }
-        print(heatmapOP(egenefit2, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, ...))
+        if ("bio" %in% colnames) {
+          colnames(egenefit2) <- gene2protein(myCN2bioCN(colnames(egenefit2), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors)))
+        }
+        print(heatmapOP(egenefit2, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, clusterx = clusterdata, ...))
         ##print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = c(0,low,ncol(egenefit)-high,ncol(egenefit)), coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, ...))
         ##print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = seq(-2,2,0.1), coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, ...))
       } else {
@@ -465,30 +521,10 @@ validateGraph <- function(CNOlist, NEMlist, approach = "fc", model, bString, Ege
         if (is.null(breaks)) {
           breaks <- seq(-1,1,0.1)
         }
-        if (order %in% "rank") {
-          egenefit_genes <- egenefit[1:(nrow(egenefit)-2), ]
-          namereset <- FALSE
-          if (!is.matrix(egenefit_genes)) {
-            egenefit_genes <- t(as.matrix(egenefit_genes))
-            namereset <- TRUE
-          } else {
-            geneorder <- rownames(EtoS)[which(EtoS[, 2] == Sgene)[1:Egenes]]
-            egenefit_genes <- egenefit_genes[order(match(rownames(egenefit_genes), geneorder), decreasing = T), ]
-          }
-          egenefit <- rbind(egenefit_genes, egenefit[(nrow(egenefit)-1):nrow(egenefit), ])
-          if (namereset) {
-            rownames(egenefit)[1] <- names(which(EtoS[, 2] == Sgene))
-          }
-        }
-        if (order %in% "names") {
-          tmp <- egenefit[1:(nrow(egenefit)-2), ]
-          tmp <- tmp[order(rownames(tmp)), ]
-          egenefit[1:(nrow(egenefit)-2), ] <- tmp
-        }
         if ("bio" %in% colnames) {
-          colnames(egenefit) <- myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors))
+          colnames(egenefit) <- gene2protein(myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors)))
         }
-        print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, ...))
+        print(heatmapOP(egenefit, main = mainlab, xrot = xrot, breaks = breaks, coln = 11, Colv = Colv, Rowv = Rowv, colSideColors = colSideColors, dendrogram = dendrogram, colSideColorsPos = "top", col = col, clusterx = clusterdata, ...))
       }
     }
   } else {

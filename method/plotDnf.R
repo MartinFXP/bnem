@@ -6,7 +6,7 @@
 ##   return(graph)
 ## }
 
-plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhibitors = c(), connected = TRUE,  CNOlist = NULL, cex = NULL, fontsize = NULL, labelsize = NULL, type = 2, lwd = 2, edgelwd = 2, legend = 0, x = 0, y = 0, xjust = 0, yjust = 0, width = 1.5, height = 1, rankdir = "TB", rank = "same", layout = "dot", main = "", sub = "", cex.main = 1.5, cex.sub = 1, col.sub = "grey", fontcolor = NULL, nodestates = NULL, simulate = NULL, andcolor = "transparent", edgecol = NULL, labels = NULL, labelcol = "blue", nodelabel = NULL, nodecol = NULL, bordercol = NULL, nodeshape = NULL, verbose = FALSE, edgestyle = NULL, nodeheight = NULL, nodewidth = NULL, edgewidth = NULL, lty = NULL, hierarchy = NULL, nodefontsize = NULL, edgehead = NULL, edgelabel = NULL, edgetail = NULL, bool = TRUE, ...) {
+plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhibitors = c(), connected = TRUE,  CNOlist = NULL, cex = NULL, fontsize = NULL, labelsize = NULL, type = 2, lwd = 2, edgelwd = 2, legend = 0, x = 0, y = 0, xjust = 0, yjust = 0, width = 1.5, height = 1, rankdir = "TB", rank = "same", layout = "dot", main = "", sub = "", cex.main = 1.5, cex.sub = 1, col.sub = "grey", fontcolor = NULL, nodestates = NULL, simulate = NULL, andcolor = "transparent", edgecol = NULL, labels = NULL, labelcol = "blue", nodelabel = NULL, nodecol = NULL, bordercol = NULL, nodeshape = NULL, verbose = FALSE, edgestyle = NULL, nodeheight = NULL, nodewidth = NULL, edgewidth = NULL, lty = NULL, hierarchy = NULL, showall = FALSE, nodefontsize = NULL, edgehead = NULL, edgelabel = NULL, edgetail = NULL, bool = TRUE, ...) {
   ## see graphvizCapabilities()$layoutTypes for supported layouts
   require(Rgraphviz)
 
@@ -17,6 +17,12 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
   graph <- dnf
 
   if (!is.null(hierarchy)) {
+    if (!showall) {
+      nodes <- unique(unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))
+      for (i in 1:length(hierarchy)) {
+        hierarchy[[i]] <- intersect(hierarchy[[i]], nodes)
+      }
+    }
     graph2 <- NULL
     for (i in graph) {
       input <- unlist(strsplit(i, "="))
@@ -48,7 +54,11 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
     if (is.null(edgecol)) {
       edgecol <- c(rep("black", length(grep("\\+", graph))+length(unlist(strsplit(graph, "\\+")))), rep("transparent", length(hgraph)))
       dnf2 <- dnf
-      dnf2[-grep("\\+", dnf2)] <- gsub("=", "", dnf2[-grep("\\+", dnf2)])
+      if (length(grep("\\+", dnf2)) > 0) {
+        dnf2[-grep("\\+", dnf2)] <- gsub("=", "", dnf2[-grep("\\+", dnf2)])
+      } else {
+        dnf2 <- gsub("=", "", dnf2)
+      }
       edgecol[grep("!", unlist(strsplit(unlist(strsplit(dnf2, "\\+")), "=")))] <- "red"
     } else {
       if (length(edgecol) == 1) {
@@ -72,7 +82,7 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
   }
   
   if (!is.null(simulate)) {
-    nodestates <- simulateDnf(graph, stimuli = simulate$stimulated, inhibitors = simulate$inhibitors)
+    nodestates <- simulateDnf(graph, stimuli = simulate$stimuli, inhibitors = simulate$inhibitors)
   }
   
   if (is.null(freq)) {
@@ -131,8 +141,10 @@ plotDnf <- function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhib
     if (length(nodecol) == 1 & !is.list(nodecol)) {
       nodecol.tmp <- nodecol
       nodecol <- list()
-      for (i in V[-grep("and", V)]) {
-        nodecol[[i]] <- nodecol.tmp
+      for (i in V) {
+        if (length(grep("and", i)) == 0) {
+          nodecol[[i]] <- nodecol.tmp
+        }
       }
     }
   }

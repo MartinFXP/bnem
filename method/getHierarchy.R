@@ -1,4 +1,25 @@
 getHierarchy <- function(graph) {
+  adj <- dnf2adj(graph)
+  require(nem)
+  adj2 <- transitive.reduction(abs(adj))
+  dnf <- adj2dnf(adj*adj2)
+  hierarchy <- list()
+  vertices <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+"))))
+  children <- gsub(".*=", "", dnf)
+  top <- hierarchy[[1]] <- vertices[-which(vertices %in% children)]
+  vertices <- vertices[-which(vertices %in% top)]
+  count <- 2
+  while(length(vertices) > 0) {
+    tmp <- dnf[grep(paste(paste(top, "=", sep = ""), collapse = "|"), dnf)]
+    children <- unique(gsub(".*=", "", tmp))
+    top <- hierarchy[[count]] <- children
+    vertices <- vertices[-which(vertices %in% top)]
+    count <- count + 1
+  }
+  return(hierarchy)
+}
+
+getHierarchyOld <- function(graph) {
   if (length(graph) == 0) {
     hierarchy <- NULL
   } else {

@@ -11,10 +11,16 @@ convertGraph <- function(g) { ## input graph as disjunctive normal form like tha
     cnf <- expand.grid(dnf)
     dnf <- NULL
     for (j in 1:dim(cnf)[1]) {
-      dnf <- c(dnf, paste(unlist(cnf[j, ]), collapse = "+"))
+      dnf <- c(dnf, paste(unique(unlist(cnf[j, ])), collapse = "+"))
     }
     dnf <- paste(dnf, "=", i, sep = "")
     g.new <- c(g.new, dnf)
+  }
+  vertices <- unique(unlist(strsplit(unlist(strsplit(g.new, "=")), "\\+")))
+  for (i in vertices) {
+    if (length(grep(paste(i, ".*", i, ".*=", sep = ""), g.new)) > 0) {
+      g.new <- g.new[-grep(paste(i, ".*", i, ".*=", sep = ""), g.new)]
+    }
   }
   return(g.new)
 }

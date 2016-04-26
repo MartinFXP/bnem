@@ -1,4 +1,4 @@
-transClose <- function(g, max.iter = NULL, verbose = FALSE) {
+transClose <- function(g, max.iter = NULL, verbose = FALSE) { # does soemthign strange!!!
   v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")), "\\+"))))
   if (is.null(max.iter)) {
     max.iter <- length(v) - 2
@@ -22,8 +22,9 @@ transClose <- function(g, max.iter = NULL, verbose = FALSE) {
       if (length(input) == 0) { next() }
       for (j in unique(input)) {
         if (j %in% unlist(strsplit(unlist(strsplit(i, "="))[1], "\\+"))) {
-          tmp <- paste(unique(sort(unlist(strsplit(gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)]), "\\+")))), collapse = "+")
-          g.closed <- c(g.closed, gsub(j, tmp, i))
+          for (k in gsub("=.*", "", g[grep(paste("=", j, sep = ""), g)])) {
+            g.closed <- c(g.closed, gsub(j, k, i))
+          }
         } else {
           literals <- list()
           count <- 0
