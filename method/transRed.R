@@ -6,17 +6,19 @@ transRed <- function(g, max.iter = NULL, verbose = FALSE) { # general transitive
   a <- dnf2adj(g)
   g2 <- g
   h <- getHierarchy(g2)
-  for (i in 1:(length(h)-2)) {
-    for (j in h[[i]]) {
-      for (k in (i+2):length(h)) {
-        for (l in h[[k]]) {
-          if (length(grep(paste(".*", j, ".*=", l, sep = ""), g2)) != 0) {
-            g2 <- g2[-grep(paste(".*", j, ".*=", l, sep = ""), g2)]
+  if (length(h) > 2) {
+    for (i in 1:(length(h)-2)) {
+      for (j in h[[i]]) {
+        for (k in (i+2):length(h)) {
+          for (l in h[[k]]) {
+            if (length(grep(paste(".*", j, ".*=", l, sep = ""), g2)) != 0) {
+              g2 <- g2[-grep(paste(".*", j, ".*=", l, sep = ""), g2)]
+            }
           }
         }
       }
     }
-  }                       
+  }
   g3 <- transClose(g2, max.iter)
   if (sum(g %in% g3) > 0) {
     g4 <- g[-which(g %in% g3)]

@@ -1,4 +1,4 @@
-dnf2adj <- function(dnf) {
+dnf2adj <- function(dnf, closed = FALSE) {
   if (length(dnf) == 0) {
     return(NULL)
   } else {
@@ -24,18 +24,20 @@ dnf2adj <- function(dnf) {
       }
     }
     diag(adjmat) <- 1
-    stop <- FALSE
-    cons <- c(TRUE, rep(FALSE, (length(adjmat) - 1)))
-    while(!stop) {
-      adjmat <- adjmat%*%adjmat
-      if (all(cons == (adjmat != 0))) {
-        stop <- TRUE
-      } else {
-        cons <- (adjmat != 0)
+    if (closed) {
+      stop <- FALSE
+      cons <- c(TRUE, rep(FALSE, (length(adjmat) - 1)))
+      while(!stop) {
+        adjmat <- adjmat%*%adjmat
+        if (all(cons == (adjmat != 0))) {
+          stop <- TRUE
+        } else {
+          cons <- (adjmat != 0)
+        }
       }
+      adjmat[adjmat > 1] <- 1
+      adjmat[adjmat < -1] <- -1
     }
-    adjmat[adjmat > 1] <- 1
-    adjmat[adjmat < -1] <- -1
     return(adjmat)
   }
 }
