@@ -12,7 +12,9 @@ transRed <- function(g, max.iter = NULL, verbose = FALSE) { # general transitive
         for (k in (i+2):length(h)) {
           for (l in h[[k]]) {
             if (length(grep(paste(".*", j, ".*=", l, sep = ""), g2)) != 0) {
-              g2 <- g2[-grep(paste(".*", j, ".*=", l, sep = ""), g2)]
+              if (length(grep(paste(".*=", l, sep = ""), g2)) > 1) {
+                g2 <- g2[-grep(paste(".*", j, ".*=", l, sep = ""), g2)]
+              }
             }
           }
         }

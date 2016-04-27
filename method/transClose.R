@@ -1,7 +1,9 @@
 transClose <- function(g, max.iter = NULL, verbose = FALSE) { # does soemthign strange!!!
   v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")), "\\+"))))
   if (is.null(max.iter)) {
-    max.iter <- length(v) - 2
+    ## max.iter <- length(v) - 2 # too conservative
+    h <- getHierarchy(g)
+    max.iter <- length(h) - 2 # should be sufficient
   }
   if (verbose) {
     print(paste("maximum iterations: ", max.iter, sep = ""))
@@ -40,6 +42,7 @@ transClose <- function(g, max.iter = NULL, verbose = FALSE) { # does soemthign s
         }
       }
     }
+    g.closed <- unique(g.closed)
     if (all(g.closed %in% g.old)) {
       if (verbose) {
         cat("\n")
