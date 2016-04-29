@@ -2,9 +2,7 @@
 
 X11.options(type="Xlib")
 
-source(".../cnopt.mod.R") # load all functions; adjust working directory or paths in cnopt.mod.R ! # source("github/trunk/method/cnopt.mod.R")
-
-library(CellNOptR) # CNO package required
+library(BNEM)
 
 # NOTE: stimulations and inhibited S-genes can overlap. E.g. if you have one S-gene X, which is stimulated in one experiment and inhibited in another. Rename X to Xi and add the node Xs. Later you must add only the edge Xs -> Xi c("Xs", 1, "Xi") in your PKN. Xs is not directly connected to anything else! This way you do have two different S-genes Xs and Xi in your model, but in practice it works as if you only have X and it can be stimulated in one and inhibited in another experiment. Note, that the inhibition of X overrules the stimulation in this scenario.
 
@@ -33,7 +31,7 @@ par(mfrow=c(1,2))
 
 plotDnf(dnf, legend = 1, stimuli = stimuli, inhibitors = inhibitors, signals = c(stimuli, inhibitors)) # diamond heads denote activation and negation in one arrow; use plotDnf(legend=1)
 
-plotDnf(dnf, legend = 1, stimuli = stimuli, inhibitors = inhibitors, signals = c(stimuli, inhibitors), simulate = list(stimulated = stimuli[1], inhibited = inhibitors[1]))
+plotDnf(dnf, legend = 1, stimuli = stimuli, inhibitors = inhibitors, signals = c(stimuli, inhibitors), simulate = list(stimuli = stimuli[1], inhibitors = inhibitors[1]))
 
 ## next we need to build the model from a prior network
 

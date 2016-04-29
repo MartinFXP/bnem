@@ -30,6 +30,7 @@ gaBinaryNemT1 <- function (CNOlist,
                            delcyc = TRUE,
                            ...
                            ) {
+  addPriorKnowledge <- get("addPriorKnowledge", en = asNamespace("CellNOptR"))
   method <- checkMethod(method)
   if (parameters$cutOffs[1] > parameters$cutOffs[2]) {
     parameters$cutOffs <- sort(parameters$cutOffs)

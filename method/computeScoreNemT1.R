@@ -66,7 +66,7 @@ computeScoreNemT1 <- function(CNOlist,
   nInputs <- length(nTmp) - nInputsNeg
   ## nInTot <- 1 # use this for no normalization
   sizePen <- sum((c(nInputs, nInputsNeg)/nInTot)*sizeFac)#/nrow(NEMlist$fc)
-  Score <- getNemFit(simResults = simResults, CNOlist = CNOlist, model = modelCut, timePoint = timeIndex, NAFac = NAFac, sizePen = sizePen, simResultsT0 = NA, approach = approach, NEMlist = NEMlist, tellme = tellme, parameters = parameters, sim = sim, relFit = relFit, method = method, verbose = verbose, opt = opt)
+  suppressWarnings(Score <- getNemFit(simResults = simResults, CNOlist = CNOlist, model = modelCut, timePoint = timeIndex, NAFac = NAFac, sizePen = sizePen, simResultsT0 = NA, approach = approach, NEMlist = NEMlist, tellme = tellme, parameters = parameters, sim = sim, relFit = relFit, method = method, verbose = verbose, opt = opt))
   if ((class(CNOlist) == "CNOlist") == FALSE) {
     CNOlist = CellNOptR::CNOlist(CNOlist)
   }

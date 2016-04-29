@@ -39,6 +39,8 @@ checkNEMlist <- function(NEMlist, CNOlist, parameters, approach, method) {
         NEMlist <- computeSm(CNOlist, NEMlist, parameters, method = method)
       }
       NEMlist$egenes <- egenes
+    } else {
+      ## put somethign here to sort the contrasts abc vs abcd etc...
     }
     if (length(NEMlist$E0) == 0)  {
       egenes <- NEMlist$egenes
