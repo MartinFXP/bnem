@@ -1,5 +1,5 @@
 validateGraph <-
-function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1, 
+function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1,
                           parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), plot = TRUE,
                           disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = TRUE, colSideColors = NULL, affychip = "hgu133plus2", method = "s", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 10^-10, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
 
@@ -50,7 +50,7 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
     }
     return(proteins)
   }
-  
+
   colSideColorsSave <- NULL
   bad.data <- FALSE
   errorMat <- function() {
@@ -106,7 +106,7 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
   simResults <- simResults[, which(colnames(simResults) %in% colnames(CNOlist@signals[[1]]))]
   SCompMat <- computeFc(CNOlist, t(simResults))
   SCompMat <- SCompMat[, colnames(NEMlist$fc)]
-  
+
   if (parameters$cutOffs[3] == -1) {
     method <- checkMethod(method)
     S.mat <- SCompMat
@@ -141,7 +141,7 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
     R[is.na(R)] <- max(R[!is.na(R)])
     MSEE <- rowMins(R)
   }
-  
+
   ## matrix visualisation for egenes fitted:
   if ("fc" %in% approach) {
     check.data <- NEMlist$fc
@@ -153,9 +153,9 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
     check.model <- simResults
     colnames(check.model) <- colnames(CNOlist@signals[[2]])
   }
-  
+
   Egenes <- Egenes
-  
+
   Egenes <- min(Egenes, sum(EtoS[, 2] == Sgene))
 
   if (Egenes == 0) {
@@ -167,13 +167,13 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
     rownames(genesInfo) <- "dummy"
     return(list(genesInfo = genesInfo, data = genesInfo))
   }
-  
+
   if (complete) {
     egenefit <- matrix(0, nrow = (sum(EtoS[, 2] == Sgene)+1), ncol = ncol(check.data))
   } else {
     egenefit <- matrix(0, nrow = (Egenes+1), ncol = ncol(check.data))
   }
-  
+
   egenefit[1,] <- check.model[Sgene, ]
   rownames(egenefit) <- 1:nrow(egenefit)
   rownames(egenefit)[1] <- rownames(check.model)[Sgene]
@@ -413,6 +413,7 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
             clusterdata[nrow(egenefit), ] <- 0
             clusterdata <- NULL
           }
+          clusterdata <- NULL
           if ("bio" %in% colnames) {
             colnames(egenefit) <- gene2protein(myCN2bioCN(colnames(egenefit), colnames(CNOlist@stimuli), colnames(CNOlist@inhibitors)))
           }
@@ -532,6 +533,7 @@ function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene =
         clusterdata[nrow(egenefit), ] <- 0
         clusterdata <- NULL
       }
+      clusterdata <- NULL
       low <- sum(egenefit[nrow(egenefit), ] == min(egenefit[nrow(egenefit), ]))
       high <- sum(egenefit[nrow(egenefit), ] == max(egenefit[nrow(egenefit), ]))
       egenefit2 <- egenefit

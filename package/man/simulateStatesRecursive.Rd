@@ -66,8 +66,8 @@ write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.nam
 quote = FALSE)
 PKN <- readSIF("temp.sif")
 unlink('temp.sif')
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 states <- simulateStatesRecursive(CNOlist, model, rep(1, length(model$reacID)))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

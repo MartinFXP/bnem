@@ -2,7 +2,7 @@
 \alias{convertGraph}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-distributivity for disjunctive normal form (dnf) to conjunctive nornam form (cnf) or vice versa
+distributivity for disjunctive normal form (dnf) to conjunctive normal form (cnf) or vice versa
 %%  ~~function to do ... ~~
 }
 \description{
