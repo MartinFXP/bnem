@@ -45,11 +45,7 @@ install.packages("devtools")
 
 library(devtools)
 
-dev_mode(on=T)
-
-install_github("MartinFXP/bnem/package")
-
-dev_mode(on=F)
+install_github("MartinFXP/B-NEM/package")
 
 library(bnem)
 @
@@ -70,8 +66,8 @@ stimuli <- "dummy"
 while(length(stimuli) != 2) {
 
 ## random Boolean graph without cycles, maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:
-  dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = T) 
-  
+  dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = T)
+
 ## all S-genes:
   cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
 
@@ -118,7 +114,7 @@ PKN <- readSIF("temp.sif")
 CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL)
 
 ## extend the model:
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100) 
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
 @
 We suggest to take a look at the sif file. In future analyses it is easier to just provide a suitable sif file for the investigated pathway.
 
@@ -151,7 +147,7 @@ plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 We now use this GTN to simulate data.
 <<datasim>>=
 ## this objects holds all data:
-NEMlist <- list() 
+NEMlist <- list()
 
 ## the expression data with 10 E-genes for each S-gene and 3 replicates (not used):
 NEMlist$exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
@@ -230,7 +226,7 @@ After optimization you can look at the data and how well your networks explains 
 
 <<visualfit, fig.width=20, fig.height=10, out.width='1.0\\linewidth'>>=
 fitinfo <- validateGraph(CNOlist, NEMlist, model = model, bString = resString, Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey", aspect = "iso", sub = "")
-@ 
+@
 
 The bottom row shows the ERS of S-gene \Sexpr{colnames(CNOlist@signals[[1]])[1]} and the other rows show the observed response scheme (ORS) of the \Sexpr{colnames(CNOlist@signals[[1]])[1]}-regulated E-genes. Even though the Gaussian noise makes the data look almost random, we still found the GTN.
 Alternatively to the greedy neightbourhood search a genetic algorithm and exhaustive search are also available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
@@ -269,7 +265,7 @@ In this section we show how to use B-NEM when stimuli and inhibitors overlap. Fo
 
 <<createpkn2>>=
 ## we do not force a DAG but do not allow repression:
-dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = F, negation = F) 
+dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = F, negation = F)
 cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
 inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
 outputs <- unique(gsub(".*=", "", dnf))
@@ -315,7 +311,7 @@ write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.nam
 PKN <- readSIF("temp.sif")
 ## unlink("temp.sif")
 CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL)
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100) 
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
 @
 <<definegtn2>>=
 bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
@@ -334,7 +330,7 @@ bString <- absorption(bString,model)
 plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 @
 <<datasim2>>=
-NEMlist <- list() 
+NEMlist <- list()
 NEMlist$exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
 ERS <- computeFc(CNOlist, t(steadyState))
 stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
@@ -371,7 +367,7 @@ print(sum(bString == 0 & resString2 == 0)/(sum(bString == 0 & resString2 == 0) +
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString2)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
-@ 
+@
 The optimal network looks very different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
 <<sessioninfo>>=
 sessionInfo()

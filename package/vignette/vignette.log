@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99996 (TeX Live 2016) (preloaded format=xelatex 2016.8.4)  26 AUG 2016 10:31
+This is XeTeX, Version 3.14159265-2.6-0.99996 (TeX Live 2016) (preloaded format=xelatex 2016.8.4)  26 AUG 2016 14:55
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -414,11 +414,8 @@ LaTeX Info: Redefining \nameref on input line 68.
 \@outlinefile=\write3
 \openout3 = `vignette.out'.
 
-
-
-Package hyperref Warning: Rerun to get /PageLabels entry.
-
 LaTeX Font Info:    Try loading font information for OT1+pplx on input line 79.
+
 
 (/usr/local/texlive/2016basic/texmf-dist/tex/latex/psnfss/ot1pplx.fd
 File: ot1pplx.fd 2004/09/06 font definitions for OT1/pplx.
@@ -457,50 +454,56 @@ File: t1cmtt.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 88.
- [1
 
-] [2]
-Package color Info: Redefining color shadecolor on input line 176.
+Overfull \hbox (16.09956pt too wide) in paragraph at lines 108--108
+[]\T1/cmtt/m/it/10 ## Skipping install of 'bnem' from a github remote, the SHA1
+ (cab6b65d) has not changed since
+ []
 
-Overfull \hbox (75.57115pt too wide) in paragraph at lines 182--182
+[1
+
+]
+Package color Info: Redefining color shadecolor on input line 120.
+
+Overfull \hbox (75.57115pt too wide) in paragraph at lines 126--126
 [][]\T1/cmtt/m/it/10 ## to get the while loop started which makes sure we get a
  PKN with exactly two stimuli (not necessary):[][] 
  []
 
 
-Overfull \hbox (154.30193pt too wide) in paragraph at lines 187--187
+Overfull \hbox (154.30193pt too wide) in paragraph at lines 131--131
 [][]\T1/cmtt/m/it/10 ## random Boolean graph without cycles, maximal 25 edges, 
 maximal edge size of 1 (normal graph) and maximal 10 S-genes:[][] 
  []
 
 
-Overfull \hbox (0.35341pt too wide) in paragraph at lines 191--191
+Overfull \hbox (0.35341pt too wide) in paragraph at lines 135--135
 []  []\T1/cmtt/m/n/10 cues[] []<-[] []sort[][]([][]unique[][]([][]gsub[][]([][]
 "!"[][],[] []""[][],[] []unlist[][]([][]strsplit[][]([][]unlist[][]([][]strspli
 t[][](dnf,[] []"="[][])),[] []"\\+"[][])))))[][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 212.
+Package color Info: Redefining color shadecolor on input line 156.
 File: figure/plotpkn-1.pdf Graphic file (type QTm)
-<use  "figure/plotpkn-1.pdf" > [3]
-Package color Info: Redefining color shadecolor on input line 232.
+<use  "figure/plotpkn-1.pdf" > [2]
+Package color Info: Redefining color shadecolor on input line 176.
 
-Overfull \hbox (84.3329pt too wide) in paragraph at lines 248--248
+Overfull \hbox (84.3329pt too wide) in paragraph at lines 192--192
 [][]\T1/cmtt/m/n/10 write.table[][](sifMatrix,[] []file[] []=[] []"temp.sif"[][
 ],[] []sep[] []=[] []"\t"[][],[] []row.names[] []=[] []FALSE[][],[] []col.names
 [] []=[] []FALSE[][],[] []quote[] []=[] []FALSE[][])[][] 
  []
 
 
-Overfull \hbox (115.82521pt too wide) in paragraph at lines 253--253
+Overfull \hbox (115.82521pt too wide) in paragraph at lines 197--197
 [][]\T1/cmtt/m/n/10 CNOlist[] []<-[] []dummyCNOlist[][]([][]stimuli[] []= stimu
 li,[] []inhibitors[] []= inhibitors,[] []maxStim[] []=[] []2[][],[] []maxInhibi
 t[] []=[] []1[][],[] []signals[] []=[] []NULL[][])[][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 270.
+Package color Info: Redefining color shadecolor on input line 214.
 
-Overfull \hbox (488.4842pt too wide) in paragraph at lines 284--284
+Overfull \hbox (488.4842pt too wide) in paragraph at lines 223--223
 [][]\T1/cmtt/m/n/10 steadyState2[,[] []grep[][]([][]paste[][](inhibitors,[] []c
 ollapse[] []=[] []"|"[][]),[] []colnames[][](steadyState2))][] []<-[] []steadyS
 tate2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]),
@@ -508,60 +511,60 @@ tate2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]),
  []
 
 
-Overfull \hbox (248.77885pt too wide) in paragraph at lines 286--286
+Overfull \hbox (248.77885pt too wide) in paragraph at lines 225--225
 [][]\T1/cmtt/m/it/10 ## this while loop makes sure we get a gtn which actually 
 affects all vertices and no vertices are constitutively active (not necessary):
 [][] 
  []
 
 
-Overfull \hbox (498.98164pt too wide) in paragraph at lines 293--293
+Overfull \hbox (498.98164pt too wide) in paragraph at lines 232--232
 []  []\T1/cmtt/m/n/10 steadyState2[,[] []grep[][]([][]paste[][](inhibitors,[] [
 ]collapse[] []=[] []"|"[][]),[] []colnames[][](steadyState2))][] []<-[] []stead
 yState2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]
 ),[] []colnames[][](steadyState2))][] []+[] []CNOlist[][]@[][]inhibitors[][] 
  []
 
-[4]
-Package color Info: Redefining color shadecolor on input line 301.
+[3]
+Package color Info: Redefining color shadecolor on input line 240.
 File: figure/plotgtn-1.pdf Graphic file (type QTm)
  <use  "figure/plotgtn-1.pdf" >
-Package color Info: Redefining color shadecolor on input line 321.
+Package color Info: Redefining color shadecolor on input line 260.
 
-Overfull \hbox (0.35341pt too wide) in paragraph at lines 327--327
+Overfull \hbox (0.35341pt too wide) in paragraph at lines 266--266
 [][]\T1/cmtt/m/n/10 NEMlist[][]$[][]exprs[] []<-[] []t[][](steadyState)[[][]rep
 [][]([][]1[][]:[][]ncol[][](steadyState),[] []10[][]),[] []rep[][]([][]1[][]:[]
 []nrow[][](steadyState),[] []3[][])][][] 
  []
 
 
-Overfull \hbox (201.54039pt too wide) in paragraph at lines 329--329
+Overfull \hbox (201.54039pt too wide) in paragraph at lines 268--268
 [][]\T1/cmtt/m/it/10 ## we calculate the foldchanges or expected S-gene respons
 e scheme (ERS) between certain condtion (e.g. control vs stimulation):[][] 
  []
 
 
-Overfull \hbox (348.5045pt too wide) in paragraph at lines 332--332
+Overfull \hbox (348.5045pt too wide) in paragraph at lines 271--271
 [][]\T1/cmtt/m/it/10 # the next step reduces the ERS to a sensible set of compa
 risons; e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (s
 timuli,inhibition):[][] 
  []
 
 
-Overfull \hbox (94.83034pt too wide) in paragraph at lines 333--333
+Overfull \hbox (94.83034pt too wide) in paragraph at lines 272--272
 [][]\T1/cmtt/m/n/10 stimuli.pairs[] []<-[] []apply[][]([][]apply[][]([][]expand
 .grid[][](stimuli, stimuli),[] []c[][]([][]1[][],[][]2[][]), as.character),[] [
 ]1[][], paste,[] []collapse[] []=[] []"_"[][])[][] 
  []
 
 
-Overfull \hbox (122.80962pt too wide) in paragraph at lines 335--335
+Overfull \hbox (122.80962pt too wide) in paragraph at lines 274--274
 [][]\T1/cmtt/m/it/10 ## this is the usual setup, but "computeFc" calculates a l
 ot more contrasts, which can also be used if preferred:[][] 
  []
 
 
-Overfull \hbox (1144.57399pt too wide) in paragraph at lines 336--336
+Overfull \hbox (1144.57399pt too wide) in paragraph at lines 275--275
 [][]\T1/cmtt/m/n/10 ERS[] []<-[] []ERS[,[] []grep[][]([][]paste[][]([][]c[][]([
 ][]paste[][]([][]"Ctrl_vs_"[][],[] []c[][](stimuli, inhibitors),[] []sep[] []=[
 ] []""[][]),[] []paste[][](stimuli,[] []"_vs_"[][], stimuli,[] []"_"[][],[] []r
@@ -572,21 +575,21 @@ p[] []=[] []""[][])),[] []collapse[] []=[] []"|"[][]),[] []colnames[][](ERS))][
 ][] 
  []
 
-[5]
-Package color Info: Redefining color shadecolor on input line 367.
+[4]
+Package color Info: Redefining color shadecolor on input line 306.
 
-Overfull \hbox (91.3173pt too wide) in paragraph at lines 373--373
+Overfull \hbox (91.3173pt too wide) in paragraph at lines 312--312
 [][]\T1/cmtt/m/it/10 ## paralellize for several threads on one machine or multi
 ple machines. See package "snowfall" for details.[][] 
  []
 
-[6]
-Package color Info: Redefining color shadecolor on input line 422.
+[5]
+Package color Info: Redefining color shadecolor on input line 348.
 File: figure/plotresult-1.pdf Graphic file (type QTm)
  <use  "figure/plotresult-1.pdf" >
-Package color Info: Redefining color shadecolor on input line 453.
- [7]
-Overfull \hbox (131.57137pt too wide) in paragraph at lines 456--456
+Package color Info: Redefining color shadecolor on input line 379.
+
+Overfull \hbox (131.57137pt too wide) in paragraph at lines 382--382
 [][]\T1/cmtt/m/n/10 print[][]([][]sum[][](bString[] []==[] []1[] []&[] []resStr
 ing[] []==[] []1[][])[][]/[][]([][]sum[][](bString[] []==[] []1[] []&[] []resSt
 ring[] []==[] []1[][])[] []+[] []sum[][](bString[] []==[] []1[] []&[] []resStri
@@ -594,7 +597,7 @@ ng[] []==[] []0[][])))[][]
  []
 
 
-Overfull \hbox (131.57137pt too wide) in paragraph at lines 462--462
+Overfull \hbox (131.57137pt too wide) in paragraph at lines 388--388
 [][]\T1/cmtt/m/n/10 print[][]([][]sum[][](bString[] []==[] []0[] []&[] []resStr
 ing[] []==[] []0[][])[][]/[][]([][]sum[][](bString[] []==[] []0[] []&[] []resSt
 ring[] []==[] []0[][])[] []+[] []sum[][](bString[] []==[] []0[] []&[] []resStri
@@ -602,14 +605,15 @@ ng[] []==[] []1[][])))[][]
  []
 
 
-Overfull \hbox (154.30193pt too wide) in paragraph at lines 468--468
+Overfull \hbox (154.30193pt too wide) in paragraph at lines 394--394
 [][]\T1/cmtt/m/it/10 ## accuracy of expected response scheme from learned netwo
 rk should be high even though the network can look different:[][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 483.
+[6]
+Package color Info: Redefining color shadecolor on input line 409.
 
-Overfull \hbox (813.90474pt too wide) in paragraph at lines 485--485
+Overfull \hbox (813.90474pt too wide) in paragraph at lines 411--411
 [][]\T1/cmtt/m/n/10 fitinfo[] []<-[] []validateGraph[][](CNOlist, NEMlist,[] []
 model[] []= model,[] []bString[] []= resString,[] []Sgene[] []=[] []1[][],[] []
 Egenes[] []=[] []1000[][],[] []cexRow[] []=[] []0.8[][],[] []cexCol[] []=[] []0
@@ -619,48 +623,48 @@ Egenes[] []=[] []1000[][],[] []cexRow[] []=[] []0.8[][],[] []cexCol[] []=[] []0
 
  []
 
-[8]
 File: figure/visualfit-1.pdf Graphic file (type QTm)
- <use  "figure/visualfit-1.pdf" >
-Package color Info: Redefining color shadecolor on input line 525.
- [9]
-Package color Info: Redefining color shadecolor on input line 560.
-Package color Info: Redefining color shadecolor on input line 579.
-Package color Info: Redefining color shadecolor on input line 595.
-Package color Info: Redefining color shadecolor on input line 611.
+<use  "figure/visualfit-1.pdf" >
+Package color Info: Redefining color shadecolor on input line 441.
+ [7]
+Package color Info: Redefining color shadecolor on input line 476.
+Package color Info: Redefining color shadecolor on input line 495.
+Package color Info: Redefining color shadecolor on input line 511.
+ [8]
+Package color Info: Redefining color shadecolor on input line 527.
 File: figure/plotpkn2-1.pdf Graphic file (type QTm)
  <use  "figure/plotpkn2-1.pdf" >
-[10]
-Package color Info: Redefining color shadecolor on input line 633.
+Package color Info: Redefining color shadecolor on input line 549.
 
-Overfull \hbox (84.3329pt too wide) in paragraph at lines 648--648
+Overfull \hbox (84.3329pt too wide) in paragraph at lines 564--564
 [][]\T1/cmtt/m/n/10 write.table[][](sifMatrix,[] []file[] []=[] []"temp.sif"[][
 ],[] []sep[] []=[] []"\t"[][],[] []row.names[] []=[] []FALSE[][],[] []col.names
 [] []=[] []FALSE[][],[] []quote[] []=[] []FALSE[][])[][] 
  []
 
 
-Overfull \hbox (115.82521pt too wide) in paragraph at lines 651--651
+Overfull \hbox (115.82521pt too wide) in paragraph at lines 567--567
 [][]\T1/cmtt/m/n/10 CNOlist[] []<-[] []dummyCNOlist[][]([][]stimuli[] []= stimu
 li,[] []inhibitors[] []= inhibitors,[] []maxStim[] []=[] []2[][],[] []maxInhibi
 t[] []=[] []1[][],[] []signals[] []=[] []NULL[][])[][] 
  []
 
 
-Overfull \hbox (205.05342pt too wide) in paragraph at lines 659--659
-[]\T1/cmtt/m/n/10 ## [1] "The following species are measured: A, B, Cinhibit, C
-stim, D, E, F, Ginhibit, Gstim, Hinhibit, Hstim, I, Jinhibit, Jstim"[] 
+Overfull \hbox (131.57137pt too wide) in paragraph at lines 575--575
+[]\T1/cmtt/m/n/10 ## [1] "The following species are measured: A, B, C, D, E, F,
+ Ginhibit, Gstim, Hinhibit, Hstim, Iinhibit, Istim, J"[] 
  []
 
 
-Overfull \hbox (63.33803pt too wide) in paragraph at lines 659--659
-[]\T1/cmtt/m/n/10 ## [1] "The following species are inhibited: A, B, Cinhibit, 
-D, E, F, Ginhibit, Hinhibit, I, Jinhibit"[] 
+Overfull \hbox (26.597pt too wide) in paragraph at lines 575--575
+[]\T1/cmtt/m/n/10 ## [1] "The following species are inhibited: A, B, C, D, E, F
+, Ginhibit, Hinhibit, Iinhibit, J"[] 
  []
 
-Package color Info: Redefining color shadecolor on input line 663.
+[9]
+Package color Info: Redefining color shadecolor on input line 579.
 
-Overfull \hbox (488.4842pt too wide) in paragraph at lines 667--667
+Overfull \hbox (488.4842pt too wide) in paragraph at lines 583--583
 [][]\T1/cmtt/m/n/10 steadyState2[,[] []grep[][]([][]paste[][](inhibitors,[] []c
 ollapse[] []=[] []"|"[][]),[] []colnames[][](steadyState2))][] []<-[] []steadyS
 tate2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]),
@@ -668,34 +672,33 @@ tate2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]),
  []
 
 
-Overfull \hbox (498.98164pt too wide) in paragraph at lines 671--671
+Overfull \hbox (498.98164pt too wide) in paragraph at lines 587--587
 []  []\T1/cmtt/m/n/10 steadyState2[,[] []grep[][]([][]paste[][](inhibitors,[] [
 ]collapse[] []=[] []"|"[][]),[] []colnames[][](steadyState2))][] []<-[] []stead
 yState2[,[] []grep[][]([][]paste[][](inhibitors,[] []collapse[] []=[] []"|"[][]
 ),[] []colnames[][](steadyState2))][] []+[] []CNOlist[][]@[][]inhibitors[][] 
  []
 
-[11]
-Package color Info: Redefining color shadecolor on input line 680.
+Package color Info: Redefining color shadecolor on input line 596.
 File: figure/plotgtn2-1.pdf Graphic file (type QTm)
- <use  "figure/plotgtn2-1.pdf" >
-Package color Info: Redefining color shadecolor on input line 699.
-
-Overfull \hbox (0.35341pt too wide) in paragraph at lines 702--702
+<use  "figure/plotgtn2-1.pdf" >
+Package color Info: Redefining color shadecolor on input line 615.
+ [10]
+Overfull \hbox (0.35341pt too wide) in paragraph at lines 618--618
 [][]\T1/cmtt/m/n/10 NEMlist[][]$[][]exprs[] []<-[] []t[][](steadyState)[[][]rep
 [][]([][]1[][]:[][]ncol[][](steadyState),[] []10[][]),[] []rep[][]([][]1[][]:[]
 []nrow[][](steadyState),[] []3[][])][][] 
  []
 
 
-Overfull \hbox (94.83034pt too wide) in paragraph at lines 704--704
+Overfull \hbox (94.83034pt too wide) in paragraph at lines 620--620
 [][]\T1/cmtt/m/n/10 stimuli.pairs[] []<-[] []apply[][]([][]apply[][]([][]expand
 .grid[][](stimuli, stimuli),[] []c[][]([][]1[][],[][]2[][]), as.character),[] [
 ]1[][], paste,[] []collapse[] []=[] []"_"[][])[][] 
  []
 
 
-Overfull \hbox (1144.57399pt too wide) in paragraph at lines 705--705
+Overfull \hbox (1144.57399pt too wide) in paragraph at lines 621--621
 [][]\T1/cmtt/m/n/10 ERS[] []<-[] []ERS[,[] []grep[][]([][]paste[][]([][]c[][]([
 ][]paste[][]([][]"Ctrl_vs_"[][],[] []c[][](stimuli, inhibitors),[] []sep[] []=[
 ] []""[][]),[] []paste[][](stimuli,[] []"_vs_"[][], stimuli,[] []"_"[][],[] []r
@@ -706,14 +709,14 @@ p[] []=[] []""[][])),[] []collapse[] []=[] []"|"[][]),[] []colnames[][](ERS))][
 ][] 
  []
 
-[12]
-Package color Info: Redefining color shadecolor on input line 732.
-Package color Info: Redefining color shadecolor on input line 766.
+Package color Info: Redefining color shadecolor on input line 648.
+[11]
+Package color Info: Redefining color shadecolor on input line 682.
 File: figure/plotresult2-1.pdf Graphic file (type QTm)
  <use  "figure/plotresult2-1.pdf" >
-Package color Info: Redefining color shadecolor on input line 794.
- [13]
-Overfull \hbox (147.31752pt too wide) in paragraph at lines 796--796
+Package color Info: Redefining color shadecolor on input line 710.
+ [12]
+Overfull \hbox (147.31752pt too wide) in paragraph at lines 712--712
 [][]\T1/cmtt/m/n/10 print[][]([][]sum[][](bString[] []==[] []1[] []&[] []resStr
 ing2[] []==[] []1[][])[][]/[][]([][]sum[][](bString[] []==[] []1[] []&[] []resS
 tring2[] []==[] []1[][])[] []+[] []sum[][](bString[] []==[] []1[] []&[] []resSt
@@ -721,37 +724,36 @@ ring2[] []==[] []0[][])))[][]
  []
 
 
-Overfull \hbox (147.31752pt too wide) in paragraph at lines 802--802
+Overfull \hbox (147.31752pt too wide) in paragraph at lines 718--718
 [][]\T1/cmtt/m/n/10 print[][]([][]sum[][](bString[] []==[] []0[] []&[] []resStr
 ing2[] []==[] []0[][])[][]/[][]([][]sum[][](bString[] []==[] []0[] []&[] []resS
 tring2[] []==[] []0[][])[] []+[] []sum[][](bString[] []==[] []0[] []&[] []resSt
 ring2[] []==[] []1[][])))[][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 819.
+Package color Info: Redefining color shadecolor on input line 735.
 
-Overfull \hbox (0.35341pt too wide) in paragraph at lines 849--849
+Overfull \hbox (0.35341pt too wide) in paragraph at lines 765--765
 []\T1/cmtt/m/n/10 ##  [6] class_7.3-14     tools_3.3.1      boot_1.3-18      di
 gest_0.6.10    statmod_1.4.25[] 
  []
 
-[14]
 Missing character: There is no – in font pplr9e!
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 855.
- [15]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 855.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 771.
+[13]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 771.
  (./vignette.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 855.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 855.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 855.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 771.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 771.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 771.
  ) 
 Here is how much of TeX's memory you used:
  9270 strings out of 495086
  132310 string characters out of 6174759
- 205062 words of memory out of 5000000
+ 203765 words of memory out of 5000000
  12519 multiletter control sequences out of 15000+600000
  26911 words of font info for 54 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 29i,6n,20p,992b,392s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 29i,6n,20p,992b,374s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on vignette.pdf (15 pages).
+Output written on vignette.pdf (13 pages).

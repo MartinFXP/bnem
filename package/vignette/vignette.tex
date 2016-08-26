@@ -96,75 +96,19 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# Installing package into '/Users/mpirkl/Library/R/3.3/library'\\\#\# (as 'lib' is unspecified)}}\begin{verbatim}
 ## 
 ## The downloaded binary packages are in
-## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmpRcZHWh/downloaded_packages
+## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmpXh0qtK/downloaded_packages
 \end{verbatim}
 \begin{alltt}
 \hlkwd{library}\hlstd{(devtools)}
 
-\hlkwd{dev_mode}\hlstd{(}\hlkwc{on}\hlstd{=T)}
+\hlkwd{install_github}\hlstd{(}\hlstr{"MartinFXP/B-NEM/package"}\hlstd{)}
 \end{alltt}
 
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Dev mode: ON}}\begin{alltt}
-\hlkwd{install_github}\hlstd{(}\hlstr{"MartinFXP/bnem/package"}\hlstd{)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Downloading GitHub repo MartinFXP/bnem@master\\\#\# from URL https://api.github.com/repos/MartinFXP/bnem/zipball/master}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# condition in stop(github\_error(request)): Not Found (404)}}\begin{alltt}
-\hlkwd{dev_mode}\hlstd{(}\hlkwc{on}\hlstd{=F)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Dev mode: OFF}}\begin{alltt}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Skipping install of 'bnem' from a github remote, the SHA1 (cab6b65d) has not changed since last install.\\\#\#\ \  Use `force = TRUE` to force installation}}\begin{alltt}
 \hlkwd{library}\hlstd{(bnem)}
 \end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: CellNOptR}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: RBGL}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: graph}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: BiocGenerics}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: parallel}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'BiocGenerics'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:parallel':\\\#\# \\\#\#\ \ \ \  clusterApply, clusterApplyLB, clusterCall, clusterEvalQ, clusterExport,\\\#\#\ \ \ \  clusterMap, parApply, parCapply, parLapply, parLapplyLB, parRapply,\\\#\#\ \ \ \  parSapply, parSapplyLB}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:stats':\\\#\# \\\#\#\ \ \ \  IQR, mad, xtabs}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:base':\\\#\# \\\#\#\ \ \ \  Filter, Find, Map, Position, Reduce, anyDuplicated, append, as.data.frame,\\\#\#\ \ \ \  cbind, colnames, do.call, duplicated, eval, evalq, get, grep, grepl,\\\#\#\ \ \ \  intersect, is.unsorted, lapply, lengths, mapply, match, mget, order, paste,\\\#\#\ \ \ \  pmax, pmax.int, pmin, pmin.int, rank, rbind, rownames, sapply, setdiff,\\\#\#\ \ \ \  sort, table, tapply, union, unique, unsplit}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: hash}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# hash-2.2.6 provided by Decision Patterns}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: ggplot2}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: RCurl}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: bitops}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: Rgraphviz}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: grid}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: XML}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'XML'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:graph':\\\#\# \\\#\#\ \ \ \  addNode}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: nem}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'nem'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:RBGL':\\\#\# \\\#\#\ \ \ \  transitive.closure}}\end{kframe}
+\end{kframe}
 \end{knitrout}
 
 \section*{A simple toy example}
@@ -274,12 +218,7 @@ In a real world application the underlaying real ground truth network (GTN) is n
 
 \hlcom{## simulate S-gene states for all possible conditions:}
 \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
-\end{alltt}
 
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: matrixStats}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# matrixStats v0.50.2 (2016-04-24) successfully loaded. See ?matrixStats for help.}}\begin{alltt}
 \hlcom{## we find constitutively active S-genes with the folloing:}
 \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlkwb{<-} \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 
@@ -387,19 +326,6 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
 \end{alltt}
 
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: snowfall}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: snow}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'snow'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:BiocGenerics':\\\#\# \\\#\#\ \ \ \  clusterApply, clusterApplyLB, clusterCall, clusterEvalQ, clusterExport,\\\#\#\ \ \ \  clusterMap, clusterSplit, parApply, parCapply, parLapply, parRapply,\\\#\#\ \ \ \  parSapply}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following objects are masked from 'package:parallel':\\\#\# \\\#\#\ \ \ \  clusterApply, clusterApplyLB, clusterCall, clusterEvalQ, clusterExport,\\\#\#\ \ \ \  clusterMap, clusterSplit, makeCluster, parApply, parCapply, parLapply,\\\#\#\ \ \ \  parRapply, parSapply, splitIndices, stopCluster}}\begin{verbatim}
-## R Version:  R version 3.3.1 (2016-06-21)
-\end{verbatim}
-
-
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# snowfall 1.84-6.1 initialized (using snow 0.4-1): parallel execution on 2 CPUs.}}\begin{verbatim}
 ## Library CellNOptR loaded.
 \end{verbatim}
@@ -497,17 +423,7 @@ After optimization you can look at the data and how well your networks explains 
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ## -0.6368 -0.5190 -0.4505 -0.4327 -0.3601 -0.1497
 \end{verbatim}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: lattice}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: latticeExtra}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: RColorBrewer}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Attaching package: 'latticeExtra'}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# The following object is masked from 'package:ggplot2':\\\#\# \\\#\#\ \ \ \  layer}}\end{kframe}
+\end{kframe}
 
 {\centering \includegraphics[width=1.0\linewidth]{figure/visualfit-1} 
 
@@ -614,8 +530,8 @@ The next figure shows the cyclic PKN with extra stimuli S-genes. Notice, this wa
 \end{alltt}
 \begin{verbatim}
 ## A graphNEL graph with directed edges
-## Number of Nodes = 14 
-## Number of Edges = 27
+## Number of Nodes = 13 
+## Number of Edges = 28
 \end{verbatim}
 \end{kframe}
 
@@ -652,9 +568,9 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlstd{model} \hlkwb{<-} \hlkwd{preprocessing}\hlstd{(CNOlist, PKN,} \hlkwc{maxInputsPerGate}\hlstd{=}\hlnum{100}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
-## [1] "The following species are measured: A, B, Cinhibit, Cstim, D, E, F, Ginhibit, Gstim, Hinhibit, Hstim, I, Jinhibit, Jstim"
-## [1] "The following species are stimulated: Cstim, Gstim, Hstim, Jstim"
-## [1] "The following species are inhibited: A, B, Cinhibit, D, E, F, Ginhibit, Hinhibit, I, Jinhibit"
+## [1] "The following species are measured: A, B, C, D, E, F, Ginhibit, Gstim, Hinhibit, Hstim, Iinhibit, Istim, J"
+## [1] "The following species are stimulated: Gstim, Hstim, Istim"
+## [1] "The following species are inhibited: A, B, C, D, E, F, Ginhibit, Hinhibit, Iinhibit, J"
 ## [1] "The following species are not observable and/or not controllable: "
 \end{verbatim}
 \end{kframe}
@@ -683,8 +599,8 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \end{alltt}
 \begin{verbatim}
 ## A graphNEL graph with directed edges
-## Number of Nodes = 19 
-## Number of Edges = 31
+## Number of Nodes = 17 
+## Number of Edges = 28
 \end{verbatim}
 \end{kframe}
 
@@ -711,20 +627,20 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlkwd{print}\hlstd{(NEMlist}\hlopt{$}\hlstd{fc[}\hlnum{1}\hlopt{:}\hlnum{6}\hlstd{,} \hlkwd{c}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{3}\hlstd{,(}\hlkwd{ncol}\hlstd{(NEMlist}\hlopt{$}\hlstd{fc)}\hlopt{-}\hlnum{2}\hlstd{)}\hlopt{:}\hlkwd{ncol}\hlstd{(NEMlist}\hlopt{$}\hlstd{fc))])}
 \end{alltt}
 \begin{verbatim}
-##             Ctrl_vs_A  Ctrl_vs_B Ctrl_vs_Cinhibit Hstim_Jstim_vs_Hstim_Jstim_Hinhibit
-## A_1        -1.2811054 -0.5295612       1.06564578                          -2.8119806
-## B_2         0.1303826  1.4796840       0.05241046                          -1.0607733
-## Cinhibit_3  0.4184786 -0.3889884       0.46021052                          -1.7244294
-## Cstim_4     0.9448523  1.5771365       1.40546434                           0.2211665
-## D_5        -0.1459405  1.0770750      -0.89684230                          -1.3378122
-## E_6        -0.7241639  1.1286633       2.38410596                           0.2568419
-##            Hstim_Jstim_vs_Hstim_Jstim_I Hstim_Jstim_vs_Hstim_Jstim_Jinhibit
-## A_1                           1.1966920                           0.9927947
-## B_2                          -0.5099656                          -2.5192066
-## Cinhibit_3                    0.8809396                          -1.3855523
-## Cstim_4                      -0.2752258                           1.6209512
-## D_5                          -1.4068102                          -0.2553078
-## E_6                           0.3922717                           1.0511774
+##       Ctrl_vs_A  Ctrl_vs_B  Ctrl_vs_C Hstim_Istim_vs_Hstim_Istim_Hinhibit
+## A_1 -0.78149795 -1.0243869 -0.4798684                           0.2478244
+## B_2 -0.01482601 -1.5781127  0.1669494                           0.7255230
+## C_3  0.76593851  2.6812805 -0.5003797                          -0.8308681
+## D_4 -0.97604903 -0.2445900  1.7634378                           1.2054856
+## E_5 -1.02583577  0.8197866  0.6801132                          -1.9870181
+## F_6 -0.82180858  1.0003305  1.1556738                          -0.8102499
+##     Hstim_Istim_vs_Hstim_Istim_Iinhibit Hstim_Istim_vs_Hstim_Istim_J
+## A_1                         -1.09111396                   -0.1834281
+## B_2                          2.19723830                    0.3406081
+## C_3                         -0.02646857                    0.1008377
+## D_4                         -0.86552369                   -0.3583840
+## E_5                          0.76103492                   -0.4754561
+## F_6                         -1.15428818                    1.2788998
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -770,16 +686,16 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \end{alltt}
 \begin{verbatim}
 ## A graphNEL graph with directed edges
-## Number of Nodes = 19 
-## Number of Edges = 31
+## Number of Nodes = 17 
+## Number of Edges = 28
 \end{verbatim}
 \begin{alltt}
 \hlkwd{plotDnf}\hlstd{(model}\hlopt{$}\hlstd{reacID[}\hlkwd{as.logical}\hlstd{(resString2)],} \hlkwc{main} \hlstd{=} \hlstr{"greedy optimum"}\hlstd{,} \hlkwc{stimuli} \hlstd{= stimuli)}
 \end{alltt}
 \begin{verbatim}
 ## A graphNEL graph with directed edges
-## Number of Nodes = 18 
-## Number of Edges = 25
+## Number of Nodes = 14 
+## Number of Edges = 16
 \end{verbatim}
 \end{kframe}
 
@@ -796,13 +712,13 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.7619048
+## [1] 0.7222222
 \end{verbatim}
 \begin{alltt}
 \hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.9830508
+## [1] 0.9912281
 \end{verbatim}
 \begin{alltt}
 \hlstd{ERS.res} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(}\hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, resString2)))}
@@ -834,15 +750,15 @@ The optimal network looks very different and has lower sensitivity and specifici
 ## 
 ## other attached packages:
 ##  [1] latticeExtra_0.6-28 RColorBrewer_1.1-2  lattice_0.20-33     snowfall_1.84-6.1  
-##  [5] snow_0.4-1          matrixStats_0.50.2  bnem_1.0            nem_2.46.0         
-##  [9] CellNOptR_1.18.0    XML_3.98-1.4        Rgraphviz_2.16.0    RCurl_1.95-4.8     
-## [13] bitops_1.0-6        ggplot2_2.1.0       hash_2.2.6          RBGL_1.48.1        
-## [17] graph_1.50.0        BiocGenerics_0.18.0 devtools_1.12.0     knitr_1.14         
+##  [5] snow_0.4-1          matrixStats_0.50.2  knitr_1.14          bnem_1.0           
+##  [9] nem_2.46.0          CellNOptR_1.18.0    XML_3.98-1.4        Rgraphviz_2.16.0   
+## [13] RCurl_1.95-4.8      bitops_1.0-6        ggplot2_2.1.0       hash_2.2.6         
+## [17] RBGL_1.48.1         graph_1.50.0        BiocGenerics_0.18.0 devtools_1.12.0    
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.6      formatR_1.4      git2r_0.15.0     highr_0.6        plyr_1.8.4      
+##  [1] Rcpp_0.12.6      formatR_1.4      git2r_0.15.0     plyr_1.8.4       highr_0.6       
 ##  [6] class_7.3-14     tools_3.3.1      boot_1.3-18      digest_0.6.10    statmod_1.4.25  
-## [11] jsonlite_1.0     evaluate_0.9     memoise_1.0.0    gtable_0.2.0     curl_1.2        
+## [11] jsonlite_1.0     memoise_1.0.0    evaluate_0.9     gtable_0.2.0     curl_1.2        
 ## [16] e1071_1.6-7      withr_1.0.2      httr_1.2.1       stringr_1.0.0    stats4_3.3.1    
 ## [21] R6_2.1.2         plotrix_3.6-3    tcltk_3.3.1      limma_3.28.17    magrittr_1.5    
 ## [26] scales_0.4.0     colorspace_1.2-6 stringi_1.1.1    munsell_0.4.3
