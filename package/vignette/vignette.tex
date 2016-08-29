@@ -69,7 +69,7 @@
 
 
 
-\title{Boolean Nested Effects Modesl\\
+\title{Boolean Nested Effects Models\\
 	Inferring the logical signalling of pathways from indirect measurements and perturbation biology}
 
 
@@ -78,7 +78,7 @@
 \maketitle
 Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In different experiments (conditions) members of a pathway (S-genes) are stimulated or inhibited, alone and in combination. In each experiment transcriptional targets (E-genes) of the pathway react differently and are higher or lower expressed depending on the condition. From these differential expression B-NEM infers Boolean functions presented as hyper-edges of a hyper-graph connecting parents and children in the pathway. For example if the signal is transducted by two parents A and B to a child C and the signal can be blocked with a knock-down of either one, they are connected by a typical AND-gate. If the signal is still transduced during a single knock-down, but blocked by the double knock-down of A and B, they activate C by an OR-gate. In general the state of child C is defined by a Boolean function
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
- with its parents $A_i$.
+ with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
 
 \section*{Loading B-NEM}
 
@@ -96,16 +96,24 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# Installing package into '/Users/mpirkl/Library/R/3.3/library'\\\#\# (as 'lib' is unspecified)}}\begin{verbatim}
 ## 
 ## The downloaded binary packages are in
-## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmpIrICE9/downloaded_packages
+## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmprQnyC4/downloaded_packages
 \end{verbatim}
 \begin{alltt}
 \hlkwd{library}\hlstd{(devtools)}
 
-\hlkwd{install_github}\hlstd{(}\hlstr{"MartinFXP/B-NEM/package"}\hlstd{)}
+\hlkwd{install_github}\hlstd{(}\hlstr{"MartinFXP/B-NEM/package"}\hlstd{,} \hlkwc{force} \hlstd{= T)}
 \end{alltt}
 
 
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in curl::curl\_fetch\_disk(url, x\$path, handle = handle): Timeout was reached}}\begin{alltt}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Downloading GitHub repo MartinFXP/B-NEM@master\\\#\# from URL https://api.github.com/repos/MartinFXP/B-NEM/zipball/master}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Installing bnem}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file --no-environ --no-save\ \ \textbackslash{}\\\#\#\ \  --no-restore --quiet CMD INSTALL\ \ \textbackslash{}\\\#\#\ \  '/private/var/folders/2f/mtjcsd910hz9xnn3shkljg\_8005f53/T/RtmprQnyC4/devtools3ef64d54e11b/MartinFXP-B-NEM-560f7d6/package'\ \ \textbackslash{}\\\#\#\ \  --library='/Users/mpirkl/Library/R/3.3/library' --install-tests}}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# }}
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Reloading installed bnem}}\begin{alltt}
 \hlkwd{library}\hlstd{(bnem)}
 \end{alltt}
 \end{kframe}
@@ -123,12 +131,14 @@ First we create a prior knowledge network (PKN). The PKN will have two S-genes w
 \hlcom{## alternative seed and also a great song:}
 \hlcom{## set.seed(9247)}
 
-\hlcom{## to get the while loop started which makes sure we get a PKN with exactly two stimuli (not necessary):}
+\hlcom{## to get the while loop started,}
+\hlcom{## which makes sure we get a PKN with exactly two stimuli (not necessary):}
 \hlstd{stimuli} \hlkwb{<-} \hlstr{"dummy"}
 
 \hlkwa{while}\hlstd{(}\hlkwd{length}\hlstd{(stimuli)} \hlopt{!=} \hlnum{2}\hlstd{) \{}
 
-\hlcom{## random Boolean graph without cycles, maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:}
+\hlcom{## random Boolean graph without cycles,}
+\hlcom{## maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:}
   \hlstd{dnf} \hlkwb{<-} \hlkwd{randomDnf}\hlstd{(}\hlnum{10}\hlstd{,} \hlkwc{max.edges} \hlstd{=} \hlnum{25}\hlstd{,} \hlkwc{max.edge.size} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{dag} \hlstd{= T)}
 
 \hlcom{## all S-genes:}
@@ -189,12 +199,14 @@ In the next step we convert the dnf object into a PKN and extend it to a Boolean
     \hlstd{\}}
   \hlstd{\}}
 \hlstd{\}}
-\hlkwd{write.table}\hlstd{(sifMatrix,} \hlkwc{file} \hlstd{=} \hlstr{"temp.sif"}\hlstd{,} \hlkwc{sep} \hlstd{=} \hlstr{"\textbackslash{}t"}\hlstd{,} \hlkwc{row.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{col.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{quote} \hlstd{=} \hlnum{FALSE}\hlstd{)}
+\hlkwd{write.table}\hlstd{(sifMatrix,} \hlkwc{file} \hlstd{=} \hlstr{"temp.sif"}\hlstd{,} \hlkwc{sep} \hlstd{=} \hlstr{"\textbackslash{}t"}\hlstd{,}
+            \hlkwc{row.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{col.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{quote} \hlstd{=} \hlnum{FALSE}\hlstd{)}
 \hlstd{PKN} \hlkwb{<-} \hlkwd{readSIF}\hlstd{(}\hlstr{"temp.sif"}\hlstd{)}
 \hlcom{## unlink("temp.sif")}
 
 \hlcom{## create dummy metainformation:}
-\hlstd{CNOlist} \hlkwb{<-} \hlkwd{dummyCNOlist}\hlstd{(}\hlkwc{stimuli} \hlstd{= stimuli,} \hlkwc{inhibitors} \hlstd{= inhibitors,} \hlkwc{maxStim} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{maxInhibit} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{signals} \hlstd{=} \hlkwa{NULL}\hlstd{)}
+\hlstd{CNOlist} \hlkwb{<-} \hlkwd{dummyCNOlist}\hlstd{(}\hlkwc{stimuli} \hlstd{= stimuli,} \hlkwc{inhibitors} \hlstd{= inhibitors,}
+                        \hlkwc{maxStim} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{maxInhibit} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{signals} \hlstd{=} \hlkwa{NULL}\hlstd{)}
 
 \hlcom{## extend the model:}
 \hlstd{model} \hlkwb{<-} \hlkwd{preprocessing}\hlstd{(CNOlist, PKN,} \hlkwc{maxInputsPerGate}\hlstd{=}\hlnum{100}\hlstd{)}
@@ -220,16 +232,20 @@ In a real world application the underlaying real ground truth network (GTN) is n
 \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
 
 \hlcom{## we find constitutively active S-genes with the folloing:}
-\hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlkwb{<-} \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))}
+\hlstd{steadyState2[, ind]} \hlkwb{<-} \hlstd{steadyState2[, ind]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 
-\hlcom{## this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active (not necessary):}
+\hlcom{## this while loop makes sure we get a gtn,}
+\hlcom{## which actually affects all vertices}
+\hlcom{## and no vertices are constitutively active (not necessary):}
 \hlkwa{while}\hlstd{(}\hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{|} \hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState2,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)) \{}
 
   \hlstd{bString} \hlkwb{<-} \hlkwd{absorption}\hlstd{(}\hlkwd{sample}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID),} \hlkwc{replace} \hlstd{= T), model)}
 
   \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
 
-  \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlkwb{<-} \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
+  \hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))}
+  \hlstd{steadyState2[, ind]} \hlkwb{<-} \hlstd{steadyState2[, ind]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 
 \hlstd{\}}
 \end{alltt}
@@ -255,21 +271,26 @@ The following figure shows our random GTN, which is a subset of the complete sea
 
 
 \end{knitrout}
-We now use this GTN to simulate data.
+We use this GTN to simulate data.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlcom{## the expression data with 10 E-genes for each S-gene and 3 replicates (not used):}
 \hlstd{exprs} \hlkwb{<-} \hlkwd{t}\hlstd{(steadyState)[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(steadyState),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(steadyState),} \hlnum{3}\hlstd{)]}
 
-\hlcom{## we calculate the foldchanges or expected S-gene response scheme (ERS) between certain condtion (e.g. control vs stimulation):}
+\hlcom{## we calculate the foldchanges or expected S-gene response scheme (ERS)}
+\hlcom{## between certain condtion (e.g. control vs stimulation):}
 \hlstd{ERS} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(steadyState))}
 
-\hlcom{# the next step reduces the ERS to a sensible set of comparisons; e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition):}
-\hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{apply}\hlstd{(}\hlkwd{expand.grid}\hlstd{(stimuli, stimuli),} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{), as.character),} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
+\hlcom{# the next step reduces the ERS to a sensible set of comparisons;}
+\hlcom{## e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition):}
+\hlstd{stimcomb} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{expand.grid}\hlstd{(stimuli, stimuli),} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{), as.character)}
+\hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(stimcomb,} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
 
-\hlcom{## this is the usual setup, but "computeFc" calculates a lot more contrasts, which can also be used if preferred:}
-\hlstd{ERS} \hlkwb{<-} \hlstd{ERS[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))]}
+\hlcom{## this is the usual setup,}
+\hlcom{## but "computeFc" calculates a lot more contrasts, which can also be used if preferred:}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
+\hlstd{ERS} \hlkwb{<-} \hlstd{ERS[, ind]}
 
 \hlcom{## same as before with the expression values, we have 10 E-genes each and 3 replicates:}
 \hlstd{fc} \hlkwb{<-} \hlstd{ERS[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(ERS),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(ERS),} \hlnum{3}\hlstd{)]}
@@ -311,7 +332,8 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
 \hlstd{initBstring} \hlkwb{<-} \hlkwd{reduceGraph}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlnum{0}\hlstd{,} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID)), model, CNOlist)}
 \hlcom{## initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)}
 
-\hlcom{## paralellize for several threads on one machine or multiple machines. See package "snowfall" for details.}
+\hlcom{## paralellize for several threads on one machine or multiple machines.}
+\hlcom{## See package "snowfall" for details.}
 \hlstd{parallel} \hlkwb{<-} \hlnum{2} \hlcom{# list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))}
 
 \hlcom{## greedy search:}
@@ -382,19 +404,22 @@ We can now take a look at the efficiency of the search algorithm with sensitivit
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlcom{## hyper-edge sensitivity and specificity:}
-\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)))}
+\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)}\hlopt{/}
+      \hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
 ## [1] 1
 \end{verbatim}
 \begin{alltt}
-\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)))}
+\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)}\hlopt{/}
+      \hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString} \hlopt{==} \hlnum{1}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
 ## [1] 1
 \end{verbatim}
 \begin{alltt}
-\hlcom{## accuracy of expected response scheme from learned network should be high even though the network can look different:}
+\hlcom{## accuracy of expected response scheme from learned network should be high}
+\hlcom{## even though the network can look different:}
 \hlstd{ERS.res} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(}\hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, resString)))}
 \hlstd{ERS.res} \hlkwb{<-} \hlstd{ERS.res[,} \hlkwd{which}\hlstd{(}\hlkwd{colnames}\hlstd{(ERS.res)} \hlopt{%in%} \hlkwd{colnames}\hlstd{(ERS))]}
 \hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(ERS.res} \hlopt{==} \hlstd{ERS)}\hlopt{/}\hlkwd{length}\hlstd{(ERS))}
@@ -411,7 +436,9 @@ After optimization you can look at the data and how well your networks explains 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{fitinfo} \hlkwb{<-} \hlkwd{validateGraph}\hlstd{(CNOlist,} \hlkwc{fc}\hlstd{=fc,} \hlkwc{exprs}\hlstd{=exprs,} \hlkwc{model} \hlstd{= model,} \hlkwc{bString} \hlstd{= resString,} \hlkwc{Sgene} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{Egenes} \hlstd{=} \hlnum{1000}\hlstd{,} \hlkwc{cexRow} \hlstd{=} \hlnum{0.8}\hlstd{,} \hlkwc{cexCol} \hlstd{=} \hlnum{0.7}\hlstd{,} \hlkwc{xrot} \hlstd{=} \hlnum{45}\hlstd{,} \hlkwc{disc} \hlstd{=} \hlnum{0}\hlstd{,} \hlkwc{Colv} \hlstd{= T,} \hlkwc{Rowv} \hlstd{= T,} \hlkwc{dendrogram} \hlstd{=} \hlstr{"both"}\hlstd{,} \hlkwc{bordercol} \hlstd{=} \hlstr{"lightgrey"}\hlstd{,} \hlkwc{aspect} \hlstd{=} \hlstr{"iso"}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
+\hlstd{fitinfo} \hlkwb{<-} \hlkwd{validateGraph}\hlstd{(CNOlist,} \hlkwc{fc}\hlstd{=fc,} \hlkwc{exprs}\hlstd{=exprs,} \hlkwc{model} \hlstd{= model,} \hlkwc{bString} \hlstd{= resString,}
+                         \hlkwc{Sgene} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{Egenes} \hlstd{=} \hlnum{1000}\hlstd{,} \hlkwc{cexRow} \hlstd{=} \hlnum{0.8}\hlstd{,} \hlkwc{cexCol} \hlstd{=} \hlnum{0.7}\hlstd{,} \hlkwc{xrot} \hlstd{=} \hlnum{45}\hlstd{,}
+                         \hlkwc{Colv} \hlstd{= T,} \hlkwc{Rowv} \hlstd{= T,} \hlkwc{dendrogram} \hlstd{=} \hlstr{"both"}\hlstd{,} \hlkwc{bordercol} \hlstd{=} \hlstr{"lightgrey"}\hlstd{,} \hlkwc{aspect} \hlstd{=} \hlstr{"iso"}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
 ## [1] "1.B: 13"
@@ -566,10 +593,12 @@ Similar to before we create the full network search space, draw a GTN, simulate 
     \hlstd{\}}
   \hlstd{\}}
 \hlstd{\}}
-\hlkwd{write.table}\hlstd{(sifMatrix,} \hlkwc{file} \hlstd{=} \hlstr{"temp.sif"}\hlstd{,} \hlkwc{sep} \hlstd{=} \hlstr{"\textbackslash{}t"}\hlstd{,} \hlkwc{row.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{col.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{quote} \hlstd{=} \hlnum{FALSE}\hlstd{)}
+\hlkwd{write.table}\hlstd{(sifMatrix,} \hlkwc{file} \hlstd{=} \hlstr{"temp.sif"}\hlstd{,} \hlkwc{sep} \hlstd{=} \hlstr{"\textbackslash{}t"}\hlstd{,} \hlkwc{row.names} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlkwc{col.names} \hlstd{=} \hlnum{FALSE}\hlstd{,}
+            \hlkwc{quote} \hlstd{=} \hlnum{FALSE}\hlstd{)}
 \hlstd{PKN} \hlkwb{<-} \hlkwd{readSIF}\hlstd{(}\hlstr{"temp.sif"}\hlstd{)}
 \hlcom{## unlink("temp.sif")}
-\hlstd{CNOlist} \hlkwb{<-} \hlkwd{dummyCNOlist}\hlstd{(}\hlkwc{stimuli} \hlstd{= stimuli,} \hlkwc{inhibitors} \hlstd{= inhibitors,} \hlkwc{maxStim} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{maxInhibit} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{signals} \hlstd{=} \hlkwa{NULL}\hlstd{)}
+\hlstd{CNOlist} \hlkwb{<-} \hlkwd{dummyCNOlist}\hlstd{(}\hlkwc{stimuli} \hlstd{= stimuli,} \hlkwc{inhibitors} \hlstd{= inhibitors,}
+                        \hlkwc{maxStim} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{maxInhibit} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{signals} \hlstd{=} \hlkwa{NULL}\hlstd{)}
 \hlstd{model} \hlkwb{<-} \hlkwd{preprocessing}\hlstd{(CNOlist, PKN,} \hlkwc{maxInputsPerGate}\hlstd{=}\hlnum{100}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
@@ -585,11 +614,13 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \begin{alltt}
 \hlstd{bString} \hlkwb{<-} \hlkwd{absorption}\hlstd{(}\hlkwd{sample}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID),} \hlkwc{replace} \hlstd{= T), model)}
 \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
-\hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlkwb{<-} \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))}
+\hlstd{steadyState2[, ind]} \hlkwb{<-} \hlstd{steadyState2[, ind]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 \hlkwa{while}\hlstd{(}\hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{|} \hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState2,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)) \{}
   \hlstd{bString} \hlkwb{<-} \hlkwd{absorption}\hlstd{(}\hlkwd{sample}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID),} \hlkwc{replace} \hlstd{= T), model)}
   \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
-  \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlkwb{<-} \hlstd{steadyState2[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
+  \hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))}
+  \hlstd{steadyState2[, ind]} \hlkwb{<-} \hlstd{steadyState2[, ind]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 \hlstd{\}}
 \hlcom{## we make sure the stimulations work:}
 \hlstd{bString[}\hlkwd{grep}\hlstd{(}\hlstr{"stim"}\hlstd{, model}\hlopt{$}\hlstd{reacID)]} \hlkwb{<-} \hlnum{1}
@@ -621,8 +652,10 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \begin{alltt}
 \hlstd{exprs} \hlkwb{<-} \hlkwd{t}\hlstd{(steadyState)[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(steadyState),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(steadyState),} \hlnum{3}\hlstd{)]}
 \hlstd{ERS} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(steadyState))}
-\hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{apply}\hlstd{(}\hlkwd{expand.grid}\hlstd{(stimuli, stimuli),} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{), as.character),} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
-\hlstd{ERS} \hlkwb{<-} \hlstd{ERS[,} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))]}
+\hlstd{stmcomb} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{expand.grid}\hlstd{(stimuli, stimuli),} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{), as.character)}
+\hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(stimcomb,} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
+\hlstd{ERS} \hlkwb{<-} \hlstd{ERS[, ind]}
 \hlstd{fc} \hlkwb{<-} \hlstd{ERS[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(ERS),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(ERS),} \hlnum{3}\hlstd{)]}
 \hlstd{fc} \hlkwb{<-} \hlstd{fc} \hlopt{+} \hlkwd{rnorm}\hlstd{(}\hlkwd{length}\hlstd{(fc),} \hlnum{0}\hlstd{,} \hlnum{1}\hlstd{)}
 \hlstd{flip} \hlkwb{<-} \hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(fc),} \hlkwd{floor}\hlstd{(}\hlnum{0.33}\hlopt{*}\hlkwd{row}\hlstd{(fc)))}
@@ -631,20 +664,20 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlkwd{print}\hlstd{(fc[}\hlnum{1}\hlopt{:}\hlnum{6}\hlstd{,} \hlkwd{c}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{3}\hlstd{,(}\hlkwd{ncol}\hlstd{(fc)}\hlopt{-}\hlnum{2}\hlstd{)}\hlopt{:}\hlkwd{ncol}\hlstd{(fc))])}
 \end{alltt}
 \begin{verbatim}
-##       Ctrl_vs_A  Ctrl_vs_B  Ctrl_vs_C Hstim_Istim_vs_Hstim_Istim_Hinhibit
-## A_1 -0.78149795 -1.0243869 -0.4798684                           0.2478244
-## B_2 -0.01482601 -1.5781127  0.1669494                           0.7255230
-## C_3  0.76593851  2.6812805 -0.5003797                          -0.8308681
-## D_4 -0.97604903 -0.2445900  1.7634378                           1.2054856
-## E_5 -1.02583577  0.8197866  0.6801132                          -1.9870181
-## F_6 -0.82180858  1.0003305  1.1556738                          -0.8102499
-##     Hstim_Istim_vs_Hstim_Istim_Iinhibit Hstim_Istim_vs_Hstim_Istim_J
-## A_1                         -1.09111396                   -0.1834281
-## B_2                          2.19723830                    0.3406081
-## C_3                         -0.02646857                    0.1008377
-## D_4                         -0.86552369                   -0.3583840
-## E_5                          0.76103492                   -0.4754561
-## F_6                         -1.15428818                    1.2788998
+##       Ctrl_vs_A  Ctrl_vs_B  Ctrl_vs_C Hstim_Istim_vs_Istim_Hinhibit
+## A_1 -0.78149795 -1.0243869 -0.4798684                   -0.45218146
+## B_2 -0.01482601 -1.5781127  0.1669494                    0.14834434
+## C_3  0.76593851  2.6812805 -0.5003797                   -0.09970571
+## D_4 -0.97604903 -0.2445900  1.7634378                   -0.67273006
+## E_5 -1.02583577  0.8197866  0.6801132                   -1.07096597
+## F_6 -0.82180858  1.0003305  1.1556738                    1.74361097
+##     Hstim_Istim_vs_Istim_Iinhibit Hstim_Istim_vs_Istim_J
+## A_1                     0.7506221            -0.75686367
+## B_2                    -1.1096159             0.68869361
+## C_3                    -0.5614034             0.09785174
+## D_4                    -0.1764276            -1.34840630
+## E_5                    -1.8608468            -1.47816960
+## F_6                    -0.8533620             1.09152176
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -714,16 +747,18 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)))}
+\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)}\hlopt{/}
+      \hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{1} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.7222222
+## [1] 0.6666667
 \end{verbatim}
 \begin{alltt}
-\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)}\hlopt{/}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)))}
+\hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)}\hlopt{/}
+      \hlstd{(}\hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{+} \hlkwd{sum}\hlstd{(bString} \hlopt{==} \hlnum{0} \hlopt{&} \hlstd{resString2} \hlopt{==} \hlnum{1}\hlstd{)))}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.9912281
+## [1] 0.9824561
 \end{verbatim}
 \begin{alltt}
 \hlstd{ERS.res} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(}\hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, resString2)))}
@@ -731,11 +766,11 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(ERS.res} \hlopt{==} \hlstd{ERS)}\hlopt{/}\hlkwd{length}\hlstd{(ERS))}
 \end{alltt}
 \begin{verbatim}
-## [1] 1
+## [1] 0.9979757
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-The optimal network looks very different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
+The optimal network looks a bit different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -754,7 +789,7 @@ The optimal network looks very different and has lower sensitivity and specifici
 ## [9] base     
 ## 
 ## other attached packages:
-##  [1] latticeExtra_0.6-28 RColorBrewer_1.1-2  lattice_0.20-33     bnem_1.0           
+##  [1] bnem_1.0            latticeExtra_0.6-28 RColorBrewer_1.1-2  lattice_0.20-33    
 ##  [5] snowfall_1.84-6.1   snow_0.4-1          matrixStats_0.50.2  nem_2.46.0         
 ##  [9] CellNOptR_1.18.0    XML_3.98-1.4        Rgraphviz_2.16.0    RCurl_1.95-4.8     
 ## [13] bitops_1.0-6        ggplot2_2.1.0       hash_2.2.6          RBGL_1.48.1        
@@ -764,13 +799,14 @@ The optimal network looks very different and has lower sensitivity and specifici
 ##  [1] Rcpp_0.12.6      formatR_1.4      git2r_0.15.0     highr_0.6        plyr_1.8.4      
 ##  [6] class_7.3-14     tools_3.3.1      boot_1.3-18      digest_0.6.10    statmod_1.4.25  
 ## [11] evaluate_0.9     memoise_1.0.0    gtable_0.2.0     curl_1.2         e1071_1.6-7     
-## [16] withr_1.0.2      httr_1.2.1       stringr_1.0.0    stats4_3.3.1     R6_2.1.2        
-## [21] plotrix_3.6-3    tcltk_3.3.1      limma_3.28.17    magrittr_1.5     scales_0.4.0    
+## [16] withr_1.0.2      httr_1.2.1       stringr_1.1.0    stats4_3.3.1     R6_2.1.3        
+## [21] plotrix_3.6-3    tcltk_3.3.1      limma_3.28.20    magrittr_1.5     scales_0.4.0    
 ## [26] colorspace_1.2-6 stringi_1.1.1    munsell_0.4.3
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
 
+textbf{Method paper for B-NEM:}
 Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, \& Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. \textit{Bioinformatics}, 32(6), 893–900.
 
 \end{document}

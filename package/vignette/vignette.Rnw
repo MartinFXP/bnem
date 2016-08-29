@@ -23,7 +23,7 @@ options(formatR.arrow=TRUE,width=90)
 @
 
 
-\title{Boolean Nested Effects Modesl\\
+\title{Boolean Nested Effects Models\\
 	Inferring the logical signalling of pathways from indirect measurements and perturbation biology}
 
 
@@ -32,7 +32,7 @@ options(formatR.arrow=TRUE,width=90)
 \maketitle
 Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In different experiments (conditions) members of a pathway (S-genes) are stimulated or inhibited, alone and in combination. In each experiment transcriptional targets (E-genes) of the pathway react differently and are higher or lower expressed depending on the condition. From these differential expression B-NEM infers Boolean functions presented as hyper-edges of a hyper-graph connecting parents and children in the pathway. For example if the signal is transducted by two parents A and B to a child C and the signal can be blocked with a knock-down of either one, they are connected by a typical AND-gate. If the signal is still transduced during a single knock-down, but blocked by the double knock-down of A and B, they activate C by an OR-gate. In general the state of child C is defined by a Boolean function
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
- with its parents $A_i$.
+ with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
 
 \section*{Loading B-NEM}
 
@@ -45,7 +45,7 @@ install.packages("devtools")
 
 library(devtools)
 
-install_github("MartinFXP/B-NEM/package")
+install_github("MartinFXP/B-NEM/package", force = T)
 
 library(bnem)
 @
@@ -131,19 +131,20 @@ bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
 
 ## we find constitutively active S-genes with the folloing:
-steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
-<- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
 
 ## this while loop makes sure we get a gtn,
-## which actually affects all vertices and no vertices are constitutively active (not necessary):
+## which actually affects all vertices
+## and no vertices are constitutively active (not necessary):
 while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
 
   bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 
   steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
 
-  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
-    <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+  ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+  steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
 
 }
 @
@@ -162,13 +163,13 @@ ERS <- computeFc(CNOlist, t(steadyState))
 
 # the next step reduces the ERS to a sensible set of comparisons;
 ## e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition):
-stimuli.pairs
-<- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
+stimcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
+stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
 
 ## this is the usual setup,
 ## but "computeFc" calculates a lot more contrasts, which can also be used if preferred:
-ERS
-<- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
+ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))
+ERS <- ERS[, ind]
 
 ## same as before with the expression values, we have 10 E-genes each and 3 replicates:
 fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
@@ -341,13 +342,13 @@ model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
 <<definegtn2>>=
 bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
-<- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
 while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
   bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
   steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
-  <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+  ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+  steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
 }
 ## we make sure the stimulations work:
 bString[grep("stim", model$reacID)] <- 1
@@ -359,10 +360,10 @@ plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 <<datasim2>>=
 exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
 ERS <- computeFc(CNOlist, t(steadyState))
-stimuli.pairs
-<- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
-ERS
-<- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
+stmcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
+stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
+ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))
+ERS <- ERS[, ind]
 fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
 fc <- fc + rnorm(length(fc), 0, 1)
 flip <- sample(1:nrow(fc), floor(0.33*row(fc)))
@@ -399,11 +400,12 @@ ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resStrin
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 @
-The optimal network looks very different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
+The optimal network looks a bit different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
 <<sessioninfo>>=
 sessionInfo()
 @
 
+textbf{Method paper for B-NEM:}
 Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, \& Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. \textit{Bioinformatics}, 32(6), 893–900.
 
 \end{document}
