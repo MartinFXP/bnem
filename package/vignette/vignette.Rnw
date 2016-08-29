@@ -60,12 +60,14 @@ set.seed(2579)
 ## alternative seed and also a great song:
 ## set.seed(9247)
 
-## to get the while loop started which makes sure we get a PKN with exactly two stimuli (not necessary):
+## to get the while loop started,
+## which makes sure we get a PKN with exactly two stimuli (not necessary):
 stimuli <- "dummy"
 
 while(length(stimuli) != 2) {
 
-## random Boolean graph without cycles, maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:
+## random Boolean graph without cycles,
+## maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:
   dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = T)
 
 ## all S-genes:
@@ -106,12 +108,14 @@ for (i in dnf) {
     }
   }
 }
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(sifMatrix, file = "temp.sif", sep = "\t",
+            row.names = FALSE, col.names = FALSE, quote = FALSE)
 PKN <- readSIF("temp.sif")
 ## unlink("temp.sif")
 
 ## create dummy metainformation:
-CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL)
+CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
+                        maxStim = 2, maxInhibit = 1, signals = NULL)
 
 ## extend the model:
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
@@ -127,16 +131,19 @@ bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
 
 ## we find constitutively active S-genes with the folloing:
-steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
+<- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
 
-## this while loop makes sure we get a gtn which actually affects all vertices and no vertices are constitutively active (not necessary):
+## this while loop makes sure we get a gtn,
+## which actually affects all vertices and no vertices are constitutively active (not necessary):
 while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
 
   bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 
   steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
 
-  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
+    <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
 
 }
 @
@@ -144,19 +151,24 @@ The following figure shows our random GTN, which is a subset of the complete sea
 <<plotgtn, fig.width=4, fig.height=4, out.width='0.4\\linewidth'>>=
 plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 @
-We now use this GTN to simulate data.
+We use this GTN to simulate data.
 <<datasim>>=
 ## the expression data with 10 E-genes for each S-gene and 3 replicates (not used):
 exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
 
-## we calculate the foldchanges or expected S-gene response scheme (ERS) between certain condtion (e.g. control vs stimulation):
+## we calculate the foldchanges or expected S-gene response scheme (ERS)
+## between certain condtion (e.g. control vs stimulation):
 ERS <- computeFc(CNOlist, t(steadyState))
 
-# the next step reduces the ERS to a sensible set of comparisons; e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition):
-stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
+# the next step reduces the ERS to a sensible set of comparisons;
+## e.g. we do not want to compare stimuli vs inhibition, but stimuli vs (stimuli,inhibition):
+stimuli.pairs
+<- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
 
-## this is the usual setup, but "computeFc" calculates a lot more contrasts, which can also be used if preferred:
-ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
+## this is the usual setup,
+## but "computeFc" calculates a lot more contrasts, which can also be used if preferred:
+ERS
+<- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
 
 ## same as before with the expression values, we have 10 E-genes each and 3 replicates:
 fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
@@ -185,7 +197,8 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 ## initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 
-## paralellize for several threads on one machine or multiple machines. See package "snowfall" for details.
+## paralellize for several threads on one machine or multiple machines.
+## See package "snowfall" for details.
 parallel <- 2 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))
 
 ## greedy search:
@@ -215,10 +228,13 @@ plotDnf(model$reacID[as.logical(resString)], main = "greedy optimum", stimuli = 
 @
 <<accuracy>>=
 ## hyper-edge sensitivity and specificity:
-print(sum(bString == 1 & resString == 1)/(sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
-print(sum(bString == 0 & resString == 0)/(sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
+print(sum(bString == 1 & resString == 1)/
+      (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
+print(sum(bString == 0 & resString == 0)/
+      (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
 
-## accuracy of expected response scheme from learned network should be high even though the network can look different:
+## accuracy of expected response scheme from learned network should be high
+## even though the network can look different:
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
@@ -228,7 +244,9 @@ In our seeded example 2574 the optimum network is indeed the GTN. If you set the
 After optimization you can look at the data and how well your networks explains the E-genes. The lower the score the better the fit.
 
 <<visualfit, fig.width=20, fig.height=10, out.width='1.0\\linewidth'>>=
-fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model, bString = resString, Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7, xrot = 45, disc = 0, Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey", aspect = "iso", sub = "")
+fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model, bString = resString,
+                         Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7, xrot = 45,
+                         Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey", aspect = "iso", sub = "")
 @
 
 The bottom row shows the ERS of S-gene \Sexpr{colnames(CNOlist@signals[[1]])[1]} and the other rows show the observed response scheme (ORS) of the \Sexpr{colnames(CNOlist@signals[[1]])[1]}-regulated E-genes. Even though the Gaussian noise makes the data look almost random, we still found the GTN.
@@ -257,7 +275,8 @@ resString <- genetic$bString
 ## exhaustive <- bnem(search = "exhaustive",
 ##            parallel = parallel,
 ##            CNOlist=CNOlist,
-##            NEMlist = NEMlist,
+##            fc=fc,
+##            exprs=exprs,
 ##            model=model
 ##            )
 
@@ -311,20 +330,24 @@ for (i in dnf) {
     }
   }
 }
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+            quote = FALSE)
 PKN <- readSIF("temp.sif")
 ## unlink("temp.sif")
-CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors, maxStim = 2, maxInhibit = 1, signals = NULL)
+CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
+                        maxStim = 2, maxInhibit = 1, signals = NULL)
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100)
 @
 <<definegtn2>>=
 bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
 steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
+<- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
 while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
   bString <- absorption(sample(c(0,1), length(model$reacID), replace = T), model)
   steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
+  steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))]
+  <- steadyState2[, grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))] + CNOlist@inhibitors
 }
 ## we make sure the stimulations work:
 bString[grep("stim", model$reacID)] <- 1
@@ -334,23 +357,25 @@ bString <- absorption(bString,model)
 plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 @
 <<datasim2>>=
-NEMlist <- list()
-NEMlist$exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
+exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
 ERS <- computeFc(CNOlist, t(steadyState))
-stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
-ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
-NEMlist$fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
-NEMlist$fc <- NEMlist$fc + rnorm(length(NEMlist$fc), 0, 1)
-flip <- sample(1:nrow(NEMlist$fc), floor(0.33*row(NEMlist$fc)))
-NEMlist$fc[flip, ] <- NEMlist$fc[flip, ]*(-1)
-rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_")
-print(NEMlist$fc[1:6, c(1:3,(ncol(NEMlist$fc)-2):ncol(NEMlist$fc))])
+stimuli.pairs
+<- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character), 1, paste, collapse = "_")
+ERS
+<- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
+fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
+fc <- fc + rnorm(length(fc), 0, 1)
+flip <- sample(1:nrow(fc), floor(0.33*row(fc)))
+fc[flip, ] <- fc[flip, ]*(-1)
+rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
+print(fc[1:6, c(1:3,(ncol(fc)-2):ncol(fc))])
 @
 <<localsearch2>>=
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 greedy2 <- bnem(search = "greedy",
             CNOlist=CNOlist,
-            NEMlist=NEMlist,
+            fc=fc,
+            exprs=exprs,
             model=model,
             parallel=parallel,
             initBstring=initBstring,
@@ -366,8 +391,10 @@ plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
 plotDnf(model$reacID[as.logical(resString2)], main = "greedy optimum", stimuli = stimuli)
 @
 <<accuracy2>>=
-print(sum(bString == 1 & resString2 == 1)/(sum(bString == 1 & resString2 == 1) + sum(bString == 1 & resString2 == 0)))
-print(sum(bString == 0 & resString2 == 0)/(sum(bString == 0 & resString2 == 0) + sum(bString == 0 & resString2 == 1)))
+print(sum(bString == 1 & resString2 == 1)/
+      (sum(bString == 1 & resString2 == 1) + sum(bString == 1 & resString2 == 0)))
+print(sum(bString == 0 & resString2 == 0)/
+      (sum(bString == 0 & resString2 == 0) + sum(bString == 0 & resString2 == 1)))
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString2)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))

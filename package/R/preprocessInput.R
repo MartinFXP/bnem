@@ -60,8 +60,6 @@ preprocessInput <- function(stimuli=NULL, inhibitors=NULL, signals=NULL, design 
         NEMlist$exprs <- exprs
     }
 
-    print(dim(NEMlist$fc))
-
     return(list(CNOlist=CNOlist, model=model, NEMlist=NEMlist))
 
 }
