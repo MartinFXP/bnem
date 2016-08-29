@@ -3,7 +3,7 @@ bnem <-
 
              fc=NULL,
              exprs=NULL,
-             pkn,
+             pkn=NULL,
              design=NULL,
              stimuli=NULL,
              inhibitors=NULL,
@@ -57,6 +57,10 @@ bnem <-
             CNOlist <- tmp$CNOlist
             NEMlist <- tmp$NEMlist
             model <- tmp$model
+        } else {
+            NEMlist <- list()
+            NEMlist$fc <- fc
+            NEMlist$exprs <- exprs
         }
 
         if (search %in% c("greedy", "genetic", "exhaustive")) {

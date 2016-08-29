@@ -146,11 +146,8 @@ plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 @
 We now use this GTN to simulate data.
 <<datasim>>=
-## this objects holds all data:
-NEMlist <- list()
-
 ## the expression data with 10 E-genes for each S-gene and 3 replicates (not used):
-NEMlist$exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
+exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
 
 ## we calculate the foldchanges or expected S-gene response scheme (ERS) between certain condtion (e.g. control vs stimulation):
 ERS <- computeFc(CNOlist, t(steadyState))
@@ -162,19 +159,24 @@ stimuli.pairs <- apply(apply(expand.grid(stimuli, stimuli), c(1,2), as.character
 ERS <- ERS[, grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""), paste(stimuli, "_vs_", stimuli, "_", rep(inhibitors, each = length(stimuli)), sep = ""), paste(stimuli.pairs, "_vs_", stimuli.pairs, "_", rep(inhibitors, each = length(stimuli.pairs)), sep = "")), collapse = "|"), colnames(ERS))]
 
 ## same as before with the expression values, we have 10 E-genes each and 3 replicates:
-NEMlist$fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
+fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
 
 ## we add some Gaussian noise:
-NEMlist$fc <- NEMlist$fc + rnorm(length(NEMlist$fc), 0, 1)
+fc <- fc + rnorm(length(fc), 0, 1)
 
 ## some E-genes are negative regulated, hence we flip their foldchanges:
-flip <- sample(1:nrow(NEMlist$fc), floor(0.33*row(NEMlist$fc)))
-NEMlist$fc[flip, ] <- NEMlist$fc[flip, ]*(-1)
+flip <- sample(1:nrow(fc), floor(0.33*row(fc)))
+fc[flip, ] <- fc[flip, ]*(-1)
 
-rownames(NEMlist$fc) <- paste(rownames(NEMlist$fc), 1:nrow(NEMlist$fc), sep = "_")
-print(NEMlist$fc[1:6, c(1:3,(ncol(NEMlist$fc)-2):ncol(NEMlist$fc))])
+## don't forget to set rownames (usually gene ids)
+rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
+print(fc[1:6, c(1:3,(ncol(fc)-2):ncol(fc))])
 @
-B-NEM uses differential expression between experiments to infer the pathway logics. For example look at the colnames of NEMlist\$fc (=foldchanges of E-genes (rows)) and remember that \Sexpr{stimuli} are our stimulated S-genes and the rest possibly inhibited. Thus in the first column of NEMlist\$fc we have the contrast \Sexpr{gsub(".*_", "", colnames(NEMlist$fc)[1])} $-$ control. In the control no S-genes are perturbed.
+B-NEM uses differential expression between experiments to infer the
+pathway logics. For example look at the colnames of fc (=foldchanges
+of E-genes (rows)) and remember that \Sexpr{stimuli} are our
+stimulated S-genes and the rest possibly inhibited. Thus in the first
+column of fc we have the contrast \Sexpr{gsub(".*_", "", colnames(fc)[1])} $-$ control. In the control no S-genes are perturbed.
 
 We search for the GTN in our restricted network space. Each network is a sub-graph of the full hyper-graph model\$reacID. We initialise the search with a starting network and greedily search the neighbourhood.
 
@@ -188,8 +190,9 @@ parallel <- 2 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine
 
 ## greedy search:
 greedy <- bnem(search = "greedy",
+            fc=fc,
+            exprs=exprs, # not used, if fc is defined
             CNOlist=CNOlist,
-            NEMlist=NEMlist,
             model=model,
             parallel=parallel,
             initBstring=initBstring,
@@ -235,9 +238,10 @@ Alternatively to the greedy neightbourhood search a genetic algorithm and exhaus
 <<ga>>=
 ## genetic algorithm:
 genetic <- bnem(search = "genetic",
+           fc=fc,
+           exprs=exprs,
            parallel = parallel,
            CNOlist=CNOlist,
-           NEMlist = NEMlist,
            model=model,
            initBstring=initBstring,
            popSize = 10,
