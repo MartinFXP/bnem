@@ -1,7 +1,11 @@
 validateGraph <-
-function(CNOlist, NEMlist, approach = "fc", model, bString, Egenes = 25, Sgene = 1,
+function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString, Egenes = 25, Sgene = 1,
                           parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), plot = TRUE,
-                          disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = TRUE, colSideColors = NULL, affychip = "hgu133plus2", method = "s", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 10^-10, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
+         disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE, xrot = 25, Rowv = F, Colv = F, dendrogram = "none", soft = TRUE, colSideColors = NULL, affychip = "hgu133plus2", method = "s", ranks = F, breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 10^-10, verbose = T, order = "rank", colnames = "bio", ...) { ## order can be none, rank or names; names, rank superceed Rowv = TRUE
+
+    NEMlist <- list()
+    NEMlist$fc <- fc
+    NEMlist$exprs <- exprs
 
   myCN2bioCN <- function(x, stimuli, inhibitors) {
     y <- gsub("_vs_", ") vs (", x)
