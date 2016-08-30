@@ -199,7 +199,7 @@ initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 ## initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 
 ## paralellize for several threads on one machine or multiple machines.
-## See package "snowfall" for details.
+## see package "snowfall" for details.
 parallel <- 2 # list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))
 
 ## greedy search:
@@ -217,7 +217,7 @@ greedy <- bnem(search = "greedy",
 
 resString <- greedy$bString
 @
-We can now take a look at the efficiency of the search algorithm with sensitivity and specificity of the optimal found network and the accuracy of its ERS (similar to the truth table). Since several network produce the same ERS, the found hyper-graph can differ from the GTN and still be $100\%$ accurate.
+We take a look at the efficiency of the search algorithm with sensitivity and specificity of the optimal found network and the accuracy of its ERS (similar to the truth table). Since several network produce the same ERS, the found hyper-graph can differ from the GTN and still be $100\%$ accurate.
 <<plotresult, fig.width=4, fig.height=4, out.width='0.4\\linewidth'>>=
 par(mfrow=c(1,2))
 
@@ -247,11 +247,12 @@ After optimization you can look at the data and how well your networks explains 
 <<visualfit, fig.width=20, fig.height=10, out.width='1.0\\linewidth'>>=
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model, bString = resString,
                          Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7, xrot = 45,
-                         Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey", aspect = "iso", sub = "")
+                         Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey",
+                         aspect = "iso", sub = "")
 @
 
 The bottom row shows the ERS of S-gene \Sexpr{colnames(CNOlist@signals[[1]])[1]} and the other rows show the observed response scheme (ORS) of the \Sexpr{colnames(CNOlist@signals[[1]])[1]}-regulated E-genes. Even though the Gaussian noise makes the data look almost random, we still found the GTN.
-Alternatively to the greedy neightbourhood search a genetic algorithm and exhaustive search are also available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
+Alternatively to the greedy neighbourhood search a genetic algorithm and exhaustive search are also available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
 
 
 <<ga>>=
@@ -297,7 +298,7 @@ stimuli <- c(inputs[which(!(inputs %in% outputs))], cues[sample(1:length(cues), 
 inhibitors <- cues
 @
 
-Now we look for stimuli which are also inhibited. For those we add additional stimuli S-genes. The stimuli S-gene (parent) and the inhibitor S-gene (child) are connected by a positive edge.
+We look for stimuli which are also inhibited. For those we add additional stimuli S-genes. The stimuli S-gene (parent) and the inhibitor S-gene (child) are connected by a positive edge.
 
 <<addstimuli>>=
 both <- stimuli[which(stimuli %in% inhibitors)]
@@ -405,7 +406,7 @@ The optimal network looks a bit different and has lower sensitivity and specific
 sessionInfo()
 @
 
-textbf{Method paper for B-NEM:}
+\textbf{Method paper for B-NEM:}\\
 Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, \& Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. \textit{Bioinformatics}, 32(6), 893–900.
 
 \end{document}
