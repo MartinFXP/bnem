@@ -1,15 +1,19 @@
+citeHeader("To cite package 'bnem' in publications use:")
+
 note <- sprintf(“R package version %s”, meta$Version)
-bibentry(bibtype = “article”,
+
+citeEntry(entry = “Manual”,
          title = “Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models”,
-         author = c(person(“Martin”, “Pirkl”),
-                    person(“Elisabeth”, “Hand”),
-                    person(“Dieter”, “Kube”),
-                    person(“Rainer”, “Spang”)),
+         author = personList(as.person(“Martin Pirkl”),
+                    (as.person(“Elisabeth Hand”),
+                    (as.person(“Dieter Kube”),
+                    (as.person(“Rainer Spang”)),
          year = "2016",
          note = note,
          url = “https://github.com/MartinFXP/B-NEM”)
-bibentry(bibtype = "article",
+
+citeEntry(entry = "Manual",
          title = "Indirect inference of synergistic and alternative signalling of intracellular pathways",
-         author = c(person("Martin", "Pirkl")),
+         author = personList(as.person("Martin Pirkl")),
          year = "2016",
          url = "http://epub.uni-regensburg.de/34157/")
