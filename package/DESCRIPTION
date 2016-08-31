@@ -5,7 +5,7 @@ Version: 1.0
 Date: 2016-04-28
 Author: Martin Pirkl
 Maintainer: <martin-franz-xaver.pirkl@ukr.de>
-Depends: CellNOptR, nem
+Depends: CellNOptR, nem, matrixStats, snowfall, latticeExtra
 Description: It combines the use of indirect measurements of Nested Effects Models with the Boolean networks of CellNOptR
 License: You know, the one where you can use the code as long as you cite the original.
-Imports: CellNOptR, nem
+Imports: CellNOptR, nem, matrixStats, snowfall, latticeExtra
