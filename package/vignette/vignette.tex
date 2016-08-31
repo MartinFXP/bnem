@@ -96,7 +96,7 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# Installing package into '/Users/mpirkl/Library/R/3.3/library'\\\#\# (as 'lib' is unspecified)}}\begin{verbatim}
 ## 
 ## The downloaded binary packages are in
-## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmprQnyC4/downloaded_packages
+## 	/var/folders/2f/mtjcsd910hz9xnn3shkljg_8005f53/T//RtmpZJv6PZ/downloaded_packages
 \end{verbatim}
 \begin{alltt}
 \hlkwd{library}\hlstd{(devtools)}
@@ -109,7 +109,7 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# Installing bnem}}
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file --no-environ --no-save\ \ \textbackslash{}\\\#\#\ \  --no-restore --quiet CMD INSTALL\ \ \textbackslash{}\\\#\#\ \  '/private/var/folders/2f/mtjcsd910hz9xnn3shkljg\_8005f53/T/RtmprQnyC4/devtools3ef64d54e11b/MartinFXP-B-NEM-560f7d6/package'\ \ \textbackslash{}\\\#\#\ \  --library='/Users/mpirkl/Library/R/3.3/library' --install-tests}}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# '/Library/Frameworks/R.framework/Resources/bin/R' --no-site-file --no-environ --no-save\ \ \textbackslash{}\\\#\#\ \  --no-restore --quiet CMD INSTALL\ \ \textbackslash{}\\\#\#\ \  '/private/var/folders/2f/mtjcsd910hz9xnn3shkljg\_8005f53/T/RtmpZJv6PZ/devtools5a606bfccea6/MartinFXP-B-NEM-17ba544/package'\ \ \textbackslash{}\\\#\#\ \  --library='/Users/mpirkl/Library/R/3.3/library' --install-tests}}
 
 {\ttfamily\noindent\itshape\color{messagecolor}{\#\# }}
 
@@ -119,10 +119,18 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 \end{kframe}
 \end{knitrout}
 
-\section*{A simple toy example}
-We show how to use B-NEM on a toy example. B-NEM demands several objects as input. The two main objects are the differential gene expression (data) and prior knowledge.
+\section*{Toy example for DAG}
+We show how to use B-NEM on a toy pathway presented by a directed
+acyclic (hyper-)graph (DAG). B-NEM demands several objects as
+input. The two main objects are the differential gene expression
+(data) and prior knowledge respectively the search space.
 
-First we create a prior knowledge network (PKN). The PKN will have two S-genes without parents. We define these as stimuli, which means they are set to $1$ in experiments, where they are stimulated and $0$ otherwise. All other down-stream S-genes have the potential to be inhibited $(0)$. If they are not inhibited their state is calculated according to their parents' state and the Boolean function.
+First we create a prior knowledge network (PKN). The PKN will have two
+S-genes without parents. We define these as stimuli, which means they
+are set to $1$ in experiments, where they are stimulated and $0$
+otherwise. All other down-stream S-genes have the potential to be
+inhibited $(0)$. If they are not inhibited their state is calculated
+according to their parents' state and a given Boolean function.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -132,7 +140,7 @@ First we create a prior knowledge network (PKN). The PKN will have two S-genes w
 \hlcom{## set.seed(9247)}
 
 \hlcom{## to get the while loop started,}
-\hlcom{## which makes sure we get a PKN with exactly two stimuli (not necessary):}
+\hlcom{## which makes sure we get a PKN with exactly two stimuli (or what the amount you want):}
 \hlstd{stimuli} \hlkwb{<-} \hlstr{"dummy"}
 
 \hlkwa{while}\hlstd{(}\hlkwd{length}\hlstd{(stimuli)} \hlopt{!=} \hlnum{2}\hlstd{) \{}
@@ -181,7 +189,8 @@ The following figure shows the PKN. Red "tee" arrows depict repression the other
 
 
 \end{knitrout}
-In the next step we convert the dnf object into a PKN and extend it to a Boolean hyper-graph, which includes all functions allowed by the PKN.
+In the next step we convert the dnf object into a PKN object and
+extend it to a Boolean hyper-graph, which represents an apriori restricted search space of Boolean networks.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -204,7 +213,7 @@ In the next step we convert the dnf object into a PKN and extend it to a Boolean
 \hlstd{PKN} \hlkwb{<-} \hlkwd{readSIF}\hlstd{(}\hlstr{"temp.sif"}\hlstd{)}
 \hlcom{## unlink("temp.sif")}
 
-\hlcom{## create dummy metainformation:}
+\hlcom{## create metainformation (which S-genes are perturbed in which experiments):}
 \hlstd{CNOlist} \hlkwb{<-} \hlkwd{dummyCNOlist}\hlstd{(}\hlkwc{stimuli} \hlstd{= stimuli,} \hlkwc{inhibitors} \hlstd{= inhibitors,}
                         \hlkwc{maxStim} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{maxInhibit} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{signals} \hlstd{=} \hlkwa{NULL}\hlstd{)}
 
@@ -221,7 +230,8 @@ In the next step we convert the dnf object into a PKN and extend it to a Boolean
 \end{knitrout}
 We suggest to take a look at the sif file. In future analyses it is easier to just provide a suitable sif file for the investigated pathway.
 
-In a real world application the underlaying real ground truth network (GTN) is not known. However in our toy example we define one.
+In an real application the underlaying ground truth network (GTN) is
+not known. However in our toy example we define one.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -231,13 +241,13 @@ In a real world application the underlaying real ground truth network (GTN) is n
 \hlcom{## simulate S-gene states for all possible conditions:}
 \hlstd{steadyState} \hlkwb{<-} \hlstd{steadyState2} \hlkwb{<-} \hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, bString)}
 
-\hlcom{## we find constitutively active S-genes with the folloing:}
+\hlcom{## we find constitutively active S-genes with the following (the are boring, so we avoid them):}
 \hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(inhibitors,} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(steadyState2))}
 \hlstd{steadyState2[, ind]} \hlkwb{<-} \hlstd{steadyState2[, ind]} \hlopt{+} \hlstd{CNOlist}\hlopt{@}\hlkwc{inhibitors}
 
 \hlcom{## this while loop makes sure we get a gtn,}
 \hlcom{## which actually affects all vertices}
-\hlcom{## and no vertices are constitutively active (not necessary):}
+\hlcom{## and no vertices are constitutively active:}
 \hlkwa{while}\hlstd{(}\hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)} \hlopt{|} \hlkwd{any}\hlstd{(}\hlkwd{apply}\hlstd{(steadyState2,} \hlnum{2}\hlstd{, sd)} \hlopt{==} \hlnum{0}\hlstd{)) \{}
 
   \hlstd{bString} \hlkwb{<-} \hlkwd{absorption}\hlstd{(}\hlkwd{sample}\hlstd{(}\hlkwd{c}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID),} \hlkwc{replace} \hlstd{= T), model)}
@@ -251,7 +261,8 @@ In a real world application the underlaying real ground truth network (GTN) is n
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-The following figure shows our random GTN, which is a subset of the complete search space (model based on the PKN).
+The following figure shows our random GTN, which is a subset of the
+hyper-graph representing the apriori restricted search space.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -275,11 +286,11 @@ We use this GTN to simulate data.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlcom{## the expression data with 10 E-genes for each S-gene and 3 replicates (not used):}
+\hlcom{## the expression data with 10 E-genes for each S-gene and 3 replicates:}
 \hlstd{exprs} \hlkwb{<-} \hlkwd{t}\hlstd{(steadyState)[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(steadyState),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(steadyState),} \hlnum{3}\hlstd{)]}
 
-\hlcom{## we calculate the foldchanges or expected S-gene response scheme (ERS)}
-\hlcom{## between certain condtion (e.g. control vs stimulation):}
+\hlcom{## we calculate the foldchanges (expected S-gene response scheme, ERS)}
+\hlcom{## between certain condtions (e.g. control vs stimulation):}
 \hlstd{ERS} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(steadyState))}
 
 \hlcom{# the next step reduces the ERS to a sensible set of comparisons;}
@@ -288,8 +299,11 @@ We use this GTN to simulate data.
 \hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(stimcomb,} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
 
 \hlcom{## this is the usual setup,}
-\hlcom{## but "computeFc" calculates a lot more contrasts, which can also be used if preferred:}
-\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
+\hlcom{## but "computeFc" calculates a lot more contrasts, which can also be used, if preferred:}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),}
+                    \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),}
+                    \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),}
+                  \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
 \hlstd{ERS} \hlkwb{<-} \hlstd{ERS[, ind]}
 
 \hlcom{## same as before with the expression values, we have 10 E-genes each and 3 replicates:}
@@ -298,11 +312,11 @@ We use this GTN to simulate data.
 \hlcom{## we add some Gaussian noise:}
 \hlstd{fc} \hlkwb{<-} \hlstd{fc} \hlopt{+} \hlkwd{rnorm}\hlstd{(}\hlkwd{length}\hlstd{(fc),} \hlnum{0}\hlstd{,} \hlnum{1}\hlstd{)}
 
-\hlcom{## some E-genes are negative regulated, hence we flip their foldchanges:}
+\hlcom{## in real applications some E-genes are negatively regulated, hence we flip some foldchanges:}
 \hlstd{flip} \hlkwb{<-} \hlkwd{sample}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(fc),} \hlkwd{floor}\hlstd{(}\hlnum{0.33}\hlopt{*}\hlkwd{row}\hlstd{(fc)))}
 \hlstd{fc[flip, ]} \hlkwb{<-} \hlstd{fc[flip, ]}\hlopt{*}\hlstd{(}\hlopt{-}\hlnum{1}\hlstd{)}
 
-\hlcom{## don't forget to set rownames (usually gene ids)}
+\hlcom{## don't forget to set rownames (usually gene symbols, ensemble ids, entrez ids, ...)}
 \hlkwd{rownames}\hlstd{(fc)} \hlkwb{<-} \hlkwd{paste}\hlstd{(}\hlkwd{rownames}\hlstd{(fc),} \hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(fc),} \hlkwc{sep} \hlstd{=} \hlstr{"_"}\hlstd{)}
 \hlkwd{print}\hlstd{(fc[}\hlnum{1}\hlopt{:}\hlnum{6}\hlstd{,} \hlkwd{c}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{3}\hlstd{,(}\hlkwd{ncol}\hlstd{(fc)}\hlopt{-}\hlnum{2}\hlstd{)}\hlopt{:}\hlkwd{ncol}\hlstd{(fc))])}
 \end{alltt}
@@ -328,13 +342,14 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlcom{## start with empty graph:}
+\hlcom{## we start with the empty graph:}
 \hlstd{initBstring} \hlkwb{<-} \hlkwd{reduceGraph}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlnum{0}\hlstd{,} \hlkwd{length}\hlstd{(model}\hlopt{$}\hlstd{reacID)), model, CNOlist)}
-\hlcom{## initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)}
+\hlcom{## initBstring <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist) ## fully connected normal graph}
 
-\hlcom{## paralellize for several threads on one machine or multiple machines.}
-\hlcom{## See package "snowfall" for details.}
-\hlstd{parallel} \hlkwb{<-} \hlnum{2} \hlcom{# list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))}
+\hlcom{## paralellize for several threads on one machine or multiple machines}
+\hlcom{## see package "snowfall" for details}
+\hlstd{parallel} \hlkwb{<-} \hlnum{2}
+\hlcom{## parallel <- list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4")) # distribute 30 threads on four machines}
 
 \hlcom{## greedy search:}
 \hlstd{greedy} \hlkwb{<-} \hlkwd{bnem}\hlstd{(}\hlkwc{search} \hlstd{=} \hlstr{"greedy"}\hlstd{,}
@@ -344,8 +359,8 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
             \hlkwc{model}\hlstd{=model,}
             \hlkwc{parallel}\hlstd{=parallel,}
             \hlkwc{initBstring}\hlstd{=initBstring,}
-            \hlkwc{draw} \hlstd{=} \hlnum{FALSE}\hlstd{,}
-            \hlkwc{verbose} \hlstd{=} \hlnum{FALSE}\hlstd{,}
+            \hlkwc{draw} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlcom{# TRUE: draw network at each step}
+            \hlkwc{verbose} \hlstd{=} \hlnum{FALSE}\hlstd{,} \hlcom{# TRUE: print changed (hyper-)edges and score improvement}
             \hlkwc{maxSteps} \hlstd{=} \hlnum{Inf}
             \hlstd{)}
 \end{alltt}
@@ -368,7 +383,8 @@ We search for the GTN in our restricted network space. Each network is a sub-gra
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-We can now take a look at the efficiency of the search algorithm with sensitivity and specificity of the optimal found network and the accuracy of its ERS (similar to the truth table). Since several network produce the same ERS, the found hyper-graph can differ from the GTN and still be $100\%$ accurate.
+We take a look at the efficiency of the search algorithm with
+sensitivity and specificity of the hyper-eges for the optimized network and the accuracy of its ERS (similar to the truth table). Since several networks produce the same ERS, the found hyper-graph can differ from the GTN and still be $100\%$ accurate.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -383,7 +399,7 @@ We can now take a look at the efficiency of the search algorithm with sensitivit
 ## Number of Edges = 14
 \end{verbatim}
 \begin{alltt}
-\hlcom{## optimum found:}
+\hlcom{## greedy optimum:}
 \hlkwd{plotDnf}\hlstd{(model}\hlopt{$}\hlstd{reacID[}\hlkwd{as.logical}\hlstd{(resString)],} \hlkwc{main} \hlstd{=} \hlstr{"greedy optimum"}\hlstd{,} \hlkwc{stimuli} \hlstd{= stimuli)}
 \end{alltt}
 \begin{verbatim}
@@ -418,8 +434,7 @@ We can now take a look at the efficiency of the search algorithm with sensitivit
 ## [1] 1
 \end{verbatim}
 \begin{alltt}
-\hlcom{## accuracy of expected response scheme from learned network should be high}
-\hlcom{## even though the network can look different:}
+\hlcom{## accuracy of the expected response scheme (can be high even, if the networks differ):}
 \hlstd{ERS.res} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(}\hlkwd{simulateStatesRecursive}\hlstd{(CNOlist, model, resString)))}
 \hlstd{ERS.res} \hlkwb{<-} \hlstd{ERS.res[,} \hlkwd{which}\hlstd{(}\hlkwd{colnames}\hlstd{(ERS.res)} \hlopt{%in%} \hlkwd{colnames}\hlstd{(ERS))]}
 \hlkwd{print}\hlstd{(}\hlkwd{sum}\hlstd{(ERS.res} \hlopt{==} \hlstd{ERS)}\hlopt{/}\hlkwd{length}\hlstd{(ERS))}
@@ -429,16 +444,24 @@ We can now take a look at the efficiency of the search algorithm with sensitivit
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-In our seeded example 2574 the optimum network is indeed the GTN. If you set the alternative seed at the beginning, neither the network nor the correct ERS is found with the empty network at the start. If you start with the PKN, the ERS is resolved completely while the network is still not the GTN. Thus the GTN and the optimum are equivalent, but the GTN is larger and thus not preferred.
+In our seeded example 2574 the optimum network is indeed the GTN. If
+you set the alternative seed at the beginning, neither the network nor
+the correct ERS is found, if we initialise the search with the empty
+network. If we start with the fully connected normal graph, the ERS is
+resolved a $100$\%, while the greedy optimum still differs from the
+GTN. Thus the GTN and the greedy optimum are equivalent, but the GTN
+is larger (more outgoing edges) and thus not preferred.
 
-After optimization you can look at the data and how well your networks explains the E-genes. The lower the score the better the fit.
+After optimization we look at the data and how well the greedy optimum
+explains the E-genes. The lower the score the better the fit.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlstd{fitinfo} \hlkwb{<-} \hlkwd{validateGraph}\hlstd{(CNOlist,} \hlkwc{fc}\hlstd{=fc,} \hlkwc{exprs}\hlstd{=exprs,} \hlkwc{model} \hlstd{= model,} \hlkwc{bString} \hlstd{= resString,}
                          \hlkwc{Sgene} \hlstd{=} \hlnum{1}\hlstd{,} \hlkwc{Egenes} \hlstd{=} \hlnum{1000}\hlstd{,} \hlkwc{cexRow} \hlstd{=} \hlnum{0.8}\hlstd{,} \hlkwc{cexCol} \hlstd{=} \hlnum{0.7}\hlstd{,} \hlkwc{xrot} \hlstd{=} \hlnum{45}\hlstd{,}
-                         \hlkwc{Colv} \hlstd{= T,} \hlkwc{Rowv} \hlstd{= T,} \hlkwc{dendrogram} \hlstd{=} \hlstr{"both"}\hlstd{,} \hlkwc{bordercol} \hlstd{=} \hlstr{"lightgrey"}\hlstd{,} \hlkwc{aspect} \hlstd{=} \hlstr{"iso"}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
+                         \hlkwc{Colv} \hlstd{= T,} \hlkwc{Rowv} \hlstd{= T,} \hlkwc{dendrogram} \hlstd{=} \hlstr{"both"}\hlstd{,} \hlkwc{bordercol} \hlstd{=} \hlstr{"lightgrey"}\hlstd{,}
+                         \hlkwc{aspect} \hlstd{=} \hlstr{"iso"}\hlstd{,} \hlkwc{sub} \hlstd{=} \hlstr{""}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
 ## [1] "1.B: 13"
@@ -463,8 +486,14 @@ After optimization you can look at the data and how well your networks explains 
 
 \end{knitrout}
 
-The bottom row shows the ERS of S-gene B and the other rows show the observed response scheme (ORS) of the B-regulated E-genes. Even though the Gaussian noise makes the data look almost random, we still found the GTN.
-Alternatively to the greedy neightbourhood search a genetic algorithm and exhaustive search are also available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
+The bottom row shows the ERS of S-gene
+B and the other rows show the
+observed response scheme (ORS) of the
+B-regulated E-genes. Even
+though the Gaussian noise makes the data look almost random, the
+greedy optimum is equal to the GTN.
+Alternatively to the greedy neighbourhood search a genetic algorithm
+and exhaustive search are available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
 
 
 \begin{knitrout}
@@ -521,7 +550,8 @@ Alternatively to the greedy neightbourhood search a genetic algorithm and exhaus
 \end{knitrout}
 
 \section*{Stimulated and inhibited S-genes can overlap}
-In this section we show how to use B-NEM when stimuli and inhibitors overlap. For this we allow the PKN to have cycles, but no repression, because repression can lead to an unresolvable ERS. See Pirkl et al., 2016 for details.
+In this section we show how to use B-NEM, if stimuli and inhibitors
+overlap. Additionally we want to show that B-NEM can resolve cycles. For this we allow the PKN to have cycles, but no repression, because repression can lead to an unresolvable ERS. See Pirkl et al., 2016 for details.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -537,7 +567,7 @@ In this section we show how to use B-NEM when stimuli and inhibitors overlap. Fo
 \end{kframe}
 \end{knitrout}
 
-Now we look for stimuli which are also inhibited. For those we add additional stimuli S-genes. The stimuli S-gene (parent) and the inhibitor S-gene (child) are connected by a positive edge.
+We look for stimuli which are also inhibited. For those we add additional stimuli S-genes. The stimuli S-gene (parent) and the inhibitor S-gene (child) are connected by a positive edge.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -654,7 +684,10 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \hlstd{ERS} \hlkwb{<-} \hlkwd{computeFc}\hlstd{(CNOlist,} \hlkwd{t}\hlstd{(steadyState))}
 \hlstd{stmcomb} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{expand.grid}\hlstd{(stimuli, stimuli),} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{), as.character)}
 \hlstd{stimuli.pairs} \hlkwb{<-} \hlkwd{apply}\hlstd{(stimcomb,} \hlnum{1}\hlstd{, paste,} \hlkwc{collapse} \hlstd{=} \hlstr{"_"}\hlstd{)}
-\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),} \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),} \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
+\hlstd{ind} \hlkwb{<-} \hlkwd{grep}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Ctrl_vs_"}\hlstd{,} \hlkwd{c}\hlstd{(stimuli, inhibitors),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),}
+                    \hlkwd{paste}\hlstd{(stimuli,} \hlstr{"_vs_"}\hlstd{, stimuli,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{),}
+                    \hlkwd{paste}\hlstd{(stimuli.pairs,} \hlstr{"_vs_"}\hlstd{, stimuli.pairs,} \hlstr{"_"}\hlstd{,} \hlkwd{rep}\hlstd{(inhibitors,} \hlkwc{each} \hlstd{=} \hlkwd{length}\hlstd{(stimuli.pairs)),} \hlkwc{sep} \hlstd{=} \hlstr{""}\hlstd{)),}
+                  \hlkwc{collapse} \hlstd{=} \hlstr{"|"}\hlstd{),} \hlkwd{colnames}\hlstd{(ERS))}
 \hlstd{ERS} \hlkwb{<-} \hlstd{ERS[, ind]}
 \hlstd{fc} \hlkwb{<-} \hlstd{ERS[}\hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(ERS),} \hlnum{10}\hlstd{),} \hlkwd{rep}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{ncol}\hlstd{(ERS),} \hlnum{3}\hlstd{)]}
 \hlstd{fc} \hlkwb{<-} \hlstd{fc} \hlopt{+} \hlkwd{rnorm}\hlstd{(}\hlkwd{length}\hlstd{(fc),} \hlnum{0}\hlstd{,} \hlnum{1}\hlstd{)}
@@ -770,7 +803,8 @@ Similar to before we create the full network search space, draw a GTN, simulate 
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
-The optimal network looks a bit different and has lower sensitivity and specificity. However the accuracy of the ERS is still $100\%$.
+The greedy optimum looks different tfrom the GTN, even though they share a
+lot, but not all edges (reduced sensitivity and specificity). However the accuracy of the ERS is still $100\%$.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -806,7 +840,7 @@ The optimal network looks a bit different and has lower sensitivity and specific
 \end{kframe}
 \end{knitrout}
 
-textbf{Method paper for B-NEM:}
+\textbf{Method paper for B-NEM:}\\
 Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, \& Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. \textit{Bioinformatics}, 32(6), 893–900.
 
 \end{document}
