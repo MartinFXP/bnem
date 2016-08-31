@@ -16,3 +16,19 @@ activate C by an OR-gate. In general the state of child C is defined
 by a Boolean function
 f: {0,1}^n -> {0,1}, C = f(A_1, ... , A_n)
 with its parents A_i, i ∈ {1,...,n}.
+
+
+Install:
+--------
+
+Open R and input:
+
+install.packages("devtools")
+
+library(devtools)
+
+install_github("MartinFXP/B-NEM/package", force = T)
+
+library(bnem)
+
+Then check out the vignette for working examples.
