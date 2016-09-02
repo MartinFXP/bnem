@@ -20,7 +20,7 @@ A binary vector denoting which hyper-edges are present or a graph in disjunctive
 }
   \item{model}{
 %%     ~~Describe \code{model} here~~
-If bString is a binary vector, a model including the complete Boolean hyper-graph space.
+If bString is a binary vector, a model including the Boolean hyper-graph space.
 }
 }
 \details{

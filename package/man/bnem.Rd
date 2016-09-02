@@ -240,13 +240,15 @@ write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.nam
 quote = FALSE)
 PKN <- readSIF("temp.sif")
 unlink('temp.sif')
-CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D")) # this is usually not needed and can be generated from annotated data. here we use it to simulate foldchanges
-exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues)) # expression values are not needed
+CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
 fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"), parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ pathway }
+\keyword{ optimization }
+\keyword{ network }% __ONLY ONE__ keyword per line

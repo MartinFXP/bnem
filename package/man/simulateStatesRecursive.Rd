@@ -72,5 +72,5 @@ states <- simulateStatesRecursive(CNOlist, model, rep(1, length(model$reacID)))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ network }
+\keyword{ simulation }% __ONLY ONE__ keyword per line

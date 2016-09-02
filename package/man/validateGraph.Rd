@@ -179,15 +179,14 @@ PKN <- readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-NEMlist <- list()
-NEMlist$exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
-NEMlist$fc <- computeFc(CNOlist, NEMlist$exprs)
-rownames(NEMlist$fc) <- 1:nrow(NEMlist$fc)
+exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", CNOlist = CNOlist, NEMlist = NEMlist, model = model, parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+rownames(fc) <- 1:nrow(fc)
 val <- validateGraph(CNOlist = CNOlist, NEMlist = NEMlist, model = model, bString = res$bString, Egenes = 10, Sgene = 4)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ data }
+\keyword{ visualization }% __ONLY ONE__ keyword per line

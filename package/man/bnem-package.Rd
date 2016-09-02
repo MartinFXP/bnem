@@ -13,27 +13,33 @@ Estimates a signalling pathway from gene expression data derived from perturbati
 Package: \tab bnem\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
-Date: \tab 2016-04-28\cr
-License: \tab What license is it under?\cr
+Date: \tab 2016-08-31\cr
+License: \tab You can use and change, but have to cite the original.\cr
 }
-~~ An overview of how to use the package, including the most important ~~
-~~ functions ~~
+% ~~ An overview of how to use the package, including the most important ~~
+% ~~ functions ~~
 }
 \author{
 Martin Pirkl
 
 Maintainer: Martin Pirkl <martin-franz-xaver.pirkl@ukr.de>
-~~ The author and/or maintainer of the package ~~
+% ~~ The author and/or maintainer of the package ~~
 }
 \references{
-Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, & Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. Bioinformatics, 32(6), 893–900.
+Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, & Spang,
+Rainer. 2016. Analyzing synergistic and non-synergistic interactions in
+signalling pathways using Boolean Nested Effect Models. Bioinformatics,
+32(6), 893–900.\cr
+Pirkl, Martin. 2016. Indirect inference of synergistic and alternative
+signalling of intracellular pathways. University of Regensburg
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in ~~
-~~ the R documentation directory ~~
-\keyword{ package }
+% ~~ Optionally other standard keywords, one per line, from file KEYWORDS in ~~
+% ~~ the R documentation directory ~~
+\keyword{ boolean }
+\keyword{ pathway }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+% ~~ Optional links to other man pages, e.g. ~~
+% ~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
 }
 \examples{
 library(bnem)
@@ -45,9 +51,11 @@ PKN <- readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-NEMlist <- list()
-NEMlist$exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
-NEMlist$fc <- computeFc(CNOlist, NEMlist$exprs)
+exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
-res <- bnem(search = "greedy", CNOlist = CNOlist, NEMlist = NEMlist, model = model, parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc, model = model, parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+rownames(fc) <- 1:nrow(fc)
+val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model, bString = res$bString, Egenes = 10, Sgene = 4)
 }
+
