@@ -47,6 +47,7 @@ TRUE results in a acyclic graph.
 \item{g}{
 Dnf describing a hyper-graph.
 }
+}
 \references{
 %% ~put references to the literature/web site here ~
 }

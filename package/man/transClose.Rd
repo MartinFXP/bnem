@@ -39,6 +39,7 @@ Verbose output.
 \item{g}{
 Hyper-graph in dnf depicting the transitive closure of g.
 }
+}
 \references{
 %% ~put references to the literature/web site here ~
 }
