@@ -9,3 +9,5 @@ Depends: CellNOptR, nem, matrixStats, snowfall, latticeExtra
 Description: It combines the use of indirect measurements of Nested Effects Models with the Boolean networks of CellNOptR
 License: You know, the one where you can use the code as long as you cite the original.
 Imports: CellNOptR, nem, matrixStats, snowfall, latticeExtra
+VignetteBuilder: knitr
+Suggests: knitr
