@@ -25,7 +25,7 @@ Install:
 
 Open R and input:
 
-'''r
+```r
 install.packages("devtools")
 
 library(devtools)
@@ -33,11 +33,12 @@ library(devtools)
 install_github("MartinFXP/B-NEM/package")
 
 library(bnem)
-'''
+```
 
 Then check out the vignette for working examples.
 
-'''r
+```r
 vignette(package="bnem")
+
 vignette("bnem_basic", package="bnem")
-'''
+```
