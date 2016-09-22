@@ -5,8 +5,6 @@ opts_chunk$set(fig.path='figure/', fig.align='center', fig.show='hold')
 options(formatR.arrow=TRUE,width=90)
 
 ## ----installandload---------------------------------------------------------------------
-X11.options(type="Xlib")
-
 install.packages("devtools", verbose = F, quiet = T)
 
 library(devtools)
@@ -211,7 +209,7 @@ genetic <- bnem(search = "genetic",
            initBstring=initBstring,
            popSize = 10,
            stallGenMax = 10,
-           graph = FALSE,
+           draw = FALSE,
            verbose = FALSE
            )
 
@@ -337,6 +335,81 @@ print(sum(bString == 0 & resString2 == 0)/
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString2)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
+
+## ----loadbcrdata------------------------------------------------------------------------
+data(bcr)
+head(fc)
+
+## ----bcrpkn-----------------------------------------------------------------------------
+negation <- F # what happens if we allow negation?
+sifMatrix <- numeric()
+for (i in "BCR") {
+  sifMatrix <- rbind(sifMatrix, c(i, 1, c("Pi3k")))
+  sifMatrix <- rbind(sifMatrix, c(i, 1, c("Tak1")))
+  if (negation) {
+    sifMatrix <- rbind(sifMatrix, c(i, -1, c("Pi3k")))
+    sifMatrix <- rbind(sifMatrix, c(i, -1, c("Tak1")))
+  }
+}
+for (i in c("Pi3k", "Tak1")) {
+  for (j in c("Ikk2", "p38", "Jnk", "Erk", "Tak1", "Pi3k")) {
+    if (i %in% j) { next() }
+    sifMatrix <- rbind(sifMatrix, c(i, 1, j))
+    if (negation) {
+      sifMatrix <- rbind(sifMatrix, c(i, -1, j))
+    }
+  }
+}
+for (i in c("Ikk2", "p38", "Jnk")) {
+  for (j in c("Ikk2", "p38", "Jnk")) {
+    if (i %in% j) { next() }
+    sifMatrix <- rbind(sifMatrix, c(i, 1, j))
+    if (negation) {
+      sifMatrix <- rbind(sifMatrix, c(i, -1, j))
+    }
+  }
+}
+
+write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+PKN <- readSIF("temp.sif")
+unlink("temp.sif")
+
+## ----bcrmeta----------------------------------------------------------------------------
+CNOlist <- dummyCNOlist(stimuli = "BCR", inhibitors = c("Tak1", "Pi3k", "Ikk2", "Jnk", "p38", "Erk"), maxStim = 1, maxInhibit = 3)
+
+model <- preprocessing(CNOlist, PKN)
+
+## ----bcra-------------------------------------------------------------------------------
+initBstring <- rep(0, length(model$reacID))
+ga <- bnem(search = "genetic",
+               fc=fc,
+               CNOlist=CNOlist,
+               model=model,
+               parallel=2,
+               initBstring=initBstring,
+               draw = FALSE,
+               verbose = FALSE
+               )
+print(min(ga$scores))
+
+## ----bcrgreedy--------------------------------------------------------------------------
+initBstring <- rep(0, length(model$reacID))
+greedy <- bnem(search = "greedy",
+               fc=fc,
+               CNOlist=CNOlist,
+               model=model,
+               parallel=2,
+               initBstring=initBstring,
+               draw = FALSE,
+               verbose = FALSE
+               )
+print(min(greedy$scores[[1]]))
+
+## ----plotresultbcr, fig.width=7, fig.height=5, out.width='0.6\\linewidth'---------------
+par(mfrow=c(1,2))
+plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
+plotDnf(ga$graph, main = "genetic optimum", stimuli = "BCR")
+plotDnf(greedy$graph, main = "greedy optimum", stimuli = "BCR")
 
 ## ----sessioninfo------------------------------------------------------------------------
 sessionInfo()

@@ -39,8 +39,6 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 \section*{Loading B-NEM}
 
 <<installandload>>=
-X11.options(type="Xlib")
-
 install.packages("devtools", verbose = F, quiet = T)
 
 library(devtools)
@@ -301,7 +299,7 @@ genetic <- bnem(search = "genetic",
            initBstring=initBstring,
            popSize = 10,
            stallGenMax = 10,
-           graph = FALSE,
+           draw = FALSE,
            verbose = FALSE
            )
 
@@ -444,9 +442,6 @@ print(sum(ERS.res == ERS)/length(ERS))
 @
 The greedy optimum looks different from the GTN, even though they share a
 lot, but not all edges (reduced sensitivity and specificity). However the accuracy of the ERS is still $100\%$.
-<<sessioninfo>>=
-sessionInfo()
-@
 
 \section*{B-Cell receptor signalling}
 
@@ -517,8 +512,8 @@ ga <- bnem(search = "genetic",
                model=model,
                parallel=2,
                initBstring=initBstring,
-               draw = F,
-               verbose = F
+               draw = FALSE,
+               verbose = FALSE
                )
 print(min(ga$scores))
 @
@@ -531,20 +526,21 @@ greedy <- bnem(search = "greedy",
                model=model,
                parallel=2,
                initBstring=initBstring,
-               draw = F,
-               verbose = F
+               draw = FALSE,
+               verbose = FALSE
                )
-print(min(greedy$scores))
+print(min(greedy$scores[[1]]))
 @
-<<plotresultbcr, fig.width=9, fig.height=6, out.width='0.6\\linewidth'>>=
+<<plotresultbcr, fig.width=7, fig.height=5, out.width='0.6\\linewidth'>>=
 par(mfrow=c(1,2))
-plotDnf(, main = "PKN", stimuli = "BCR")
+plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
 plotDnf(ga$graph, main = "genetic optimum", stimuli = "BCR")
 plotDnf(greedy$graph, main = "greedy optimum", stimuli = "BCR")
 @
 
-The greedy search improves the result of the genetic algorithm and
-Pi3k is not alternatively regulating p38 anymore together with Ikk2.
+<<sessioninfo>>=
+sessionInfo()
+@
 
 \textbf{References:}\\
 \\

@@ -36,7 +36,6 @@ bnem <-
              targetBstring = "none",
              elitism = NULL,
              inversion = NULL,
-             graph = TRUE,
              selection = c("t"),
              type = "SOCK",
              exhaustive = FALSE,
@@ -80,7 +79,7 @@ bnem <-
 		result <- list(graph = model$reacID[as.logical(bString)], bString = bString, bStrings = res$bStrings, scores = res$scores)
             }
             if (search %in% "genetic") {
-		res <- gaBinaryNemT1(CNOlist=CNOlist, model=model,initBstring = initBstring,sizeFac = sizeFac, NAFac = NAFac,popSize = popSize,pMutation = pMutation,maxTime = maxTime,maxGens = maxGens, stallGenMax = stallGenMax,relTol = relTol,verbose = verbose,priorBitString = priorBitString,selPress = selPress,approach = approach,NEMlist=NEMlist,fit = fit,targetBstring = targetBstring,elitism = elitism,inversion = inversion,graph = graph,parameters = parameters,parallel = parallel,parallel2 = parallel2,selection = selection,relFit = relFit,method = method,type = type,exhaustive = exhaustive,delcyc = delcyc, ...)
+		res <- gaBinaryNemT1(CNOlist=CNOlist, model=model,initBstring = initBstring,sizeFac = sizeFac, NAFac = NAFac,popSize = popSize,pMutation = pMutation,maxTime = maxTime,maxGens = maxGens, stallGenMax = stallGenMax,relTol = relTol,verbose = verbose,priorBitString = priorBitString,selPress = selPress,approach = approach,NEMlist=NEMlist,fit = fit,targetBstring = targetBstring,elitism = elitism,inversion = inversion,graph = draw,parameters = parameters,parallel = parallel,parallel2 = parallel2,selection = selection,relFit = relFit,method = method,type = type,exhaustive = exhaustive,delcyc = delcyc, ...)
 		result <- list(graph = model$reacID[as.logical(res$bString)], bString = res$bString, bStrings = res$stringsTol, scores = res$stringsTolScores)
             }
             if (search %in% "exhaustive") {

@@ -11,7 +11,7 @@ The main high level function to learn an optimal Boolean hyper-graph describing 
 }
 \usage{
 bnem(search = "loc", fc=NULL, exprs=NULL, pkn, design=NULL,
-stimuli=NULL, inhibitors=NULL, signals=NULL, CNOlist=MULL, model=NULL, sizeFac = 10^-10, NAFac = 1, NEMlist, parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)), parallel = NULL, method = "s", relFit = F, verbose = TRUE, reduce = TRUE, initBstring = NULL, popSize = 100, pMutation = 0.5, maxTime = Inf, maxGens = Inf, stallGenMax = 10, relTol = 0.01, priorBitString = NULL, selPress = c(1.2, 1e-04), approach = "fc", fit = "linear", targetBstring = "none", elitism = NULL, inversion = NULL, graph = TRUE, parallel2 = 1, selection = c("t"), type = "SOCK", exhaustive = FALSE, delcyc = TRUE, seeds = 1, maxSteps = Inf, node = NULL, absorpII = TRUE, draw = TRUE, prior = NULL, ...)
+stimuli=NULL, inhibitors=NULL, signals=NULL, CNOlist=MULL, model=NULL, sizeFac = 10^-10, NAFac = 1, NEMlist, parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)), parallel = NULL, method = "s", relFit = F, verbose = TRUE, reduce = TRUE, initBstring = NULL, popSize = 100, pMutation = 0.5, maxTime = Inf, maxGens = Inf, stallGenMax = 10, relTol = 0.01, priorBitString = NULL, selPress = c(1.2, 1e-04), approach = "fc", fit = "linear", targetBstring = "none", elitism = NULL, inversion = NULL, parallel2 = 1, selection = c("t"), type = "SOCK", exhaustive = FALSE, delcyc = TRUE, seeds = 1, maxSteps = Inf, node = NULL, absorpII = TRUE, draw = TRUE, prior = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -152,10 +152,6 @@ Number of best hyper-graph transferred to the next generation  (only "genetic").
 %%     ~~Describe \code{inversion} here~~
 Number of worst hyper-graphs for which their binary strings are inversed  (only "genetic").
 }
-  \item{graph}{
-%%     ~~Describe \code{graph} here~~
-If TRUE plots the evolution of the search (only "genetic").
-}
   \item{parallel2}{
 %%     ~~Describe \code{parallel2} here~~
 not used
@@ -194,7 +190,7 @@ Use a thrid absorption law.
 }
   \item{draw}{
 %%     ~~Describe \code{draw} here~~
-If TRUE draws the network evolution (only "greedy").
+If TRUE draws the network evolution.
 }
   \item{prior}{
 %%     ~~Describe \code{prior} here~~
