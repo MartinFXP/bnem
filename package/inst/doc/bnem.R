@@ -370,12 +370,15 @@ for (i in c("Ikk2", "p38", "Jnk")) {
   }
 }
 
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(sifMatrix, file = "temp.sif", sep = "\t",
+            row.names = FALSE, col.names = FALSE, quote = FALSE)
 PKN <- readSIF("temp.sif")
 unlink("temp.sif")
 
 ## ----bcrmeta----------------------------------------------------------------------------
-CNOlist <- dummyCNOlist(stimuli = "BCR", inhibitors = c("Tak1", "Pi3k", "Ikk2", "Jnk", "p38", "Erk"), maxStim = 1, maxInhibit = 3)
+CNOlist <- dummyCNOlist(stimuli = "BCR",
+                        inhibitors = c("Tak1", "Pi3k", "Ikk2", "Jnk", "p38", "Erk"),
+                        maxStim = 1, maxInhibit = 3)
 
 model <- preprocessing(CNOlist, PKN)
 
