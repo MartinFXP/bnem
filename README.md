@@ -38,7 +38,5 @@ library(bnem)
 Then check out the vignette for working examples.
 
 ```r
-vignette(package="bnem")
-
-vignette("bnem_basic", package="bnem")
+vignette("bnem")
 ```
