@@ -9,7 +9,7 @@ install.packages("devtools", verbose = F, quiet = T)
 
 library(devtools)
 
-install_github("MartinFXP/B-NEM/package", quiet = T)
+install_github("MartinFXP/B-NEM", quiet = T)
 
 library(bnem)
 

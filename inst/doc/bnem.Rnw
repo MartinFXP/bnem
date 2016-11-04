@@ -35,7 +35,8 @@ options(formatR.arrow=TRUE,width=90)
 Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In different experiments (conditions) members of a pathway (S-genes) are stimulated or inhibited, alone and in combination. In each experiment transcriptional targets (E-genes) of the pathway react differently and are higher or lower expressed depending on the condition. From these differential expression B-NEM infers Boolean functions presented as hyper-edges of a hyper-graph connecting parents and children in the pathway. For example if the signal is transducted by two parents A and B to a child C and the signal can be blocked with a knock-down of either one, they are connected by a typical AND-gate. If the signal is still transduced during a single knock-down, but blocked by the double knock-down of A and B, they activate C by an OR-gate. In general the state of child C is defined by a Boolean function
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
  with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
-
+ 
+ The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfe et al., 2012.
 \section*{Loading B-NEM}
 
 <<installandload>>=
@@ -43,7 +44,7 @@ install.packages("devtools", verbose = F, quiet = T)
 
 library(devtools)
 
-install_github("MartinFXP/B-NEM/package", quiet = T)
+install_github("MartinFXP/B-NEM", quiet = T)
 
 library(bnem)
 @
@@ -548,9 +549,13 @@ sessionInfo()
 \textbf{References:}\\
 \\
 Pirkl, Martin, Hand, Elisabeth, Kube, Dieter, \& Spang, Rainer. 2016. Analyzing synergistic and non-synergistic interactions in signalling pathways using Boolean Nested Effect Models. \textit{Bioinformatics}, 32(6), 893–900.\\
-\\
-Pirkl, Martin. 2016. Indirect inference of synergistic and
-  alternative signalling of intracellular pathways. University of
-  Regensburg.
 
+Pirkl, Martin. 2016. Indirect inference of synergistic and
+alternative signalling of intracellular pathways. University of
+Regensburg.\\
+
+Saez-Rodriguez, Julio, Alexopoulos, Leonidas G, Epperlein, Jonathan, Samaga, Regina, Lauffenburger, Douglas A, Klamt, Steffen, \& Sorger, Peter K. 2009. Discrete logic modelling as a means to link protein signalling networks with functional analysis of mammalian signal transduction. Mol Syst Biol, 5, 331.\\
+
+C Terfve, T Cokelaer, A MacNamara, D Henriques, E Goncalves, MK Morris, M van Iersel, DA Lauffenburger, J Saez-Rodriguez. CellNOptR: a flexible toolkit to train protein signaling networks to data using multiple logic formalisms. BMC Systems Biology, 2012, 6:133.
+\\
 \end{document}
