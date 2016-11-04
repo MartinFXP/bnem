@@ -40,7 +40,7 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 \section*{Loading B-NEM}
 
 <<installandload>>=
-install.packages("devtools", verbose = F, quiet = T)
+## install.packages("devtools")
 
 library(devtools)
 

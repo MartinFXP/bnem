@@ -5,7 +5,7 @@ opts_chunk$set(fig.path='figure/', fig.align='center', fig.show='hold')
 options(formatR.arrow=TRUE,width=90)
 
 ## ----installandload---------------------------------------------------------------------
-install.packages("devtools", verbose = F, quiet = T)
+## install.packages("devtools")
 
 library(devtools)
 
