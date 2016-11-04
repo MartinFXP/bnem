@@ -241,7 +241,7 @@ model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
 fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
-res <- bnem(search = "greedy", fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"), parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+res <- bnem(search = "greedy", model = model, CNOlist = CNOlist, fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"), parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

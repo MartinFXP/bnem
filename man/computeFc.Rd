@@ -61,7 +61,7 @@ stimuli <- c("A", "B")
 inhibitors <- c("C", "D")
 CNOlist <- dummyCNOlist(stimuli, inhibitors, maxStim = 1, maxInhibit = 1, signals = c(stimuli, inhibitors))
 exprs <- matrix(rnorm(100*nrow(CNOlist@cues)), 100, nrow(CNOlist@cues))
-contrasts <- computeFc(CNOlist, y)
+contrasts <- computeFc(CNOlist, exprs)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
