@@ -44,7 +44,7 @@ preprocessInput <- function(stimuli=NULL, inhibitors=NULL, signals=NULL, design 
 
         if (is.null(signals)) { signals <- unique(c(stimuli, inhibitors)) }
 
-        CNOlist <- dummyCNOlist(stimuli=stimuli, inhibitors=inhibitors, maxStim=maxStim, maxInhibit=maxInhibit, signals=ignals)
+        CNOlist <- dummyCNOlist(stimuli=stimuli, inhibitors=inhibitors, maxStim=maxStim, maxInhibit=maxInhibit, signals=signals)
 
         model <- preprocessing(CNOlist, pkn, maxInputsPerGate=maxInputsPerGate)
 
