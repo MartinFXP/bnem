@@ -30,7 +30,7 @@ install.packages("devtools")
 
 library(devtools)
 
-install_github("MartinFXP/B-NEM/package")
+install_github("MartinFXP/B-NEM")
 
 library(bnem)
 ```
