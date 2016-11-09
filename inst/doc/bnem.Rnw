@@ -488,7 +488,7 @@ In our toy example, fixing the correct E-genes to their parents increases the ac
 \section*{Visualizing network residuals}
 We can also quantify how well the attached E-genes fit to the learned network.
 
-<<residuals, fig.width=7, fig.height=5, out.width='0.9\\linewidth'>>=
+<<residuals>>=
 residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = F) # verbose = TRUE plots the residuals matrices
 @ 
 
