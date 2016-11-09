@@ -485,6 +485,15 @@ print(sum(ERS.res == ERS)/length(ERS))
 
 In our toy example, fixing the correct E-genes to their parents increases the accuracy of the network and even resolves the ERS completely.
 
+\section*{Visualizing network residuals}
+We can also quantify how well the attached E-genes fit to the learned network.
+
+<<residuals, fig.width=7, fig.height=5, out.width='0.9\\linewidth'>>=
+residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = F) # verbose = TRUE plots the residuals matrices
+@ 
+
+Row denote S-genes in the network. Columns denote Contrasts between two experiments. Green colors in the left matrix show the score improves, if no (0) or a negative (-1) response in the network's ERS is changed to positive (+1). Red colors show a zero changed to positive. The right matrix shows the same for switched +1 and -1.
+
 \section*{B-Cell receptor signalling}
 
 In this section we analyze the B-Cell receptor (BCR) signalling

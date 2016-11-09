@@ -367,6 +367,9 @@ ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resStrin
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 
+## ----residuals, fig.width=7, fig.height=5, out.width='0.9\\linewidth'-------------------
+residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = F) # verbose = TRUE plots the residuals matrices
+
 ## ----loadbcrdata------------------------------------------------------------------------
 data(bcr)
 head(fc)

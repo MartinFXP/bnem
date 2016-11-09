@@ -43,10 +43,12 @@ findResiduals <-
       }
       resVec <- sum(abs(cor(SCompMat[i, ], t(data.tmp), method = method)))
       for (j in 1:ncol(data.tmp)) { # parallel this!
-        
-        cat('\r', paste(floor(((i-1)*ncol(data.tmp) + j)/(ncol(CNOlist@signals[[1]])*ncol(data.tmp))*100), "%", sep = ""))
-        flush.console()
-        
+
+          if (verbose) {
+              cat('\r', paste(floor(((i-1)*ncol(data.tmp) + j)/(ncol(CNOlist@signals[[1]])*ncol(data.tmp))*100), "%", sep = ""))
+              flush.console()
+          }
+          
         sgene <- SCompMat[i, ]
         mem <- sgene[j]
         if (mem == 0) {
