@@ -3,6 +3,7 @@ bnem <-
 
              fc=NULL,
              exprs=NULL,
+             egenes=NULL,
              pkn=NULL,
              design=NULL,
              stimuli=NULL,
@@ -60,10 +61,10 @@ bnem <-
             NEMlist <- list()
             NEMlist$fc <- fc
             NEMlist$exprs <- exprs
+            NEMlist$egenes <- egenes
         }
 
         if (search %in% c("greedy", "genetic", "exhaustive")) {
-
 
             if (search %in% "greedy") {
 		res <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist, model=model, approach = approach, initSeed = initBstring, seeds = seeds, parameters = parameters, sizeFac = sizeFac, NAFac = NAFac, relTol = relTol, verbose = verbose, parallel=parallel, parallel2 = parallel2, relFit = relFit, method = method, max.steps = maxSteps, max.time = maxTime, node = node, absorpII = absorpII, draw = draw, prior = prior, ...)
