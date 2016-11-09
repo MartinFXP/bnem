@@ -13,6 +13,7 @@ caused by the ERS of the network.
 \usage{
 findResiduals(bString, CNOlist, model, fc=NULL, exprs=NULL, egenes=NULL, NEMlist = NULL, parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), method = "s", sizeFac = 10^-10, main = "residuals for decoupled vertices", sub = "green residuals are added effects (left positive, right negative) and red residuals are deleted effects", cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE)
 %- maybe also 'usage' for other objects documented here.
+}
 \arguments{
   \item{bString}{
 %%     ~~Describe \code{vertices} here~~
