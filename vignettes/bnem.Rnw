@@ -28,7 +28,6 @@ options(formatR.arrow=TRUE,width=90)
 \title{Boolean Nested Effects Models\\
 	Inferring the logical signalling of pathways from indirect measurements and perturbation biology}
 
-
 \author{Martin Pirkl}
 
 \maketitle
@@ -36,7 +35,7 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
  with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
  
- The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfe et al., 2012.
+ The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfve et al., 2012.
 \section*{Loading B-NEM}
 
 <<installandload>>=
@@ -443,6 +442,48 @@ print(sum(ERS.res == ERS)/length(ERS))
 @
 The greedy optimum looks different from the GTN, even though they share a
 lot, but not all edges (reduced sensitivity and specificity). However the accuracy of the ERS is still $100\%$.
+
+\section*{Pre-attach E-genes}
+One additional challange for B-NEM compared to methods like CellNetOptimizer is the fact, that B-NEM optimizes the signalling pathway and simulataneously the attachment of the E-genes. However, it is possible to include prior knowledge into the search.
+
+We just have to create a list object, which holds the ERS and prior information about the E-genes.
+
+<<definePos>>=
+egenes <- list()
+
+for (i in cues) {
+    egenes[[i]] <- rownames(fc)[grep(i, rownames(fc))]
+}
+
+initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
+greedy2 <- bnem(search = "greedy",
+            CNOlist=CNOlist,
+            fc=fc,
+            exprs=exprs,
+            egenes=egenes,
+            model=model,
+            parallel=parallel,
+            initBstring=initBstring,
+            draw = FALSE,
+            verbose = FALSE,
+            maxSteps = Inf
+            )
+resString3 <- greedy2$bString
+@ 
+
+We attach every E-gene to its real parent in the for loop. If an E-gene is only included once in the egenes object, it's position is not learned, but fixed during the optimization of the signalling pathway. Alternatively, we can include one E-gene several times for just a subset of S-genes. This way S-genes, which do not have the E-genes included in their E-gene set are excluded as potential parents.
+
+<<accuracy3>>=
+print(sum(bString == 1 & resString3 == 1)/
+      (sum(bString == 1 & resString3 == 1) + sum(bString == 1 & resString3 == 0)))
+print(sum(bString == 0 & resString3 == 0)/
+      (sum(bString == 0 & resString3 == 0) + sum(bString == 0 & resString3 == 1)))
+ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString3)))
+ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
+print(sum(ERS.res == ERS)/length(ERS))
+@
+
+In our toy example, fixing the correct E-genes to their parents increases the accuracy of the network and even resolves the ERS completely.
 
 \section*{B-Cell receptor signalling}
 

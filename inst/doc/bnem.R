@@ -336,6 +336,37 @@ ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resStrin
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 
+## ----definePos--------------------------------------------------------------------------
+egenes <- list()
+
+for (i in cues) {
+    egenes[[i]] <- rownames(fc)[grep(i, rownames(fc))]
+}
+
+initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
+greedy2 <- bnem(search = "greedy",
+            CNOlist=CNOlist,
+            fc=fc,
+            exprs=exprs,
+            egenes=egenes,
+            model=model,
+            parallel=parallel,
+            initBstring=initBstring,
+            draw = FALSE,
+            verbose = FALSE,
+            maxSteps = Inf
+            )
+resString3 <- greedy2$bString
+
+## ----accuracy3--------------------------------------------------------------------------
+print(sum(bString == 1 & resString3 == 1)/
+      (sum(bString == 1 & resString3 == 1) + sum(bString == 1 & resString3 == 0)))
+print(sum(bString == 0 & resString3 == 0)/
+      (sum(bString == 0 & resString3 == 0) + sum(bString == 0 & resString3 == 1)))
+ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resString3)))
+ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
+print(sum(ERS.res == ERS)/length(ERS))
+
 ## ----loadbcrdata------------------------------------------------------------------------
 data(bcr)
 head(fc)
