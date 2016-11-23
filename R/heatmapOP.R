@@ -278,12 +278,14 @@ function(x, col = "RdYlGn", coln = 11, bordercol = "grey", borderwidth = 0.1, br
 
   ##  print(p, position=c(0,ypct-0.05,1,1), more=TRUE)
   ##  print(p2, position=c(0,0,1,ypct+0.05))
-  
+
+    print(at)
+    
   levelplot(d,
             main = list(label = main, cex = cexMain), 
             sub = list(label = sub, cex = cexSub),
             aspect = aspect, xlab=xlab, ylab=ylab,
-            scales = list(x = list(cex = cexCol, rot = xrot), y = list(cex = cexRow, rot = yrot)),
+            scales = list(x = list(cex = cexCol, rot = xrot), y = list(cex = cexRow, rot = yrot), scales = list(tck = c(1,0))),
             par.settings=myTheme,
             border=bordercol, border.lwd=borderwidth,
             shrink=shrink,
