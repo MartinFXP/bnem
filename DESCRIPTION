@@ -2,13 +2,15 @@ Package: bnem
 Type: Package
 Title: training of logical models from indirect measurements of perturbation experiments
 Version: 0.99.0
-Date: 2016-04-28
 Author: Martin Pirkl
 Maintainer: Martin Pirkl <martin.pirkl@bsse.ethz.ch>
-Depends: CellNOptR, nem, matrixStats, snowfall, latticeExtra, knitr
 Description: It combines the use of indirect measurements of Nested Effects Models with the Boolean networks of CellNOptR
+Depends: 
+    R (>= 3.3)
 License: GPL-3
-biocViews: Software, signaling, pathways, networks, graphs, hyper
+Encoding: UTF-8
+LazyData: true
+biocViews: Pathways, SystemsBiology, NetworkInference
 Imports: CellNOptR, nem, matrixStats, snowfall, latticeExtra, knitr
 VignetteBuilder: knitr
 Suggests: knitr

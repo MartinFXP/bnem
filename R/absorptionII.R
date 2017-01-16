@@ -1,3 +1,12 @@
+#' applies "inverse" absorption law to a disjuncitve normal form
+#' @param bString a disjunctive normal form or binary vector according to model
+#' @param model model for respective binary vector
+#' @author Martin Pirkl
+#' @return bString after "inverse" absorption law
+#' @export
+#' @examples
+#' graph <- c("A+B=C", "A=C")
+#' absorptionII(graph)
 absorptionII <-
 function(bString, model=NULL) {
   if (is.null(model)) {
