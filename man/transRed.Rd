@@ -20,6 +20,7 @@ transitive reduction of the hyper-graph in normal form
 calculates transitive reduciton of a hyper-graph in normal form
 }
 \examples{
+library(bnem)
 g <- c("A=B", "A=C", "B=C", "B=D", "!A=D")
 gred <- transRed(g)
 }

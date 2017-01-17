@@ -1,7 +1,7 @@
 #' @noRd
+#' @import matrixStats
 simulateDnf <-
 function(dnf, stimuli = NULL, inhibitors = NULL) {
-  require(matrixStats)
   getStateDnf <- function(node, signalStates, graph, children = NULL) {
     graphCut <- graph[grep(paste("=", node, "$", sep = ""), graph)]
     if (length(graphCut) == 0) {

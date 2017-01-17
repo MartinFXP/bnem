@@ -1,4 +1,5 @@
 #' @noRd
+#' @import snowfall
 gaBinaryNemT1 <-
 function (CNOlist,
                            model,
@@ -163,7 +164,6 @@ function (CNOlist,
       bestMem <- "off"
     }
     if (!is.null(parallel)) {
-      require(snowfall)
       if (is.list(parallel)) {
         if (length(parallel[[1]]) != length(parallel[[2]])) { stop("The nodes (second list object in parallel) and the number of cores used on every node (first list object in parallel) must be the same.") }
         hosts <- character()

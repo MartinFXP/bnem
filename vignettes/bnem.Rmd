@@ -4,9 +4,9 @@ author: "Martin Pirkl"
 date: "`r Sys.Date()`"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{bnem}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{bnem}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
 ---
 ## Introduction
 
@@ -14,19 +14,26 @@ Boolean Nested effects Models (B-NEM) are used to infer signalling pathways. In 
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
  with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
  
- The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfve et al., 2012.
+The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfve et al., 2012.
  
 ## Loading B-NEM
 
-```{r, eval=FALSE}
-install.packages("devtools")
-```
 ```{r}
+install.packages("devtools", repos = "https://cloud.r-project.org")
+
 library(devtools)
+
+source("https://bioconductor.org/biocLite.R")
+
+biocLite("CellNOptR")
+
+library("CellNOptR")
 
 install_github("MartinFXP/B-NEM", quiet = T)
 
 library(bnem)
+
+data(bnem_data)
 ```
 
 ## Toy example for DAG
@@ -79,7 +86,7 @@ inhibitors <- inhibitors[-which(inhibitors %in% stimuli)]
 
 The following figure shows the PKN. Red "tee" arrows depict repression the others activation of the child. The stimulated S-genes are diamond shaped.
 
-```{r}
+```{r, fig.width = 5, fig.height = 5}
 plotDnf(dnf, stimuli = stimuli)
 ```
 
@@ -149,7 +156,7 @@ while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)
 The following figure shows our random GTN, which is a subset of the
 hyper-graph representing the apriori restricted search space.
 
-```{r}
+```{r, fig.width = 5, fig.height = 5}
 plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
 ```
 
@@ -214,7 +221,8 @@ initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 parallel <- 2 # NULL for serialization
 ## or distribute to 30 threads on four different machines:
 ## parallel <- list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))
-
+```
+```{r, eval = FALSE}
 ## greedy search:
 greedy <- bnem(search = "greedy",
             fc=fc,
@@ -227,14 +235,15 @@ greedy <- bnem(search = "greedy",
             verbose = FALSE, # TRUE: print changed (hyper-)edges and score improvement
             maxSteps = Inf
             )
-
+```
+```{r}
 resString <- greedy$bString
 ```
 
 We take a look at the efficiency of the search algorithm with
 sensitivity and specificity of the hyper-eges for the optimized network and the accuracy of its ERS (similar to the truth table). Since several networks produce the same ERS, the found hyper-graph can differ from the GTN and still be $100\%$ accurate.
 
-```{r}
+```{r, fig.width = 10, fig.height = 5}
 par(mfrow=c(1,2))
 
 ## GTN:
@@ -268,7 +277,7 @@ is larger (more outgoing edges) and thus not preferred.
 After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
 
-```{r}
+```{r, fig.width = 10, fig.height = 10}
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model, bString = resString,
                          Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7, xrot = 45,
                          Colv = T, Rowv = T, dendrogram = "both", bordercol = "lightgrey",
@@ -284,7 +293,7 @@ greedy optimum is equal to the GTN.
 Alternatively to the greedy neighbourhood search a genetic algorithm
 and exhaustive search are available. The exhaustive search is not recommended for search spaces with more than 20 hyper-edges.
 
-```{r}
+```{r, eval = FALSE}
 ## genetic algorithm:
 genetic <- bnem(search = "genetic",
            fc=fc,
@@ -298,7 +307,8 @@ genetic <- bnem(search = "genetic",
            draw = FALSE,
            verbose = FALSE
            )
-
+```
+```{r}
 resString <- genetic$bString
 ```
 
@@ -344,13 +354,13 @@ for (i in both) {
 
 The next figure shows the cyclic PKN with extra stimuli S-genes. Notice, this way the inhibition of the S-genes overrules the stimulation.
 
-```{r}
+```{r, fig.width = 5, fig.height = 9}
 plotDnf(dnf, stimuli = stimuli)
 ```
 
 Similar to before we create the full network search space, draw a GTN, simulate data and search for the optimal network.
 
-```{r}
+```{r, fig.width = 10, fig.height = 9}
 sifMatrix <- NULL
 for (i in dnf) {
   inputs2 <- unique(unlist(strsplit(gsub("=.*", "", i), "=")))
@@ -407,6 +417,8 @@ rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
 print(fc[1:6, c(1:3,(ncol(fc)-2):ncol(fc))])
 
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
+```
+```{r, eval = FALSE}
 greedy2 <- bnem(search = "greedy",
             CNOlist=CNOlist,
             fc=fc,
@@ -418,6 +430,8 @@ greedy2 <- bnem(search = "greedy",
             verbose = FALSE,
             maxSteps = Inf
             )
+```
+```{r, fig.width = 10, fig.height = 9}
 resString2 <- greedy2$bString
 
 par(mfrow=c(1,2))
@@ -447,9 +461,10 @@ egenes <- list()
 for (i in cues) {
     egenes[[i]] <- rownames(fc)[grep(i, rownames(fc))]
 }
-
+```
+```{r, eval = FALSE}
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
-greedy2 <- bnem(search = "greedy",
+greedy2b <- bnem(search = "greedy",
             CNOlist=CNOlist,
             fc=fc,
             exprs=exprs,
@@ -461,7 +476,9 @@ greedy2 <- bnem(search = "greedy",
             verbose = FALSE,
             maxSteps = Inf
             )
-resString3 <- greedy2$bString
+```
+```{r}
+resString3 <- greedy2b$bString
 ``` 
 
 We attach every E-gene to its real parent in the for loop. If an E-gene is only included once in the egenes object, it's position is not learned, but fixed during the optimization of the signalling pathway. Alternatively, we can include one E-gene several times for just a subset of S-genes. This way S-genes, which do not have the E-genes included in their E-gene set are excluded as potential parents.
@@ -476,13 +493,14 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
 
-In our toy example, fixing the correct E-genes to their parents increases the accuracy of the network and even resolves the ERS completely.
+In our toy example, fixing the correct E-genes to their parents increases the accuracy of the network and even resolves the ERS to 100 percent.
 
 ## Visualizing network residuals
-We can also quantify how well the attached E-genes fit to the learned network.
+We can also quantify how well the attached E-genes fit to the learned network. See the references for more details.
 
-```{r}
-residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = F) # verbose = TRUE plots the residuals matrices
+```{r, eval = FALSE}
+residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = F)
+## verbose = TRUE plots the residuals matrices
 ```
 
 Row denote S-genes in the network. Columns denote Contrasts between two experiments. Green colors in the left matrix show the score improves, if no (0) or a negative (-1) response in the network's ERS is changed to positive (+1). Red colors show a zero changed to positive. The right matrix shows the same for switched +1 and -1.
@@ -551,9 +569,11 @@ model <- preprocessing(CNOlist, PKN)
 
 In the final step we learn the network with the genetic algorithm and deterministic greedy search.
 
-```{r}
+```{r, fig.width = 10, fig.height = 5}
 initBstring <- rep(0, length(model$reacID))
-ga <- bnem(search = "genetic",
+```
+```{r, eval = FALSE}
+bcr_genetic <- bnem(search = "genetic",
                fc=fc,
                CNOlist=CNOlist,
                model=model,
@@ -562,10 +582,14 @@ ga <- bnem(search = "genetic",
                draw = FALSE,
                verbose = FALSE
                )
-print(min(ga$scores))
+```
+```{r}
+print(min(bcr_genetic$scores))
 
 initBstring <- rep(0, length(model$reacID))
-greedy <- bnem(search = "greedy",
+```
+```{r, eval = FALSE}
+bcr_greedy <- bnem(search = "greedy",
                fc=fc,
                CNOlist=CNOlist,
                model=model,
@@ -574,12 +598,14 @@ greedy <- bnem(search = "greedy",
                draw = FALSE,
                verbose = FALSE
                )
-print(min(greedy$scores[[1]]))
+```
+```{r, fig.width = 10, fig.height = 5}
+print(min(bcr_greedy$scores[[1]]))
 
 par(mfrow=c(1,2))
 plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
-plotDnf(ga$graph, main = "genetic optimum", stimuli = "BCR")
-plotDnf(greedy$graph, main = "greedy optimum", stimuli = "BCR")
+plotDnf(bcr_genetic$graph, main = "genetic optimum", stimuli = "BCR")
+plotDnf(bcr_greedy$graph, main = "greedy optimum", stimuli = "BCR")
 ```
 
 ```{r}

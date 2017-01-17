@@ -6,6 +6,7 @@
 #' @return transitive closure in normal form
 #' @export
 #' @examples
+#' library(bnem)
 #' g <- c("A=B", "B=C")
 #' gclose <- transClose(g)
 transClose <-

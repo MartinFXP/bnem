@@ -80,6 +80,7 @@ lattice object/matrix
 heatmap function based on the lattice package with several options
 }
 \examples{
+library(bnem)
 x <- matrix(rnorm(50), 10, 5)
 heatmapOP(x, dendrogram = "both", aspect = "iso", xrot = 45)
 }

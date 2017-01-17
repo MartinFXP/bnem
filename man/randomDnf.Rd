@@ -25,6 +25,7 @@ random hyper-graph in normal form
 creates a random normal form or hyper-graph
 }
 \examples{
+library(bnem)
 g <- randomDnf(10)
 }
 \author{

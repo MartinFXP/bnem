@@ -4,6 +4,7 @@
 #' @return converted graph normal form
 #' @export
 #' @examples
+#' library(bnem)
 #' g <- "A+B=C"
 #' g2 <- converGraph(g)
 convertGraph <-

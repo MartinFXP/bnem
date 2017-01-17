@@ -1,4 +1,5 @@
 #' @noRd
+#' @import snowfall
 exSearch <-
 function(CNOlist,model,sizeFac=10^-10,NAFac=1,NEMlist,parameters=list(cutOffs=c(0,1,0), scoring=c(0.1,0.2,0.9)), parallel = NULL, method = "s", relFit = F, verbose = TRUE, reduce = TRUE, approach = "fc", ...) {
 
@@ -65,7 +66,6 @@ function(CNOlist,model,sizeFac=10^-10,NAFac=1,NEMlist,parameters=list(cutOffs=c(
   }
 
   if (!is.null(parallel)) {
-    require(snowfall)
     if (is.list(parallel)) {
       if (length(parallel[[1]]) != length(parallel[[2]])) { stop("The nodes (second list object in parallel) and the number of cores used on every node (first list object in parallel) must be the same.") }
       hosts <- character()

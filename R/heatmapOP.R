@@ -31,7 +31,11 @@
 #' @author Martin Pirkl & Oscar Perpiñán @ http://oscarperpinan.github.io/rastervis/
 #' @return lattice object/matrix
 #' @export
+#' @import
+#' lattice
+#' latticeExtra
 #' @examples
+#' library(bnem)
 #' x <- matrix(rnorm(50), 10, 5)
 #' heatmapOP(x, dendrogram = "both", aspect = "iso", xrot = 45)
 heatmapOP <-
@@ -86,10 +90,7 @@ function(x, col = "RdYlGn", coln = 11, bordercol = "grey", borderwidth = 0.1, br
     x[x < breaks[1]] <- breaks[1]
     x[x > breaks[length(breaks)]] <- breaks[length(breaks)]
   }
-  
-  require(lattice)
-  require(latticeExtra)
-  
+    
   if (Colv) {
     if (is.null(clust)) {
       if (is.null(clusterx)) {

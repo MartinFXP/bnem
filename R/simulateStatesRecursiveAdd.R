@@ -1,8 +1,9 @@
 #' @noRd
+#' @import
+#' matrixStats
+#' Biobase
 simulateStatesRecursiveAdd <-
-function(CNOlist, model, bString, NEMlist = NULL) { 
-  require(matrixStats)
-  require(Biobase)
+function(CNOlist, model, bString, NEMlist = NULL) {
   getStateAdd <- function(CNOlist, node, signalStates, graph, children = NULL, NEMlist = NULL) {
     graphCut <- graph[grep(paste("=", node, sep = ""), graph)]
     if (length(graphCut) == 0) {

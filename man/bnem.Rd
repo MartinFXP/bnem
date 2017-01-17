@@ -115,6 +115,7 @@ List object including the optimized hyper-graph and its corresponding binary str
 Boolean Nested Effects Model main function
 }
 \examples{
+library(bnem)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE, col.names = FALSE,
 quote = FALSE)

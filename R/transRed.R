@@ -6,6 +6,7 @@
 #' @return transitive reduction of the hyper-graph in normal form
 #' @export
 #' @examples
+#' library(bnem)
 #' g <- c("A=B", "A=C", "B=C", "B=D", "!A=D")
 #' gred <- transRed(g)
 transRed <-

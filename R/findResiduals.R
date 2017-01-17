@@ -19,6 +19,9 @@
 #' @author Martin Pirkl
 #' @return matrices indicating experiments and/or genes, where the network and the data disagree
 #' @export
+#' @import
+#' CellNOptR
+#' snowfall
 #' @examples
 #' library(bnem)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
@@ -118,7 +121,6 @@ findResiduals <-
   }
   
   if (!is.null(parallel)) {
-    require(snowfall)
     if (is.list(parallel)) {
       if (length(parallel[[1]]) != length(parallel[[2]])) { stop("The nodes (second list object in parallel) and the number of cores used on every node (first list object in parallel) must be the same.") }
       hosts <- character()
@@ -131,7 +133,6 @@ findResiduals <-
       sfInit(parallel=TRUE, cpus=parallel, type = "SOCK")
     }
     sfLibrary(CellNOptR)
-    library(bnem)
     ## sfExport(list = c("checkSgene", "computeScoreNemT1", "simulateStatesRecursiveAdd", "simulateStatesRecursive", "reduceGraph", "getNemFit", "checkCNOlist", "checkNEMlist", "computeFc",  "computeSm", "sizeFac", "method", "removeCycles", "dnf2adj", "plotBinary", "getHierarchy", "absorption", "checkMethod", "approach", "parameters"), local = T)
   }
   

@@ -18,6 +18,7 @@ bString after "inverse" absorption law
 applies "inverse" absorption law to a disjuncitve normal form
 }
 \examples{
+library(bnem)
 graph <- c("A+B=C", "A=C")
 absorptionII(graph)
 }

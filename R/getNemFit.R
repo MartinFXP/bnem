@@ -1,4 +1,8 @@
 #' @noRd
+#' @import
+#' matrixStats
+#' flexclust
+#' stats
 getNemFit <-
 function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
                        timePoint = c("t1", "t2"),
@@ -40,7 +44,6 @@ function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
   MSEIabs <- NULL
   MSEAfc <- NULL
   MSEIfc <- NULL
-  require(matrixStats)
   CNOlist <- checkCNOlist(CNOlist)
   NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist, parameters = parameters, approach = approach, method = method)
   if ("abs" %in% approach) {
@@ -100,7 +103,6 @@ function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
       if (any(c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski") %in% method)) {
         power <- as.numeric(method)
         power <- power[-which(is.na(power)==T)]
-        require(flexclust)
         if (length(power) == 0) {
           power <- 2
         }
@@ -117,7 +119,6 @@ function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
             S.mat[i, grep(rownames(S.mat)[i], colnames(S.mat))] <- S.mat[i, grep(rownames(S.mat)[i], colnames(S.mat))]*weighted
           }
         }
-        require(matrixStats)
         ## if (all(S.mat==0)) {
         ##   noise <- rnorm(ncol(S.mat), 0, 0.00001) # that is a really stupid idea
         ##   S.mat <- t(t(S.mat) + noise)
@@ -275,7 +276,6 @@ function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
     }
   }
   if (parameters$cutOffs[3] == -1) {
-    require(stats)
     ## do median polish over gene clusters
     data.med <- NEMlist$fc[1:ncol(CNOlist@signals[[2]]), ]*0
     Epos <- which(R == MSEE, arr.ind = T)

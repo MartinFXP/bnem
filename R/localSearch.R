@@ -1,7 +1,9 @@
 #' @noRd
+#' @import
+#' matrixStats
+#' snowfall
 localSearch <-
 function(CNOlist, NEMlist, model, approach = "fc", initSeed = NULL, seeds = 1, parameters = list(cutOffs = c(0,1,0), scoring = c(0.25,0.5,2)), sizeFac = 10^-10, NAFac = 1, relTol = 0.01, verbose = TRUE, parallel=NULL, parallel2 = 1, relFit = FALSE, method = "s", max.steps = Inf, max.time = Inf, node = NULL, absorpII = TRUE, draw = TRUE, prior = NULL) {
-  require(matrixStats)
   if (is.null(prior)) {
     prior <- rep(0, length(model$reacID))
   }
@@ -78,7 +80,6 @@ function(CNOlist, NEMlist, model, approach = "fc", initSeed = NULL, seeds = 1, p
   bitStringsMem <- numeric()
   bitStringsScores <- numeric()
   if (!is.null(parallel)) {
-    require(snowfall)
                                         #maxCores <- parallel::detectCores()
                                         #sfSetMaxCPUs(number=parallel)
     if (is.list(parallel)) {

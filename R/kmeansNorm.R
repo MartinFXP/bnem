@@ -1,4 +1,5 @@
 #' @noRd
+#' @import cluster
 kmeansNorm <-
 function(x, k = 2) {
   if (!is.matrix(x)) {
@@ -7,7 +8,6 @@ function(x, k = 2) {
       x <- t(x)
     }
   }
-  require(cluster)
   y <- x
   for (i in 1:nrow(x)) {
 

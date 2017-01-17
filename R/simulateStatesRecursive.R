@@ -6,7 +6,11 @@
 #' @author Martin Pirkl
 #' @return return the truth tables for certain perturbation experiments
 #' @export
+#' @import
+#' CellNOptR
+#' matrixStats
 #' @examples
+#' library(bnem)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
@@ -17,7 +21,6 @@
 #' states <- simulateStatesRecursive(CNOlist, model, rep(1, length(model$reacID)))
 simulateStatesRecursive <-
 function(CNOlist, model, bString, NEMlist = NULL) {
-  require(matrixStats)
   getState <- function(CNOlist, node, signalStates, graph, children = NULL, NEMlist = NULL) {
     graphCut <- graph[grep(paste("=", node, "$", sep = ""), graph)]
     if (length(graphCut) == 0) {

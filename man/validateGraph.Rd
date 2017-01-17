@@ -85,6 +85,7 @@ lattice object with matrix information
 plotting the observed response scheme of an effect reporter and the expected response scheme of the regulating signalling gene
 }
 \examples{
+library(bnem)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE, col.names = FALSE,
 quote = FALSE)

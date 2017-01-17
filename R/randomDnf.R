@@ -8,6 +8,7 @@
 #' @return random hyper-graph in normal form
 #' @export
 #' @examples
+#' library(bnem)
 #' g <- randomDnf(10)
 randomDnf <-
 function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.edges = NULL, dag = FALSE) {

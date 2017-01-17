@@ -5,6 +5,7 @@
 #' @return bString after absorption law
 #' @export
 #' @examples
+#' library(bnem)
 #' graph <- c("A+B=C", "A=C")
 #' absorption(graph)
 absorption <-

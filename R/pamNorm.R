@@ -1,7 +1,7 @@
 #' @noRd
+#' @import cluster
 pamNorm <-
 function(x, method = "euclidean") { # 2pam clustering and silhoutte normalization
-  require(cluster)
   if (is.matrix(x)) {
     for (i in 1:nrow(x)) {
       clust <- pam(x[i, ], 2)

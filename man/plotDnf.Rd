@@ -135,6 +135,7 @@ Rgraphviz object
 function for visualizing graphs in normal form
 }
 \examples{
+library(bnem)
 g <- c("!A+B=G", "C=G", "!D=G", "C+D+E=G")
 plotDnf(g)
 }

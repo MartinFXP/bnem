@@ -16,6 +16,7 @@ converted graph normal form
 converts a disjunctive normal form into a conjunctive normal form and vice versa
 }
 \examples{
+library(bnem)
 g <- "A+B=C"
 g2 <- converGraph(g)
 }

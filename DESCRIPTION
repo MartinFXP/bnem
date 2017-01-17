@@ -12,14 +12,22 @@ Depends:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-biocViews: Pathways, SystemsBiology, NetworkInference
+biocViews: Pathways, SystemsBiology, NetworkInference, Networks
 Imports:
     CellNOptR,
     nem,
     matrixStats,
     snowfall,
     latticeExtra,
-    knitr
+    knitr,
+    Rgraphviz,
+    cluster,
+    flexclust,
+    lattice,
+    latticeExtra,
+    stats,
+    Biobase,
+    flexclust
 VignetteBuilder: knitr
 Suggests:
     knitr

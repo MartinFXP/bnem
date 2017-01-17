@@ -34,7 +34,12 @@
 #' @author Martin Pirkl
 #' @return lattice object with matrix information
 #' @export
+#' @import
+#' CellNOptR
+#' stats
+#' annotate
 #' @examples
+#' library(bnem)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
@@ -164,7 +169,6 @@ function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString, Egenes =
   if (parameters$cutOffs[3] == -1) {
     method <- checkMethod(method)
     S.mat <- SCompMat
-    require(stats)
     ## do median polish over gene clusters
     data.med <- NEMlist$fc[1:ncol(CNOlist@signals[[2]]), ]*0
     Epos <- EtoS[order(rownames(EtoS)), 1:2]
@@ -256,11 +260,8 @@ function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString, Egenes =
   Egenes <- count
 
   if (affyIds == FALSE) {
-    require(annotate)
-    require(paste(affychip, ".db", sep = ""), character.only = T)
+    require(paste(affychip, ".db", sep = ""), character.only = T) # is this ok?
     temp <- as.vector(unlist(mget(unique(rownames(egenefit)[-1]), get(paste(affychip, "SYMBOL", sep = "")))))
-    ##require(hgu133plus2.db)
-    ##temp <- as.vector(unlist(mget(unique(rownames(egenefit)[-1]), hgu133plus2SYMBOL)))
     temp2 <- rownames(egenefit)[-1]
     if (sum(is.na(temp) == T) > 0) {
       temp[is.na(temp)] <- temp2[is.na(temp)]
@@ -658,11 +659,8 @@ function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString, Egenes =
         rownames(genesInfo) <- names.backup
       }
       if (affyIds == FALSE) {
-        require(annotate)
         require(paste(affychip, ".db", sep = ""), character.only = T)
         temp <- as.vector(unlist(mget(rownames(genesInfo), get(paste(affychip, "SYMBOL", sep = "")))))
-        ##require(hgu133plus2.db)
-        ##temp <- as.vector(unlist(mget(rownames(genesInfo), hgu133plus2SYMBOL)))
         if (sum(is.na(temp) == T) > 0) {
           temp[is.na(temp)] <- rownames(genesInfo)[is.na(temp)]
         }

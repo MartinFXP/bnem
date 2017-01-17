@@ -20,6 +20,7 @@ transitive closure in normal form
 calculates transitive closure of a hyper-graph
 }
 \examples{
+library(bnem)
 g <- c("A=B", "B=C")
 gclose <- transClose(g)
 }

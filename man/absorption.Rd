@@ -18,6 +18,7 @@ bString after absorption law
 applies absorption law to a disjuncitve normal form
 }
 \examples{
+library(bnem)
 graph <- c("A+B=C", "A=C")
 absorption(graph)
 }
