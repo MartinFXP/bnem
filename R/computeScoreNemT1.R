@@ -1,3 +1,4 @@
+#' @noRd
 computeScoreNemT1 <-
 function(CNOlist,
                               model,

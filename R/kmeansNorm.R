@@ -1,3 +1,4 @@
+#' @noRd
 kmeansNorm <-
 function(x, k = 2) {
   if (!is.matrix(x)) {

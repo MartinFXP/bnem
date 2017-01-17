@@ -1,3 +1,4 @@
+#' @noRd
 adj2dnf <-
 function(A) {
 

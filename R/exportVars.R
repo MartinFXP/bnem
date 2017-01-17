@@ -1,3 +1,4 @@
+#' @noRd
 exportVars <-
 function(type = "ga") { # type: ga, loc, ex
   if ("ga" %in% type) {

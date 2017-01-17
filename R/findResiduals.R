@@ -1,3 +1,40 @@
+#' calculates residuals (data and optimized network do not match) and visualizes them
+#' @param bString Binary vector denoting the network given a model
+#' @param CNOlist CNOlist object
+#' @param model Network model object.
+#' @param fc ORS of the data.
+#' @param exprs Optional activation scheme of the data.
+#' @param egenes Atachment of the E-genes (optional).
+#' @param NEMlist NEMlist object (optional).
+#' @param parameters not used
+#' @param method Scoring method (optional).
+#' @param sizeFac Zeta parameter to penelize netowkr size.
+#' @param main Main title of the figure.
+#' @param sub Subtitle of the figure.
+#' @param cut If TRUE does not visualize experiments/S-genes which do nto have any residuals.
+#' @param approach not used
+#' @param parallel et number of cores/threads.
+#' @param verbose verbose output
+#' @param ... additional parameters
+#' @author Martin Pirkl
+#' @return matrices indicating experiments and/or genes, where the network and the data disagree
+#' @export
+#' @examples
+#' library(bnem)
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' fc <- computeFc(CNOlist, exprs)
+#' initBstring <- rep(0, length(model$reacID))
+#' res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc, model = model, parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+#' rownames(fc) <- 1:nrow(fc)
+#' ## val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model, bString = res$bString, Egenes = 10, Sgene = 4)
+#' residuals <- findResiduals(res$bString, CNOlist, model, fc = fc)
 findResiduals <-
     function(bString, CNOlist, model, fc=NULL, exprs=NULL, egenes=NULL, NEMlist=NULL, parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), method = "s", sizeFac = 10^-10, main = "residuals for decoupled vertices", sub = "green residuals are added effects (left positive, right negative) and red residuals are deleted effects", cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
         if (is.null(NEMlist)) {

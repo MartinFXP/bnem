@@ -1,3 +1,4 @@
+#' @noRd
 dnf2adj <-
 function(dnf, closed = FALSE) {
   if (length(dnf) == 0) {

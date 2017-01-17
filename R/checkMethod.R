@@ -1,3 +1,4 @@
+#' @noRd
 checkMethod <-
 function(method) {
   methods2 <- method

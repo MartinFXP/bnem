@@ -1,3 +1,4 @@
+#' @noRd
 getHierarchy <-
 function(graph) {
   adj <- dnf2adj(graph)

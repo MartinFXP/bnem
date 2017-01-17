@@ -1,3 +1,4 @@
+#' @noRd
 deleteSignal <-
 function(s, CNOlist) {
   CNOlist2 <- CNOlist

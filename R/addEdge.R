@@ -1,3 +1,4 @@
+#' @noRd
 addEdge <-
 function(edges, CNOlist, model, n = 100, full = FALSE) {
   sifMatrix <- numeric()

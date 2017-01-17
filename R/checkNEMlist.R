@@ -1,3 +1,4 @@
+#' @noRd
 checkNEMlist <-
 function(NEMlist, CNOlist, parameters, approach, method) {
   NEMlistTmp <- NEMlist

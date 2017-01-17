@@ -1,3 +1,4 @@
+#' @noRd
 drawScores <-
 function(CNOresult) {
   gens <- CNOresult$results[, 1]

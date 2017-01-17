@@ -1,3 +1,4 @@
+#' @noRd
 makeDesignFull <-
 function(x, stimuli, inhibitors, batches = NULL, runs = NULL, method = "raw") {
   design0 <- makeDesign(x, stimuli, inhibitors, c(batches, runs))

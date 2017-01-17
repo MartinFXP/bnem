@@ -1,3 +1,20 @@
+#' simulates the activation pattern (truth table) of a hyper-graph and annotated perturbation experiments
+#' @param CNOlist, CNOlist object
+#' @param model model object
+#' @param bString binary vector denoting the sub-graph given model
+#' @param NEMlist NEMlist object only for devel
+#' @author Martin Pirkl
+#' @return return the truth tables for certain perturbation experiments
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' states <- simulateStatesRecursive(CNOlist, model, rep(1, length(model$reacID)))
 simulateStatesRecursive <-
 function(CNOlist, model, bString, NEMlist = NULL) {
   require(matrixStats)

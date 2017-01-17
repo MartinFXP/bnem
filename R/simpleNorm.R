@@ -1,3 +1,4 @@
+#' @noRd
 simpleNorm <-
 function(x) {
   if (is.matrix(x) == FALSE) {

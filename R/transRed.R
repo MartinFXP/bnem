@@ -1,3 +1,13 @@
+#' calculates transitive reduciton of a hyper-graph in normal form
+#' @param g hyper-graph in normal form
+#' @param max.iter maximal number of iterations till convergence
+#' @param verbose verbose output?
+#' @author Martin Pirkl
+#' @return transitive reduction of the hyper-graph in normal form
+#' @export
+#' @examples
+#' g <- c("A=B", "A=C", "B=C", "B=D", "!A=D")
+#' gred <- transRed(g)
 transRed <-
 function(g, max.iter = NULL, verbose = FALSE) { # general transitive reduction:
   v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")), "\\+"))))

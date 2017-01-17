@@ -1,3 +1,19 @@
+#' creates a general CNOlist object from meta information
+#' @param stimuli character vector of stimulated genes
+#' @param character vector of inhibited genes
+#' @param maxStim maximal number of stimulated genes for a single experiment
+#' @param maxInhibit maximal number of inhibited genes for a single experiment
+#' @param signals character vector of genes which can directly regulate effect reporters
+#' @author Martin Pirkl
+#' @return general CNOlist object
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signals = c("A", "B","C","D"))
 dummyCNOlist <-
 function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhibit = 0, signals = NULL) {
   if (is.null(signals)) {

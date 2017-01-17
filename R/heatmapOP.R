@@ -1,3 +1,39 @@
+#' heatmap function based on the lattice package with several options
+#' @param x Matrix.
+#' @param col Color. See brewer.pal.info for all available color schemes.
+#' @param coln Number of colors.
+#' @param bordercol Border color.
+#' @param borderwidth Border width.
+#' @param breaks Defines the breaks in the color range. "sym" makes the breaks symmetric around 0.
+#' @param main Main title.
+#' @param sub Subtitle.
+#' @param dendrogram Draw dendrogram with "both", "col" or "row", or do not draw with "none".
+#' @param colorkey Draw colorkey list(space="left") or list(space="right").
+#' @param Colv Cluster columns (TRUE) or not (FALSE).
+#' @param Rowv Cluster rows (TRUE) or not (FALSE).
+#' @param xrot Rotate the column names by degree.
+#' @param yrot Rotate the row names by degree.
+#' @param shrink c(x,y) defines a range of size for the data boxes from low to high.
+#' @param cexCol Font size of column names.
+#' @param cexRow Font size of row names.
+#' @param cexMain Font size of main title.
+#' @param cexSub Font size of subtitle.
+#' @param colSideColors Defines a numeric vector to annotate columns with different colors.
+#' @param aspect "iso" for quadratic boxes or "fill" for streched boxes.
+#' @param contour TRUE adds a contour plot.
+#' @param useRaster not used
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param colSideColorsPos Place colSideColors at the "top" or "bottom".
+#' @param clust not used
+#' @param clusterx Optional data matrix y with the same dimensions as x. x is columns or rows are sorted by the cluster information of y.
+#' @param \dots Optional arguments.
+#' @author Martin Pirkl & Oscar Perpiñán @ http://oscarperpinan.github.io/rastervis/
+#' @return lattice object/matrix
+#' @export
+#' @examples
+#' x <- matrix(rnorm(50), 10, 5)
+#' heatmapOP(x, dendrogram = "both", aspect = "iso", xrot = 45)
 heatmapOP <-
 function(x, col = "RdYlGn", coln = 11, bordercol = "grey", borderwidth = 0.1, breaks = "sym", main = "heatmap by Oscar Perpiñán", sub = "http://oscarperpinan.github.io/rastervis/; http://stackoverflow.com/questions/15505607/diagonal-labels-orientation-on-x-axis-in-heatmaps", dendrogram = "none", colorkey = list(space = "right"), Colv = TRUE, Rowv = TRUE, xrot = 90, yrot = 0, shrink = c(1,1), cexCol = 1, cexRow = 1, cexMain = 1, cexSub = 1, colSideColors = NULL, aspect = "fill", contour = FALSE, useRaster = FALSE, xlab = NULL, ylab = NULL, colSideColorsPos = "top", clust = NULL, clusterx = NULL, ...) { ## if clust == "p","s","k" uses correlation to cluster with clust as method
   ## for info on the commands checkout ?levelplot and ?xyplot in library(lattice)

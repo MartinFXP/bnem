@@ -1,3 +1,11 @@
+#' converts a disjunctive normal form into a conjunctive normal form and vice versa
+#' @param g graph in normal form
+#' @author Martin Pirkl
+#' @return converted graph normal form
+#' @export
+#' @examples
+#' g <- "A+B=C"
+#' g2 <- converGraph(g)
 convertGraph <-
   function(g) { ## input graph as disjunctive normal form like that: c("A+B=D", "C=D", "G+F=U", ...); output is the dual element also in disjunctive normal form;
   g <- sort(g)

@@ -1,3 +1,14 @@
+#' creates a random normal form or hyper-graph
+#' @param maximal number of vertices
+#' @param negation allowed?
+#' @param max.edge.size maximal number of inputs per edge
+#' @param max.edges maximal number of hyper-edges
+#' @param dag is the graph to ba a dag?
+#' @author Martin Pirkl
+#' @return random hyper-graph in normal form
+#' @export
+#' @examples
+#' g <- randomDnf(10)
 randomDnf <-
 function(vertices = 10, negation = TRUE, max.edge.size = NULL, max.edges = NULL, dag = FALSE) {
   dnf <- NULL

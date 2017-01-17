@@ -1,3 +1,4 @@
+#' @noRd
 addSignal <-
 function(s, CNOlist, stim = NULL, inhibit = NULL) {
   CNOlist2 <- CNOlist

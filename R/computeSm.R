@@ -1,3 +1,4 @@
+#' @noRd
 computeSm <-
 function (CNOlist,
                        NEMlist,

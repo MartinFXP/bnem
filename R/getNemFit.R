@@ -1,3 +1,4 @@
+#' @noRd
 getNemFit <-
 function (simResults, CNOlist, model, indexList, # VERSION of CNO: 1.4
                        timePoint = c("t1", "t2"),

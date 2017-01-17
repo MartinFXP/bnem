@@ -1,3 +1,19 @@
+#' computes response scheme given an activation pattern (absolute gene expression, truth table)
+#' @param CNOlist a CNOlist object with correct annotation
+#' @param y activation pattern according to the annotation in CNOlist
+#' @author Martin Pirkl
+#' @return response scheme
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signals = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' fc <- computeFc(CNOlist, exprs)
 computeFc <-
 function (CNOlist, y, test = 1) {
   CompMat <- numeric()

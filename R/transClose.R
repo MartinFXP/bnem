@@ -1,3 +1,13 @@
+#' calculates transitive closure of a hyper-graph
+#' @param g hyper-graph in normal form
+#' @param max.iter maximal iteration till convergence
+#' @param verbose verbose output?
+#' @author Martin Pirkl
+#' @return transitive closure in normal form
+#' @export
+#' @examples
+#' g <- c("A=B", "B=C")
+#' gclose <- transClose(g)
 transClose <-
 function(g, max.iter = NULL, verbose = FALSE) { # does soemthign strange!!!
   v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")), "\\+"))))

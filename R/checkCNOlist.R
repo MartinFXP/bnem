@@ -1,3 +1,4 @@
+#' @noRd
 checkCNOlist <-
 function(CNOlist) {
   if (dim(CNOlist@stimuli)[2] > 1) {

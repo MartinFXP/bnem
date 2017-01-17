@@ -1,3 +1,4 @@
+#' @noRd
 adj2graph <-
 function(adj.matrix) {
   V   <- rownames(adj.matrix)

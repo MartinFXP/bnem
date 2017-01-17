@@ -1,3 +1,4 @@
+#' @noRd
 expandNEM <-
 function(model, ignoreList=NA,maxInputsPerGate=2){
 

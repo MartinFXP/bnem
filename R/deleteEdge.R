@@ -1,3 +1,4 @@
+#' @noRd
 deleteEdge <-
 function(edges, CNOlist, model, n = 100) {
   sifMatrix <- numeric()

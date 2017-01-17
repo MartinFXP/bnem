@@ -1,3 +1,4 @@
+#' @noRd
 simulateStatesRecursiveAdd <-
 function(CNOlist, model, bString, NEMlist = NULL) { 
   require(matrixStats)

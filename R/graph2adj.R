@@ -1,3 +1,4 @@
+#' @noRd
 graph2adj <-
 function(gR) {
     adj.matrix <- matrix(0,

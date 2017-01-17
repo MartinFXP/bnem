@@ -1,3 +1,4 @@
+#' @noRd
 removeCycles <-
 function(bString, model, dnf = NULL) {
   if (is.null(dnf)) {

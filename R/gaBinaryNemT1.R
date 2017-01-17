@@ -1,3 +1,4 @@
+#' @noRd
 gaBinaryNemT1 <-
 function (CNOlist,
                            model,

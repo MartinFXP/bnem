@@ -1,3 +1,4 @@
+#' @noRd
 simulateDnf <-
 function(dnf, stimuli = NULL, inhibitors = NULL) {
   require(matrixStats)

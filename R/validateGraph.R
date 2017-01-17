@@ -1,3 +1,53 @@
+#' plotting the observed response scheme of an effect reporter and the expected response scheme of the regulating signalling gene
+ #' @param CNOlist CNOlist object.
+#' @param fc matrix of foldchanges (observed response scheme, ORS).
+#' @param exprs optional matrix of normalized expression (observed activation scheme).
+#' @param approach not used
+#' @param model Model object.
+#' @param bString Binary string denoting the hyper-graph.
+#' @param Egenes Maximal number of visualized E-genes.
+#' @param Sgene Integer denoting the S-gene. See colnames(CNOlist@signals[[1]]) to match integer with S-gene name.
+#' @param parameters not used
+#' @param plot Plot the heatmap. If FALSE, only corresponding information is outputed.
+#' @param disc Discretize the data.
+#' @param affyIds Experimental. Turn Affymetrix Ids into HGNC gene symbols.
+#' @param sim not used
+#' @param relFit not used
+#' @param complete not used
+#' @param xrot See ?heatmapOP.
+#' @param Rowv See ?heatmapOP.
+#' @param Colv See ?heatmapOP.
+#' @param dendrogram See ?heatmapOP.
+#' @param soft not used
+#' @param colSideColors See ?heatmapOP.
+#' @param affychip Define Affymetrix chip used to generate the data (optional).
+#' @param method Scoring method can be a correlation or distance measure. See ?cor and ?dist for details.
+#' @param ranks Turn data into ranks.
+#' @param breaks See ?heatmapOP.
+#' @param col See ?heatmapOP.
+#' @param csc not used (devel)
+#' @param sizeFac Size factor penelizing the hyper-graph size.
+#' @param verbose Verbose output.
+#' @param order Order by "rank" or "name".
+#' @param colnames not used (devel)
+#' @param ... additional arguments
+#' @author Martin Pirkl
+#' @return lattice object with matrix information
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' fc <- computeFc(CNOlist, exprs)
+#' initBstring <- rep(0, length(model$reacID))
+#' res <- bnem(search = "greedy", CNOlist = CNOlist, NEMlist = NEMlist, model = model, parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE, maxSteps = Inf)
+#' rownames(fc) <- 1:nrow(fc)
+#' val <- validateGraph(CNOlist = CNOlist, NEMlist = NEMlist, model = model, bString = res$bString, Egenes = 10, Sgene = 4)
 validateGraph <-
 function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString, Egenes = 25, Sgene = 1,
                           parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)), plot = TRUE,

@@ -1,3 +1,19 @@
+#' reduces the size of a graph if ossible to an equivalent sub-graph
+#' @param bString binary vector indicating the sub-graph given a model
+#' @param model model object for the whole graph space
+#' @param CNOlist CNOlist object
+#' @author Martin Pirkl
+#' @return equivalent sub-graph denoted by bString
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2, signal = c("A", "B","C","D"))
+#' bString <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 reduceGraph <-
 function(bString, model, CNOlist) {
   if (any(bString != 0)) {
@@ -21,3 +37,5 @@ function(bString, model, CNOlist) {
   bString <- absorption(bString, model)
   return(bString)
 }
+
+

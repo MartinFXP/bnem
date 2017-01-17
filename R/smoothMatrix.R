@@ -1,3 +1,4 @@
+#' @noRd
 smoothMatrix <-
 function(M, n=1, direction = 0, torus = FALSE) { # direction = 1 smoothing rows only, 2 cols, 3 diagonal from left-top to right-bottom, 4 diagonal from left-bottom to right-top; can be combined
   Msmooth <- M

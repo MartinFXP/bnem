@@ -1,3 +1,4 @@
+#' @noRd
 isDag <-
 function(graph = NULL, bString = 0, model = NULL) {
   if (any(bString != 0)) {

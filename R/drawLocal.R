@@ -1,3 +1,4 @@
+#' @noRd
 drawLocal <-
 function(l, type = "l", ...) {
   local.edges <- c(1, l$edges[[1]])

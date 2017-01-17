@@ -1,3 +1,4 @@
+#' @noRd
 myGsea <-
 function(testList, goList, parallel = NULL, adjust.method = "FDR", conservative = TRUE) {
   if (!is.null(parallel)) {

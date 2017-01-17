@@ -1,3 +1,4 @@
+#' @noRd
 disc <-
 function(x, beta = 0.5) { # simple discretization
   x.disc <- x

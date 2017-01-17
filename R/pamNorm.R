@@ -1,3 +1,4 @@
+#' @noRd
 pamNorm <-
 function(x, method = "euclidean") { # 2pam clustering and silhoutte normalization
   require(cluster)

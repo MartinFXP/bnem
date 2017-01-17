@@ -1,3 +1,4 @@
+#' @noRd
 expNorm <-
 function(x,  stimuli = NULL, inhibitors = NULL, batches, runs, cutoff) {
   design <- makeDesign(x, stimuli, inhibitors, c(batches, runs))

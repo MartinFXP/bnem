@@ -47,6 +47,11 @@
 #' @author Martin Pirkl
 #' @seealso nem
 #' @export
+#' @import
+#' CellNOptR
+#' nem
+#' snowfall
+#' latticeExtra
 #' @return List object including the optimized hyper-graph and its corresponding binary string.
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))

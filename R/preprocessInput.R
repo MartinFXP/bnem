@@ -1,3 +1,4 @@
+#' @noRd
 preprocessInput <- function(stimuli=NULL, inhibitors=NULL, signals=NULL, design = NULL, exprs=NULL, fc=NULL, pkn, maxInputsPerGate=100) {
 
     if (is.null(design)) {

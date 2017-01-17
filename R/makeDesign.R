@@ -1,3 +1,4 @@
+#' @noRd
 makeDesign <-
 function(x, stimuli, inhibitors, batches = NULL, runs = NULL) {
   design <- numeric()

@@ -1,3 +1,4 @@
+#' @noRd
 computeFcII <-
 function (y, stimuli = NULL, inhibitors = NULL, batches, runs, extra = 0) {
   design <- makeDesign(y, stimuli, inhibitors, c(batches, runs))

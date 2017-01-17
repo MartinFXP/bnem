@@ -1,3 +1,64 @@
+#' function for visualizing graphs in normal form
+#' @param dnf Hyper-graph in disjunctive normal form.
+#' @param freq Frequency of hyper-edges.
+#' @param stimuli Vertices which can be stimulated.
+#' @param signals Vertices which regulate E-genes.
+#' @param inhibitors Vertices which can be inhibited.
+#' @param connected If TRUE, only includes vertices which are connected to other vertices.
+#' @param CNOlist CNOlist object. Optional instead of stimuli, inhibitors or signals.
+#' @param cex Global font size.
+#' @param fontsize Vertice label size.
+#' @param labelsize Edge label size.
+#' @param type Different plot types.
+#' @param lwd Line width.
+#' @param edgelwd Edgeline width.
+#' @param legend 0 shows no legend. 1 shows legend as a graph. 2 shows legend in a box.
+#' @param x x coordinate of box legend.
+#' @param y y coordinate of box legend.
+#' @param xjust Justification of legend box left, right or center (-1,1,0).
+#' @param yjust Justification of legend box top, bottom or middle (-1,1,0).
+#' @param width Vertice width.
+#' @param height Vertice height.
+#' @param rankdir not used
+#' @param rank not used
+#' @param layout Graph layout. See graphvizCapabilities()$layoutTypes.
+#' @param main Main title.
+#' @param sub Subtitle.
+#' @param cex.main Main title font size.
+#' @param cex.sub Subtitle font size.
+#' @param col.sub Font color of subtitle.
+#' @param fontcolor Global font color.
+#' @param nodestates Binary state of each vertice.
+#' @param simulate Simulate stimulation and inhibition of a list of vertices. E.g. simulate = list(stimuli = c("A", "B"), inhibitors = c("C", "D")).
+#' @param andcolor not used
+#' @param edgecol Vector with colors for every edge of the graph (not hyper-graph). E.g. an AND gate consists of three distinct edges.
+#' @param labels Vector with labels for the edges.
+#' @param labelcol Vector with label colors for the edges.
+#' @param nodelabel List of vertices with labels as input. E.g. labels = list(A="test", B="label for B").
+#' @param nodecol List of vertices with colors as input.
+#' @param bordercol List of vertices with colors as input.
+#' @param nodeshape List of vertices with shapes (diamond, box, square,...).
+#' @param verbose Verbose output.
+#' @param edgestyle not used
+#' @param nodeheight List of vertices with height as input.
+#' @param nodewidth List of vertices with width as input.
+#' @param edgewidth Vector with edge widths.
+#' @param lty Vector with edge styles (line, dotted,...).
+#' @param hierarchy List with the hierarchy of the vertices. E.g. list(top = c("A", "B"), bottom = c("C", "D")).
+#' @param showall See "connected" above.
+#' @param nodefontsize not used
+#' @param edgehead Vector with edge heads.
+#' @param edgelabel Vector with edge labels.
+#' @param edgetail Vector with edge tails.
+#' @param bool If TRUE, only shows normal graph and no AND gates.
+#' @param draw Do not plot the graph and only output the graphNEL object.
+#' @param \dots additional arguments
+#' @author Martin Pirkl
+#' @return Rgraphviz object
+#' @export
+#' @examples
+#' g <- c("!A+B=G", "C=G", "!D=G", "C+D+E=G")
+#' plotDnf(g)
 plotDnf <-
 function(dnf = NULL, freq = NULL, stimuli = c(), signals = c(), inhibitors = c(), connected = TRUE,  CNOlist = NULL, cex = NULL, fontsize = NULL, labelsize = NULL, type = 2, lwd = 2, edgelwd = 2, legend = 0, x = 0, y = 0, xjust = 0, yjust = 0, width = 1.5, height = 1, rankdir = "TB", rank = "same", layout = "dot", main = "", sub = "", cex.main = 1.5, cex.sub = 1, col.sub = "grey", fontcolor = NULL, nodestates = NULL, simulate = NULL, andcolor = "transparent", edgecol = NULL, labels = NULL, labelcol = "blue", nodelabel = NULL, nodecol = NULL, bordercol = NULL, nodeshape = NULL, verbose = FALSE, edgestyle = NULL, nodeheight = NULL, nodewidth = NULL, edgewidth = NULL, lty = NULL, hierarchy = NULL, showall = FALSE, nodefontsize = NULL, edgehead = NULL, edgelabel = NULL, edgetail = NULL, bool = TRUE, draw = TRUE, ...) {
   ## see graphvizCapabilities()$layoutTypes for supported layouts
