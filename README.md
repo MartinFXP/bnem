@@ -1,6 +1,6 @@
 # B-NEM
 
-Boolean Nested effects Models (B-NEM) are used to infer signalling
+Boolean Nested Effects Models (B-NEM) are used to infer signalling
 pathways. In different experiments (conditions) members of a pathway
 (S-genes) are stimulated or inhibited, alone and in combination. In
 each experiment transcriptional targets (E-genes) of the pathway react
