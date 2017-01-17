@@ -34,6 +34,7 @@
 #' @import
 #' lattice
 #' latticeExtra
+#' RColorBrewer
 #' @examples
 #' library(bnem)
 #' x <- matrix(rnorm(50), 10, 5)

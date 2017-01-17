@@ -23,17 +23,20 @@ install.packages("devtools", repos = "https://cloud.r-project.org")
 
 library(devtools)
 
-source("https://bioconductor.org/biocLite.R")
-
-biocLite("CellNOptR")
-
-library("CellNOptR")
-
-install_github("MartinFXP/B-NEM", quiet = T)
+library(CellNOptR)
 
 library(bnem)
 
+## load some pre-calculated results to speed up vignette building:
 data(bnem_data)
+
+greedy <- bnem_data$greedy
+genetic <- bnem_data$genetic
+greedy2 <- bnem_data$greedy2
+greedy2b <- bnem_data$greedy2b
+
+bcr_greedy <- bnem_data$bcr_greedy
+bcr_genetic <- bnem_data$bcr_genetic
 ```
 
 ## Toy example for DAG

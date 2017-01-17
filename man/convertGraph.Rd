@@ -18,7 +18,7 @@ converts a disjunctive normal form into a conjunctive normal form and vice versa
 \examples{
 library(bnem)
 g <- "A+B=C"
-g2 <- converGraph(g)
+g2 <- convertGraph(g)
 }
 \author{
 Martin Pirkl

@@ -26,6 +26,7 @@ creates a general CNOlist object from meta information
 }
 \examples{
 library(bnem)
+library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"), c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE, col.names = FALSE,
 quote = FALSE)

@@ -56,7 +56,8 @@
 #' @author Martin Pirkl
 #' @return Rgraphviz object
 #' @export
-#' @import Rgraphviz
+#' @import
+#' Rgraphviz
 #' @examples
 #' library(bnem)
 #' g <- c("!A+B=G", "C=G", "!D=G", "C+D+E=G")

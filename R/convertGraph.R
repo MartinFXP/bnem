@@ -6,7 +6,7 @@
 #' @examples
 #' library(bnem)
 #' g <- "A+B=C"
-#' g2 <- converGraph(g)
+#' g2 <- convertGraph(g)
 convertGraph <-
   function(g) { ## input graph as disjunctive normal form like that: c("A+B=D", "C=D", "G+F=U", ...); output is the dual element also in disjunctive normal form;
   g <- sort(g)
