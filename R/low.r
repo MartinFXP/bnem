@@ -2878,7 +2878,6 @@ getNemFit <-
         }
     }
 #' @noRd
-#' @importFrom graph adj nodes
 graph2adj <-
     function(gR) {
         adj.matrix <- matrix(0,

@@ -1,3 +1,110 @@
+#' Sample random network and simulate data
+#'
+#' Draw a random prior network, samples a ground truth from the full boolean extension and generates data
+#' @param n number of S-genes
+#' @param e number of maximum edges
+#' @param s number of stimulated S-genes
+#' @param dag if TRUE graph will be acyclic
+#' @param maxStim maximum stimulated S-genes in the data samples
+#' @param maxInhibit maximum inhibited number of S-genes in the data samples
+#' @param m E-genes per S-gene
+#' @param mflip number of inhibited E-genes
+#' @param r numbero f replicates
+#' @param sd standard deviation for the gaussian noise
+#' @param keepsif if TRUE does not delete sif file, which encodes the network
+#' @param maxcount while loopes ensure a reasonable network, maxcount makes sure while loops do not run in infinity
+#' @param negation if TRUE negative edges are allowed
+#' @param allstim full network in which all S-genes are possibly stimulated
+#' @author Martin Pirkl
+#' @return list with the corresponding prior graph, ground truth network and data
+#' @export
+#' @examples
+#'sim <- simBoolGtn()
+simBoolGtn <-
+    function(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2, maxInhibit = 1, m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE) {
+        if (allstim) {
+            dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag, negation = negation)
+            cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
+            inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
+            outputs <- unique(gsub(".*=", "", dnf))
+            stimuli <- cues
+            inhibitors <- cues
+            both <- stimuli[which(stimuli %in% inhibitors)]
+            for (i in both) {
+                dnf <- gsub(i, paste(i, "inhibit", sep = ""), dnf)
+                dnf <- c(dnf, paste(i, "stim=", i, "inhibit", sep = ""))
+                stimuli <- gsub(i, paste(i, "stim", sep = ""), stimuli)
+                inhibitors  <- gsub(i, paste(i, "inhibit", sep = ""), inhibitors)
+            }
+        } else {
+            stimuli <- "dummy"
+            count <- 0
+            while(length(stimuli) != s & count < maxcount) {
+                count <- count + 1
+                dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag, negation = negation)
+                cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
+                inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
+                outputs <- unique(gsub(".*=", "", dnf))
+                stimuli <- inputs[which(!(inputs %in% outputs))]   
+            }
+            inhibitors <- unique(c(inputs, outputs))
+            inhibitors <- inhibitors[-which(inhibitors %in% stimuli)]
+        }
+        sifMatrix <- NULL
+        for (i in dnf) {
+            inputs2 <- unique(unlist(strsplit(gsub("=.*", "", i), "=")))
+            output <- unique(gsub(".*=", "", i))
+            for (j in inputs2) {
+                j2 <- gsub("!", "", j)
+                if (j %in% j2) {
+                    sifMatrix <- rbind(sifMatrix, c(j, 1, output))
+                } else {
+                    sifMatrix <- rbind(sifMatrix, c(j2, -1, output))
+                }
+            }
+        }
+        write.table(sifMatrix, file = "temp.sif", sep = "\t",
+                    row.names = FALSE, col.names = FALSE, quote = FALSE)
+        PKN <- readSIF("temp.sif")
+        if (!keepsif) {
+            unlink("temp.sif")
+        }
+        CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
+                                maxStim = maxStim, maxInhibit = maxInhibit, signals = NULL)
+        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
+        bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
+        steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
+        ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+        steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
+        count <- 0
+        while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
+            if (count >= maxcount) { break() }
+            count <- count + 1
+            bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
+            steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
+            ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+            steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
+        }
+        exprs <- t(steadyState)[rep(1:ncol(steadyState), m), rep(1:nrow(steadyState), r)]
+        ERS <- computeFc(CNOlist, t(steadyState))
+        stimcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
+        stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
+        ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""),
+                            paste(stimuli, "_vs_", stimuli, "_",
+                                  rep(inhibitors, each = length(stimuli)), sep = ""),
+                            paste(stimuli.pairs, "_vs_", stimuli.pairs, "_",
+                                  rep(inhibitors, each = length(stimuli.pairs)), sep = "")),
+                          collapse = "|"), colnames(ERS))
+        ERS <- ERS[, ind]
+        fc <- ERS[rep(1:nrow(ERS), m), rep(1:ncol(ERS), r)]
+        fc <- fc + rnorm(length(fc), 0, sd)
+        flip <- sample(1:nrow(fc), floor(mflip*row(fc)))
+        fc[flip, ] <- fc[flip, ]*(-1)
+        rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
+        sim <- list(PKN = PKN, CNOlist = CNOlist, model = model, bString = bString, fc = fc, exprs = exprs, ERS = ERS)
+        class(sim) <- "bnemsim"
+        return(sim)
+    }
 #' applies "inverse" absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
 #' @param model model for respective binary vector
@@ -954,7 +1061,7 @@ epiNEM2Bg <- function(t) {
 #' maxSteps = Inf)
 #' rownames(fc) <- seq_len(nrow(fc))
 #' ## val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
-#' bString = res$bString, Egenes = 10, Sgene = 4)
+#' ## bString = res$bString, Egenes = 10, Sgene = 4)
 #' residuals <- findResiduals(res$bString, CNOlist, model, fc = fc)
 findResiduals <-
     function(bString, CNOlist, model, fc=NULL, exprs=NULL, egenes=NULL,

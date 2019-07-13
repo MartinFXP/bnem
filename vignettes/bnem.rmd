@@ -21,7 +21,14 @@ with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
 The B-NEM package is based on and uses many low level function of the CellNOptR package of Terfve et al., 2012.
 
 ## Installign and loading B-NEM
-
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, out.width="125%", fig.align="center",
+                      strip.white=TRUE, warning=FALSE, tidy=TRUE,
+                      #out.extra='style="display:block; margin:auto;"',
+                      fig.height = 4, fig.width = 8, error=FALSE)
+fig.cap0 <- "caption"
+```
+Install the package with the devtools library.
 ```{r, eval=FALSE}
 install.packages("devtools")
 
@@ -39,15 +46,17 @@ library(epiNEM)
 library(matrixStats)
 
 ## load some pre-calculated results to speed up vignette building:
-data(bnem_data)
+data(bnemdata)
+#load("~/Dokumente/B-NEM/data/bnem_data.rda")
 
-greedy <- bnem_data$greedy
-genetic <- bnem_data$genetic
-greedy2 <- bnem_data$greedy2
-greedy2b <- bnem_data$greedy2b
-
-bcr_greedy <- bnem_data$bcr_greedy
-bcr_genetic <- bnem_data$bcr_genetic
+greedy <- bnemdata$greedy
+genetic <- bnemdata$genetic
+greedy2 <- bnemdata$greedy2
+greedy3 <- bnemdata$greedy3
+greedy2b <- bnemdata$greedy2b
+exhaustive <- bnemdata$exhaustive
+bcr_greedy <- bnemdata$bcr_greedy
+bcr_genetic <- bnemdata$bcr_genetic
 
 ```
 
@@ -58,174 +67,47 @@ acyclic (hyper-)graph (DAG). B-NEM demands several objects as
 input. The two main objects are the differential gene expression
 (data) and prior knowledge respectively the search space.
 
-First we create a prior knowledge network (PKN). The PKN will have two
-S-genes without parents. We define these as stimuli, which means they
-are set to $1$ in experiments, where they are stimulated and $0$
-otherwise. All other down-stream S-genes have the potential to be
-inhibited $(0)$. If they are not inhibited their state is calculated
-according to their parents' state and a given Boolean function.
+The following function creates a directed acyclic graph (dag), which is then extended to a full Boolean network. From this network we sample a subset of edges to define our groudn truth. In the last step, the function generates data from the ground truth.
 
 ```{r}
-set.seed(2579)
-## alternative seed and also a great song:
+set.seed(1337)
+## alternative seed and also another great song:
 ## set.seed(9247)
 
-## to get the while loop started,
-## which makes sure we get a PKN with exactly two stimuli (or what the amount you want):
-stimuli <- "dummy"
-
-while(length(stimuli) != 2) {
-
-    ## random Boolean graph without cycles,
-    ## maximal 25 edges, maximal edge size of 1 (normal graph) and maximal 10 S-genes:
-    dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = TRUE)
-
-    ## all S-genes:
-    cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
-
-    ## parents:
-    inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
-
-    ## children:
-    outputs <- unique(gsub(".*=", "", dnf))
-
-    ## parents which are no children are stimuli:
-    stimuli <- inputs[which(!(inputs %in% outputs))]
-    
-}
-
-inhibitors <- unique(c(inputs, outputs))
-## S-genes which are no stimuli are inhibitors
-inhibitors <- inhibitors[-which(inhibitors %in% stimuli)]
+sim <- simBoolGtn(n = 5, e = 15, keepsif = TRUE)
+fc <- sim$fc
+exprs <- sim$exprs
+CNOlist <- sim$CNOlist
+model <- sim$model
+bString <- sim$bString
+ERS <- sim$ERS
+PKN <- sim$PKN
+children <- unique(gsub(".*=|!", "", PKN$reacID))
+stimuli <- unique(gsub("=.*|!", "", PKN$reacID))
+stimuli <- stimuli[which(!(stimuli %in% children))]
 ```
 
-The following figure shows the PKN. Red "tee" arrows depict repression the others activation of the child. The stimulated S-genes are diamond shaped.
+The following figure shows the PKN and the ground truth. Red "tee" arrows depict repression the others activation of the child. The stimulated S-genes are diamond shaped.
 
 ```{r, fig.width = 5, fig.height = 5}
-plotDnf(dnf, stimuli = stimuli)
+par(mfrow=c(1,2))
+plotDnf(PKN$reacID, stimuli = stimuli)
+plotDnf(model$reacID[as.logical(sim$bString)], stimuli = stimuli)
 ```
 
-In the next step we convert the dnf object into a PKN object and
-extend it to a Boolean hyper-graph, which represents an apriori restricted search space of Boolean networks.
-
-```{r}
-sifMatrix <- NULL
-
-for (i in dnf) {
-    inputs2 <- unique(unlist(strsplit(gsub("=.*", "", i), "=")))
-    output <- unique(gsub(".*=", "", i))
-    for (j in inputs2) {
-        j2 <- gsub("!", "", j)
-        if (j %in% j2) {
-            sifMatrix <- rbind(sifMatrix, c(j, 1, output))
-        } else {
-            sifMatrix <- rbind(sifMatrix, c(j2, -1, output))
-        }
-    }
-}
-write.table(sifMatrix, file = "temp.sif", sep = "\t",
-            row.names = FALSE, col.names = FALSE, quote = FALSE)
-PKN <- readSIF("temp.sif")
-## unlink("temp.sif")
-
-## create metainformation (which S-genes are perturbed in which experiments):
-CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
-                        maxStim = 2, maxInhibit = 1, signals = NULL)
-
-## extend the model:
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-```
-
-We suggest to take a look at the sif file. In future analyses it is easier to just provide a suitable sif file for the investigated pathway.
-
-In an real application the underlaying ground truth network (GTN) is
-not known. However in our toy example we define one.
-
-```{r}
-## define a bitstring denoting the present and absent edges:
-bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-
-## simulate S-gene states for all possible conditions:
-steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-
-## we find constitutively active S-genes with the following
-## (they are boring, so we avoid them):
-ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
-steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-
-## this while loop makes sure we get a gtn,
-## which actually affects all vertices
-## and no vertices are constitutively active:
-while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
-
-    bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-
-    steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-
-    ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
-    steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-
-}
-```
-
-The following figure shows our random GTN, which is a subset of the
-hyper-graph representing the apriori restricted search space.
-
-```{r, fig.width = 5, fig.height = 5}
-plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
-```
-
-We use this GTN to simulate data.
-
-```{r}
-## the expression data with 10 E-genes for each S-gene and 3 replicates:
-exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
-
-## we calculate the foldchanges (expected S-gene response scheme, ERS)
-## between certain condtions (e.g. control vs stimulation):
-ERS <- computeFc(CNOlist, t(steadyState))
-
-                                        # the next step reduces the ERS to a sensible set of comparisons;
-## e.g. we do not want to compare stimuli vs inhibition,
-## but stimuli vs (stimuli,inhibition):
-stimcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
-stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
-
-## this is the usual setup,
-## but "computeFc" calculates a lot more contrasts, which can also be used, if preferred:
-ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""),
-                    paste(stimuli, "_vs_", stimuli, "_",
-                          rep(inhibitors, each = length(stimuli)), sep = ""),
-                    paste(stimuli.pairs, "_vs_", stimuli.pairs, "_",
-                          rep(inhibitors, each = length(stimuli.pairs)), sep = "")),
-                  collapse = "|"), colnames(ERS))
-ERS <- ERS[, ind]
-
-## same as before with the expression values, we have 10 E-genes each and 3 replicates:
-fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
-
-## we add some Gaussian noise:
-fc <- fc + rnorm(length(fc), 0, 1)
-
-## in real applications some E-genes are negatively regulated,
-## hence we flip some foldchanges:
-flip <- sample(1:nrow(fc), floor(0.33*row(fc)))
-fc[flip, ] <- fc[flip, ]*(-1)
-
-## don't forget to set rownames (usually gene symbols, ensemble ids, entrez ids, ...)
-rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
-print(fc[1:6, c(1:3,(ncol(fc)-2):ncol(fc))])
-```
+We suggest to take a look at the sif file in the workign directory. In future analyses it is easier to just provide a suitable sif file for the investigated pathway. In an real application the underlaying ground truth network (GTN) is not known.
 
 B-NEM uses differential expression between experiments to infer the
-pathway logics. For example look at the colnames of fc (=foldchanges
+pathway logics. For example look at the colnames of sim$fc (=foldchanges
 of E-genes (rows)) and remember that `r stimuli` are our
 stimulated S-genes and the rest possibly inhibited. Thus in the first
 column of fc we have the contrast `r gsub(".*_", "", colnames(fc)[1])` $-$ control. In the control no S-genes are perturbed.
 
-We search for the GTN in our restricted network space. Each network is a sub-graph of the full hyper-graph model\$reacID. We initialise the search with a starting network and greedily search the neighbourhood.
+We search for the GTN in our restricted network space. Each network is a sub-graph of the full hyper-graph sim\$model\$reacID. We initialise the search with a starting network and greedily search the neighbourhood.
 
-```{r}
+We use two different network scores. "s" is the rank correlation and "llr" is just the euclidean dot product (hence no shift and scale invariance).
+
+```{r, eval = FALSE}
 ## we start with the empty graph:
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 ## or a fully connected graph:
@@ -233,11 +115,10 @@ initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 
 ## paralellize for several threads on one machine or multiple machines
 ## see package "snowfall" for details
-parallel <- 2 # NULL for serialization
+parallel <- NULL # NULL for serialization
 ## or distribute to 30 threads on four different machines:
 ## parallel <- list(c(4,16,8,2), c("machine1", "machine2", "machine3", "machine4"))
-```
-```{r, eval = TRUE}
+
 ## greedy search:
 greedy <- bnem(search = "greedy",
                fc=fc,
@@ -245,7 +126,7 @@ greedy <- bnem(search = "greedy",
                CNOlist=CNOlist,
                model=model,
                parallel=parallel,
-               initBstring=bString*0,#initBstring,
+               initBstring=initBstring,
                draw = FALSE, # TRUE: draw network at each step
                verbose = TRUE, # TRUE: print changed (hyper-)edges and score improvement
                maxSteps = Inf,
@@ -254,19 +135,27 @@ greedy <- bnem(search = "greedy",
 
 greedy2 <- bnem(search = "greedy",
                 fc=fc,
-                exprs=exprs, # not used, if fc is defined
+                exprs=exprs,
                 CNOlist=CNOlist,
                 model=model,
                 parallel=parallel,
-                initBstring=bString*0,#initBstring,
-                draw = FALSE, # TRUE: draw network at each step
-                verbose = TRUE, # TRUE: print changed (hyper-)edges and score improvement
+                initBstring=initBstring,
+                draw = FALSE,
+                verbose = TRUE,
                 maxSteps = Inf,
                 method = "llr"
                 )
-
+```
+```{r}
 print(greedy$scores)
 print(greedy2$scores)
+
+resString <- greedy$bString
+
+print(sum(bString == 1 & resString == 1)/
+      (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
+print(sum(bString == 0 & resString == 0)/
+      (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
 
 resString <- greedy2$bString
 
@@ -274,7 +163,6 @@ print(sum(bString == 1 & resString == 1)/
       (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
 print(sum(bString == 0 & resString == 0)/
       (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
-
 ```
 
 We take a look at the efficiency of the search algorithm with
@@ -288,9 +176,7 @@ plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
 
 ## greedy optimum:
 plotDnf(model$reacID[as.logical(resString)], main = "greedy optimum", stimuli = stimuli)
-```
 
-```{r}
 ## hyper-edge sensitivity and specificity:
 print(sum(bString == 1 & resString == 1)/
       (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
@@ -302,14 +188,6 @@ ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model, resStrin
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
-
-In our seeded example 2574 the optimum network is indeed the GTN. If
-we set the alternative seed at the beginning, neither the network nor
-the correct ERS is found, if we initialise the search with the empty
-network. If we start with the fully connected normal graph, the ERS is
-resolved to a $100$\%, while the greedy optimum still differs from the
-GTN. Thus the GTN and the greedy optimum are equivalent, but the GTN
-is larger (more outgoing edges) and thus not preferred.
 
 After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
@@ -358,8 +236,9 @@ exhaustive <- bnem(search = "exhaustive",
                    exprs=exprs,
                    model=model
                    )
-
-resString <- exRun$bString
+```
+```{r}
+resString <- exhaustive$bString
 ```
 
 ## Stimulated and inhibited S-genes can overlap
@@ -367,102 +246,39 @@ resString <- exRun$bString
 In this section we show how to use B-NEM, if stimuli and inhibitors
 overlap. Additionally we want to show that B-NEM can resolve cycles. For this we allow the PKN to have cycles, but no repression, because repression can lead to an unresolvable ERS. See Pirkl et al., 2016 for details.
 
-```{r}
-## we do not force a DAG but do not allow repression:
-dnf <- randomDnf(10, max.edges = 25, max.edge.size = 1, dag = FALSE, negation = FALSE)
-cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
-inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
-outputs <- unique(gsub(".*=", "", dnf))
-stimuli <- cues # c(inputs[which(!(inputs %in% outputs))], cues[sample(1:length(cues), 2)])
-inhibitors <- cues
-```
-
 We look for stimuli which are also inhibited. For those we add additional stimuli S-genes. The stimuli S-gene (parent) and the inhibitor S-gene (child) are connected by a positive edge.
 
 ```{r}
-both <- stimuli[which(stimuli %in% inhibitors)]
-for (i in both) {
-    dnf <- gsub(i, paste(i, "inhibit", sep = ""), dnf)
-    dnf <- c(dnf, paste(i, "stim=", i, "inhibit", sep = ""))
-    stimuli <- gsub(i, paste(i, "stim", sep = ""), stimuli)
-    inhibitors  <- gsub(i, paste(i, "inhibit", sep = ""), inhibitors)
-}
+set.seed(1337)
+sim <- simBoolGtn(n = 5, e = 15, dag = FALSE, negation = FALSE, allstim = TRUE)
+fc <- sim$fc
+exprs <- sim$exprs
+CNOlist <- sim$CNOlist
+model <- sim$model
+bString <- sim$bString
+ERS <- sim$ERS
+PKN <- sim$PKN
+children <- unique(gsub(".*=|!", "", PKN$reacID))
+stimuli <- unique(gsub("=.*|!", "", PKN$reacID))
+stimuli <- stimuli[which(!(stimuli %in% children))]
 ```
 
 The next figure shows the cyclic PKN with extra stimuli S-genes. Notice, this way the inhibition of the S-genes overrules the stimulation.
 
 ```{r, fig.width = 5, fig.height = 9}
-plotDnf(dnf, stimuli = stimuli)
+par(mfrow=c(1,2))
+plotDnf(sim$PKN$reacID, stimuli = stimuli)
+plotDnf(sim$model$reacID[as.logical(bString)], stimuli = stimuli)
 ```
 
-Similar to before we create the full network search space, draw a GTN, simulate data and search for the optimal network.
-
-```{r, fig.width = 10, fig.height = 9}
-sifMatrix <- NULL
-for (i in dnf) {
-    inputs2 <- unique(unlist(strsplit(gsub("=.*", "", i), "=")))
-    output <- unique(gsub(".*=", "", i))
-    for (j in inputs2) {
-        j2 <- gsub("!", "", j)
-        if (j %in% j2) {
-            sifMatrix <- rbind(sifMatrix, c(j, 1, output))
-        } else {
-            sifMatrix <- rbind(sifMatrix, c(j2, -1, output))
-        }
-    }
-}
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE, col.names = FALSE,
-            quote = FALSE)
-PKN <- readSIF("temp.sif")
-## unlink("temp.sif")
-CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
-                        maxStim = 2, maxInhibit = 1, signals = NULL)
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = FALSE)
-
-bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
-steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
-    bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-    steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-    ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
-    steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-}
-## we make sure the stimulations work:
-bString[grep("stim", model$reacID)] <- 1
-bString <- absorption(bString,model)
-
-plotDnf(model$reacID[as.logical(bString)], stimuli = stimuli)
-
-exprs <- t(steadyState)[rep(1:ncol(steadyState), 10), rep(1:nrow(steadyState), 3)]
-ERS <- computeFc(CNOlist, t(steadyState))
-stmcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
-stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
-ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""),
-                    paste(stimuli, "_vs_", stimuli, "_",
-                          rep(inhibitors, each = length(stimuli)), sep = ""),
-                    paste(stimuli.pairs, "_vs_", stimuli.pairs, "_",
-                          rep(inhibitors, each = length(stimuli.pairs)), sep = "")),
-                  collapse = "|"), colnames(ERS))
-ERS <- ERS[, ind]
-fc <- ERS[rep(1:nrow(ERS), 10), rep(1:ncol(ERS), 3)]
-fc <- fc + rnorm(length(fc), 0, 1)
-flip <- sample(1:nrow(fc), floor(0.33*row(fc)))
-fc[flip, ] <- fc[flip, ]*(-1)
-rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
-print(fc[1:6, c(1:3,(ncol(fc)-2):ncol(fc))])
-
-initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
-```
 ```{r, eval = FALSE}
-greedy2 <- bnem(search = "greedy",
+greedy3 <- bnem(search = "greedy",
                 CNOlist=CNOlist,
                 fc=fc,
                 exprs=exprs,
                 model=model,
                 parallel=parallel,
-                initBstring=initBstring,
+                initBstring=bString*0,
                 draw = FALSE,
                 verbose = FALSE,
                 maxSteps = Inf,
@@ -470,7 +286,7 @@ greedy2 <- bnem(search = "greedy",
                 )
 ```
 ```{r, fig.width = 10, fig.height = 9}
-resString2 <- greedy2$bString
+resString2 <- greedy3$bString
 
 par(mfrow=c(1,2))
 plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
@@ -493,14 +309,12 @@ One additional challenge for B-NEM compared to methods like CellNetOptimizer is 
 
 We just have to create a list object, which holds the ERS and prior information about the E-genes.
 
-```{r}
+```{r, eval = FALSE}
 egenes <- list()
 
-for (i in cues) {
+for (i in PKN$namesSpecies) {
     egenes[[i]] <- rownames(fc)[grep(i, rownames(fc))]
 }
-```
-```{r, eval = FALSE}
 initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 greedy2b <- bnem(search = "greedy",
                  CNOlist=CNOlist,
@@ -532,12 +346,10 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
 
-In our toy example, fixing the correct E-genes to their parents increases the accuracy of the network and even resolves the ERS to 100 percent.
-
 ## Visualizing network residuals
 We can also quantify how well the attached E-genes fit to the learned network. See the references for more details.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = FALSE)
 ## verbose = TRUE plots the residuals matrices
 ```
@@ -553,7 +365,7 @@ with up to triple inhibitions.
 
 ```{r}
 data(bcr)
-head(fc)
+## head(fc)
 ```
 
 We build a PKN to incorporate biological knowledge and account for missing combinatorial inhibitions.
@@ -608,40 +420,30 @@ model <- preprocessing(CNOlist, PKN)
 
 In the final step we learn the network with the genetic algorithm and deterministic greedy search.
 
-```{r, fig.width = 10, fig.height = 5}
-initBstring <- rep(0, length(model$reacID))
-```
 ```{r, eval = FALSE}
+initBstring <- rep(0, length(model$reacID))
 bcr_genetic <- bnem(search = "genetic",
                     fc=fc,
                     CNOlist=CNOlist,
                     model=model,
-                    parallel=2,
+                    parallel=parallel,
                     initBstring=initBstring,
                     draw = FALSE,
-                    verbose = FALSE
+                    verbose = FALSE,
+                    popSize = 10
                     )
-```
-```{r}
-print(min(bcr_genetic$scores))
-
-initBstring <- rep(0, length(model$reacID))
-```
-```{r, eval = FALSE}
 bcr_greedy <- bnem(search = "greedy",
                    fc=fc,
                    CNOlist=CNOlist,
                    model=model,
-                   parallel=2,
+                   parallel=parallel,
                    initBstring=initBstring,
                    draw = FALSE,
                    verbose = FALSE
                    )
 ```
 ```{r, fig.width = 10, fig.height = 5}
-print(min(bcr_greedy$scores[[1]]))
-
-par(mfrow=c(1,2))
+par(mfrow=c(1,3))
 plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
 plotDnf(bcr_genetic$graph, main = "genetic optimum", stimuli = "BCR")
 plotDnf(bcr_greedy$graph, main = "greedy optimum", stimuli = "BCR")
