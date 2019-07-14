@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{validateGraph}
 \alias{validateGraph}
-\title{plotting the observed response scheme of an effect reporter and the
-expected response scheme of the regulating signalling gene}
+\title{validate graph}
 \usage{
 validateGraph(CNOlist, fc = NULL, exprs = NULL, approach = "fc",
   model, bString, Egenes = 25, Sgene = 1, parameters = list(cutOffs =

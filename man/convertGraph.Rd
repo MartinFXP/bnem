@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{convertGraph}
 \alias{convertGraph}
-\title{converts a disjunctive normal form into a conjunctive normal form and
-vice versa}
+\title{Convert normal form}
 \usage{
 convertGraph(g)
 }

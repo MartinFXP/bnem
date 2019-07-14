@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{randomDnf}
 \alias{randomDnf}
-\title{creates a random normal form or hyper-graph}
+\title{sample normal form}
 \usage{
 randomDnf(vertices = 10, negation = TRUE, max.edge.size = NULL,
   max.edges = NULL, dag = FALSE)

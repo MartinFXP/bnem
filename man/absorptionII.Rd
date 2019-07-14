@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{absorptionII}
 \alias{absorptionII}
-\title{applies "inverse" absorption law to a disjuncitve normal form}
+\title{Inverse absorption}
 \usage{
 absorptionII(bString, model = NULL)
 }

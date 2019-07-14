@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{simulateStatesRecursive}
 \alias{simulateStatesRecursive}
-\title{simulates the activation pattern (truth table) of a hyper-graph and
-annotated perturbation experiments}
+\title{simulate states}
 \usage{
 simulateStatesRecursive(CNOlist, model, bString, NEMlist = NULL)
 }

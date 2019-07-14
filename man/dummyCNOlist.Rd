@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{dummyCNOlist}
 \alias{dummyCNOlist}
-\title{creates a general CNOlist object from meta information}
+\title{Create dummy CNOlist}
 \usage{
 dummyCNOlist(stimuli = NULL, inhibitors = NULL, maxStim = 0,
   maxInhibit = 0, signals = NULL)

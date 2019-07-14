@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{findResiduals}
 \alias{findResiduals}
-\title{calculates residuals (data and optimized network do not match) and
-visualizes them}
+\title{compute residuals}
 \usage{
 findResiduals(bString, CNOlist, model, fc = NULL, exprs = NULL,
   egenes = NULL, NEMlist = NULL, parameters = list(cutOffs = c(0, 1,
@@ -77,7 +76,7 @@ parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
 maxSteps = Inf)
 rownames(fc) <- seq_len(nrow(fc))
 ## val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
-bString = res$bString, Egenes = 10, Sgene = 4)
+## bString = res$bString, Egenes = 10, Sgene = 4)
 residuals <- findResiduals(res$bString, CNOlist, model, fc = fc)
 }
 \author{

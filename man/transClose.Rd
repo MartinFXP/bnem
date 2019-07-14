@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{transClose}
 \alias{transClose}
-\title{calculates transitive closure of a hyper-graph}
+\title{transitive closure}
 \usage{
 transClose(g, max.iter = NULL, verbose = FALSE)
 }

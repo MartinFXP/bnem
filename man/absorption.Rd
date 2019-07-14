@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{absorption}
 \alias{absorption}
-\title{applies absorption law to a disjuncitve normal form}
+\title{Absorption}
 \usage{
 absorption(bString, model = NULL)
 }

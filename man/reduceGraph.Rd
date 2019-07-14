@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{reduceGraph}
 \alias{reduceGraph}
-\title{reduces the size of a graph if ossible to an equivalent sub-graph}
+\title{reduce graph}
 \usage{
 reduceGraph(bString, model, CNOlist)
 }
@@ -17,7 +17,7 @@ reduceGraph(bString, model, CNOlist)
 equivalent sub-graph denoted by bString
 }
 \description{
-reduces the size of a graph if ossible to an equivalent sub-graph
+reduces the size of a graph if possible to an equivalent sub-graph
 }
 \examples{
 library(CellNOptR)

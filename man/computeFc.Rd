@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{computeFc}
 \alias{computeFc}
-\title{computes response scheme given an activation pattern
-(absolute gene expression, truth table)}
+\title{Compute repsonse scheme}
 \usage{
 computeFc(CNOlist, y, test = 1)
 }

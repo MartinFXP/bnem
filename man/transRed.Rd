@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.r
 \name{transRed}
 \alias{transRed}
-\title{calculates transitive reduciton of a hyper-graph in normal form}
+\title{transitive reduction}
 \usage{
 transRed(g, max.iter = NULL, verbose = FALSE)
 }
@@ -17,7 +17,7 @@ transRed(g, max.iter = NULL, verbose = FALSE)
 transitive reduction of the hyper-graph in normal form
 }
 \description{
-calculates transitive reduciton of a hyper-graph in normal form
+calculates transitive reduction of a hyper-graph in normal form
 }
 \examples{
 g <- c("A=B", "A=C", "B=C", "B=D", "!A=D")

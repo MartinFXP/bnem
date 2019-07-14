@@ -19,7 +19,7 @@
 #' @return list with the corresponding prior graph, ground truth network and data
 #' @export
 #' @examples
-#'sim <- simBoolGtn()
+#' sim <- simBoolGtn()
 simBoolGtn <-
     function(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2, maxInhibit = 1, m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE) {
         if (allstim) {
@@ -105,6 +105,8 @@ simBoolGtn <-
         class(sim) <- "bnemsim"
         return(sim)
     }
+#' Inverse absorption
+#' 
 #' applies "inverse" absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
 #' @param model model for respective binary vector
@@ -167,6 +169,8 @@ absorptionII <-
         }
         return(bString)
     }
+#' Absorption
+#' 
 #' applies absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
 #' @param model model for respective binary vector
@@ -212,6 +216,8 @@ absorption <-
         return(bString)
     }
 #' Boolean Nested Effects Model main function
+#'
+#' This function takes a prior network and normalized perturbations as input and trains logical function on that prior network
 #' @param search Type of search heuristic. Either "greedy", "genetic" or
 #' "exhaustive". "greedy" uses a greedy algorithm to move through the local
 #' neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
@@ -446,6 +452,8 @@ bnem <-
             return("search must be be one of greedy, genetic or exhaustive")
         }
     }
+#' Compute repsonse scheme
+#' 
 #' computes response scheme given an activation pattern
 #' (absolute gene expression, truth table)
 #' @param CNOlist a CNOlist object with correct annotation
@@ -684,6 +692,8 @@ computeFc <-
         }
         return(CompMat)
     }
+#' Convert normal form
+#' 
 #' converts a disjunctive normal form into a conjunctive normal form and
 #' vice versa
 #' @param g graph in normal form
@@ -726,6 +736,8 @@ convertGraph <-
         }
         return(g.new)
     }
+#' Create dummy CNOlist
+#' 
 #' creates a general CNOlist object from meta information
 #' @param stimuli character vector of stimulated genes
 #' @param inhibitors character vector of inhibited genes
@@ -882,6 +894,8 @@ dummyCNOlist <-
         cnolist <- checkCNOlist(cnolist)
         return(cnolist)
     }
+#' Switch between epiNEM and B-NEM
+#' 
 #' Convert epiNEM model into general Boolean graph.
 #' Only needed for comparing accuracy of inferred network for bnem and epiNEM.
 #' @param t full epiNEM model
@@ -1014,6 +1028,8 @@ epiNEM2Bg <- function(t) {
         return(unique(graph))
     }
 }
+#' compute residuals
+#' 
 #' calculates residuals (data and optimized network do not match) and
 #' visualizes them
 #' @param bString Binary vector denoting the network given a model
@@ -1293,7 +1309,9 @@ same.") }
         return(list(resDiff1 = resDiff1, resDiff2 = resDiff2,
                     resDiff3 = resDiff3))
     }
-#' reduces the size of a graph if ossible to an equivalent sub-graph
+#' reduce graph
+#' 
+#' reduces the size of a graph if possible to an equivalent sub-graph
 #' @param bString binary vector indicating the sub-graph given a model
 #' @param model model object for the whole graph space
 #' @param CNOlist CNOlist object
@@ -1336,6 +1354,8 @@ reduceGraph <-
         bString <- absorption(bString, model)
         return(bString)
     }
+#' simulate states
+#' 
 #' simulates the activation pattern (truth table) of a hyper-graph and
 #' annotated perturbation experiments
 #' @param CNOlist, CNOlist object
@@ -1492,6 +1512,8 @@ simulateStatesRecursive <-
         }
         return(signalStates = signalStates)
     }
+#' transitive closure
+#' 
 #' calculates transitive closure of a hyper-graph
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal iteration till convergence
@@ -1589,7 +1611,9 @@ transClose <-
         }
         return(g.closed)
     }
-#' calculates transitive reduciton of a hyper-graph in normal form
+#' transitive reduction
+#' 
+#' calculates transitive reduction of a hyper-graph in normal form
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal number of iterations till convergence
 #' @param verbose verbose output?
@@ -1636,6 +1660,8 @@ transRed <-
         g5 <- unique(c(g2, g4))
         return(g5)
     }
+#' validate graph
+#' 
 #' plotting the observed response scheme of an effect reporter and the
 #' expected response scheme of the regulating signalling gene
 #' @param CNOlist CNOlist object.
@@ -2651,6 +2677,8 @@ validateGraph <-
             }
         }
     }
+#' sample normal form
+#' 
 #' creates a random normal form or hyper-graph
 #' @param vertices number of vertices
 #' @param negation allowed?

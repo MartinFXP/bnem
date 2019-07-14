@@ -142,7 +142,7 @@ List object including the optimized hyper-graph and its
 corresponding binary string.
 }
 \description{
-Boolean Nested Effects Model main function
+This function takes a prior network and normalized perturbations as input and trains logical function on that prior network
 }
 \examples{
 library(CellNOptR)

@@ -2,8 +2,7 @@
 % Please edit documentation in R/main.r
 \name{epiNEM2Bg}
 \alias{epiNEM2Bg}
-\title{Convert epiNEM model into general Boolean graph.
-Only needed for comparing accuracy of inferred network for bnem and epiNEM.}
+\title{Switch between epiNEM and B-NEM}
 \usage{
 epiNEM2Bg(t)
 }
