@@ -144,7 +144,7 @@ adj2dnf <-
     function(A) {
 
         dnf <- NULL
-        
+
         for (i in seq_len(ncol(A))) {
             for (j in seq_len(nrow(A))) {
                 if (i %in% j) { next() }
@@ -160,7 +160,7 @@ adj2dnf <-
         }
 
         dnf <- unique(dnf)
-        
+
         return(dnf)
 
     }
@@ -272,7 +272,7 @@ performing simple normalization")
         if ("fc" %in% approach) {
             if (length(NEMlist$fc) == 0)  {
                 print("foldchanges missing; automatic calculation")
-                NEMlist$fc <- computeFc(CNOlist, NEMlist$exprs) 
+                NEMlist$fc <- computeFc(CNOlist, NEMlist$exprs)
                 egenes <- NEMlist$egenes
                 if (parameters$cutOffs[2] != 0) {
                     NEMlist <- computeSm(CNOlist, NEMlist, parameters,
@@ -530,7 +530,7 @@ computeFcII <-
                                         # get s - sk - (k - ctrl): not trivial
                 ## for (i in stimuli) {
                 ##   for (j in inhibitors) {
-                ##     name <- 
+                ##     name <-
                 ##       CompMatNames <- c(CompMatNames, )
                 ##   }
                 ## }
@@ -640,7 +640,7 @@ computeSm <-
         fitMult <- parameters$scoring[2] # multiplicator for match of low degree
         errorMult <- parameters$scoring[2] # multi. mismatch of low degree
         zeroMult <- parameters$scoring[1]
-        
+
         CompMat <- CompMatCont
         Epos <- CompMat
         Eneg <- CompMat
@@ -656,64 +656,64 @@ computeSm <-
         rightPosI <- which(Epos >= beta)
         zerosPosI <- which(Epos <= alpha & Epos >= -alpha)
         zerosPosII <- which(Epos < -alpha & Epos > -beta)
-        
+
         wrongNeg <- which(Eneg > beta)
         rightNegII <- zerosPosII # which(Eneg < -alpha & Eneg > -beta)
         rightNegI <- which(Eneg <= -beta)
         zerosNegI <- zerosPosI # which(Eneg >= -alpha & Eneg <= alpha)
         zerosNegII <- rightPosII # which(Eneg > alpha & Eneg < beta)
-        
+
         right0I <- which(abs(E0) <= alpha)
         right0II <- which(abs(E0) > alpha & abs(E0) < beta)
         wrong0 <- which(abs(E0) >= beta)
-        
+
         if ("mLL" %in% method | "cp" %in% method) {
-            
+
             E0 <- E0*0
             E0[right0I] <- 1
-            
+
             Epos <- Epos*0
             Epos[rightPosI] <- 1
-            
+
             Eneg <- Eneg*0
             Eneg[rightNegI] <- 1
-            
+
             EposI <- EposI*0
             EposI[rightPosII] <- 1
-            
+
             EnegI <- EnegI*0
             EnegI[rightNegII] <- 1
-            
+
         } else {
 
             E0[wrong0] <- errorScore*zeroMult
             E0[right0II] <- fitScore*zeroMult*fitMult
             E0[right0I] <- fitScore*zeroMult
-            
+
             Epos[zerosPosI] <- errorScore*errorMult*zeroMult
             Epos[zerosPosII] <- errorScore*errorMult
             Epos[wrongPos] <- errorScore
             Epos[rightPosI] <- fitScore
             Epos[rightPosII] <- fitScore*fitMult
-            
+
             Eneg[zerosNegI] <- -errorScore*errorMult*zeroMult
             Eneg[zerosNegII] <- -errorScore*errorMult
             Eneg[wrongNeg] <- -errorScore
             Eneg[rightNegI] <- -fitScore
             Eneg[rightNegII] <- -fitScore*fitMult
-            
+
             EposI[zerosNegI] <- errorScore*errorMult*zeroMult
             EposI[zerosNegII] <- errorScore*errorMult
             EposI[wrongNeg] <- errorScore
             EposI[rightNegI] <- fitScore
             EposI[rightNegII] <- fitScore*fitMult
-            
+
             EnegI[zerosPosI] <- -errorScore*errorMult*zeroMult
             EnegI[zerosPosII] <- -errorScore*errorMult
             EnegI[wrongPos] <- -errorScore
             EnegI[rightPosI] <- -fitScore
             EnegI[rightPosII] <- -fitScore*fitMult
-            
+
         }
 
         return(list(exprs = NEMlist$exprs, fc = CompMatCont, E0 = E0,
@@ -1110,7 +1110,7 @@ as output by readSIF")
                 ## just for sanity check, all outputs must be the same
                 outnames = apply(as.matrix(colnames(inReacs)), 1, getrhs)
                 if (length(unique(outnames))!=1 | outname!=outnames[1]){
-                    stop("error in expandGates. 
+                    stop("error in expandGates.
 should not happen here. please report")
                 }
 
@@ -1316,7 +1316,7 @@ should not happen here. please report")
                 } # end if length(inSp) == 2
                 if (maxInputsPerGate >= 5) {
                     for (mip in 5:maxInputsPerGate) {
-                        if (length(inSpecies) >= mip & maxInputsPerGate >= 
+                        if (length(inSpecies) >= mip & maxInputsPerGate >=
                             mip) {
                             combinations = combn(seq(1, length(inSpecies)),
                                                  mip)
@@ -1331,18 +1331,18 @@ should not happen here. please report")
                             for (i in seq_len(mip)) {
                                 combs[i] = combinations[i, this]
                                 realnames[i] =
-                                    ifelse(substr(inSpecies[combs[i]], 1, 1) == 
+                                    ifelse(substr(inSpecies[combs[i]], 1, 1) ==
                                            "!", substr(inSpecies[i],
                                                        2, 10000),
                                            inSpecies[combs[i]])
                             }
                             if (any(combn(realnames, 2)[1, ] ==
-                                    combn(realnames, 
+                                    combn(realnames,
                                           2)[2, ])) {
                                 (next)()
                             }
                             newcolname <- paste(paste(inSpecies[combs],
-                                                      collapse = "+"), outname, 
+                                                      collapse = "+"), outname,
                                                 sep = "=")
                             if (newcolname %in% colnames(Model$interMat)) {
                                 (next)()
@@ -1352,7 +1352,7 @@ should not happen here. please report")
                                                    length(Model$namesSpecies)))
                             colnames(values) <- newcolname
                             for (name in inSpecies) {
-                                realname = ifelse(substr(name, 1, 1) == "!", 
+                                realname = ifelse(substr(name, 1, 1) == "!",
                                                   substr(name, 2, 10000), name)
                                 values[which(myrownames == realname)] <- -1
                             }
@@ -1363,7 +1363,7 @@ should not happen here. please report")
                             colnames(values) <- newcolname
                             for (name in inSpecies) {
                                 if (substr(name, 1, 1) == "!") {
-                                    realname = ifelse(substr(name, 1, 1) == "!", 
+                                    realname = ifelse(substr(name, 1, 1) == "!",
                                                       substr(name, 2, 10000),
                                                       name)
                                     values[which(myrownames == realname)] <- 1
@@ -1477,7 +1477,7 @@ exSearch <-
              reduce = TRUE, approach = "fc", ...) {
 
         CNOlist <- checkCNOlist(CNOlist)
-        
+
         cutModel2 <- function (model, bString) {
             if (sum(bString == 1) > 0) {
                 bs = as.logical(bString)
@@ -1553,7 +1553,6 @@ must be the same.") }
             } else {
                 sfInit(parallel=TRUE, cpus=parallel)
             }
-            sfLibrary(CellNOptR)
             sfLibrary(bnem)
         }
         spaceExp <- 2^length(model$reacID)
@@ -1641,14 +1640,14 @@ gaBinaryNemT1 <-
     function (CNOlist,
               model,
               initBstring = NULL, # initBstring = TRUE
-              sizeFac = 10^-10, 
+              sizeFac = 10^-10,
               NAFac = 1,
               popSize = 100,
               pMutation = 0.5,
               maxTime = Inf,
-              maxGens = Inf, 
+              maxGens = Inf,
               stallGenMax = 10,
-              relTol = 0.01, 
+              relTol = 0.01,
               verbose = TRUE,
               priorBitString = NULL,
               selPress = c(1.2,0.0001), # 1.2
@@ -1674,7 +1673,7 @@ gaBinaryNemT1 <-
               ...
               ) {
         addPriorKnowledge <- get("addPriorKnowledge",
-                                 en = asNamespace("CellNOptR"))
+                                 envir = asNamespace("CellNOptR"))
         method <- checkMethod(method)
         if (parameters$cutOffs[1] > parameters$cutOffs[2]) {
             parameters$cutOffs <- sort(parameters$cutOffs)
@@ -1785,7 +1784,7 @@ greater than 1; selPress set to 1")
             stallGen <- 0
             res <- rbind(c(g, bestobj, toString(bestbit), stallGen, Inf,
                            Inf, toString(bestbit), 0),
-                         c(g, bestobj, toString(bestbit), 
+                         c(g, bestobj, toString(bestbit),
                            stallGen, Inf, Inf, toString(bestbit), 0))
             colnames(res) <- c("Generation", "Best_score", "Best_bitString",
                                "Stall_Generation", "Avg_Score_Gen",
@@ -1859,7 +1858,6 @@ the same.")
                 } else {
                     sfInit(parallel=TRUE, cpus=parallel, type = type)
                 }
-                sfLibrary(CellNOptR)
                 sfLibrary(bnem)
                 ## sfExport(list = exportVars("ga"), local = TRUE)
             }
@@ -1973,7 +1971,7 @@ the same.")
                     breaks <- c(breaks, breaks +
                                         ((seq_len((popSize - 1))))/popSize)
                     sel <- rep(1, popSize)
-                    
+
                     if (!is.null(parallel) & popSize > 10000) {
                         sel <- sfApply(as.matrix(seq_len(popSize)), 1, susSel,
                                        wheel1, breaks)
@@ -1983,7 +1981,7 @@ the same.")
                     }
                 }
                 if ("t" %in% selection) {
-                    
+
                     pRanks <- sample(seq_len(popSize), popSize)
                     t.size <- min(popSize/2, selPress)
                     ppRanks <- matrix(0, popSize, t.size)
@@ -1997,7 +1995,7 @@ the same.")
                             (i-1)]
                         }
                     }
-                    
+
                     if (!is.null(parallel) & popSize > 10000) {
                         sel <-
                             as.vector(unlist(sfApply(
@@ -2006,7 +2004,7 @@ the same.")
                         sel <- as.vector(unlist(apply(
                             cbind(pRanks, ppRanks), 1, tsReduce, scores)))
                     }
-                    
+
                 }
                 if ("r" %in% selection) {
 
@@ -2017,20 +2015,20 @@ the same.")
                     if (length(sel) < popSize) {
                         sel <- c(sel, sel[length(sel)])
                     }
-                    
+
                 }
                 if ("f" %in% selection) {
 
                     scoresF <- scores*(-1)
                     scoresF <- scoresF - min(scoresF)
-                    
+
                     sel <- rep(seq_len(popSize),
                                round((scoresF)/sum(seq_len(scoresF))*popSize))
 
                     if (length(sel) < popSize) {
                         sel <- c(sel, sel[seq_len((popSize-length(sel)))])
                     }
-                    
+
                 }
                 ##print(sel)
                 ##print(scores)
@@ -2079,29 +2077,29 @@ the same.")
                     }
                 }
                 ## the following code needs changes if elitism is set to 0:
-                resThisGen <- c(g, bestobj, toString(bestbit), stallGen, 
+                resThisGen <- c(g, bestobj, toString(bestbit), stallGen,
                 (mean(scores, na.rm = TRUE)), thisGenBest,
-                toString(thisGenBestBit), 
+                toString(thisGenBestBit),
                 as.numeric((t[length(t)] - t[length(t) - 1]), units = "secs"),
                 "----------------------------------")
                 names(resThisGen) <- c("Generation", "Best_score",
-                                       "Best_bitString", 
+                                       "Best_bitString",
                                        "Stall_Generation", "Avg_Score_Gen",
-                                       "Best_score_Gen", 
+                                       "Best_score_Gen",
                                        "Best_bit_Gen", "Iter_time",
                                        "----------------------------------")
                 ## verbose output based on elitism on or off
                 if (elitism >= 1) {
                     resThisGen <- c(g, bestobj, toString(bestbit), stallGen,
                     (mean(scores, na.rm = TRUE)), thisGenBest,
-                    toString(thisGenBestBit), 
+                    toString(thisGenBestBit),
                     as.numeric((t[length(t)] - t[length(t) - 1]),
                                units = "secs"),
                     "----------------------------------")
                     names(resThisGen) <- c("Generation", "Best_score",
-                                           "Best_bitString", 
+                                           "Best_bitString",
                                            "Stall_Generation", "Avg_Score_Gen",
-                                           "Best_score_Gen", 
+                                           "Best_score_Gen",
                                            "Best_bit_Gen", "Iter_time",
                                            "----------------------------------")
                     if (targetBstring[1] == "none") {
@@ -2133,12 +2131,12 @@ the same.")
                 } else {
                     resThisGen <- c(g, bestobj, toString(bestbit), stallGen,
                     (mean(scores, na.rm = TRUE)), thisGenBest,
-                    toString(thisGenBestBit), 
+                    toString(thisGenBestBit),
                     as.numeric((t[length(t)] - t[length(t) - 1]),
                                units = "secs"),
                     "----------------------------------")
                     names(resThisGen) <- c("Generation", "Best_score",
-                                           "Best_bitString", 
+                                           "Best_bitString",
                                            "Stall_Generation",
                                            "Avg_Score_Gen", "Best_score_Gen",
                                            "Best_bit_Gen", "Iter_time",
@@ -2210,12 +2208,12 @@ the same.")
                 }
                 res <- rbind(res, resThisGen)
                 Criteria <- c((stallGen > stallGenMax),
-                (as.numeric((t[length(t)] - 
+                (as.numeric((t[length(t)] -
                              t[1]), units = "secs") > maxTime), (g > maxGens))
                 ## introduce a stop criteria for a target network
                 if (targetBstring[1] != "none" & g >= 2) {
                     Criteria <- c((stallGen > stallGenMax),
-                    (as.numeric((t[length(t)] - 
+                    (as.numeric((t[length(t)] -
                                  t[1]), units = "secs") > maxTime),
                     (g > maxGens),
                     (computeScoreNemT1(CNOlist=CNOlist,
@@ -2878,6 +2876,7 @@ getNemFit <-
         }
     }
 #' @noRd
+#' @import graph
 graph2adj <-
     function(gR) {
         adj.matrix <- matrix(0,
@@ -2927,10 +2926,10 @@ kmeansNorm <-
         for (i in seq_len(nrow(x))) {
 
             if (sd(x[i, ]) == 0) { next() }
-            
+
             cat('\r', paste(round(i/nrow(x)*100), "%", sep = ""))
             flush.console()
-            
+
             x.clust <- kmeans(x[i, ], k)
             x.dist <- dist(x[i, ])
             x.sil <- silhouette(x.clust$cluster, x.dist)
@@ -3018,7 +3017,6 @@ localSearch <-
             } else {
                 sfInit(parallel=TRUE, cpus=parallel)
             }
-            sfLibrary(CellNOptR)
             sfLibrary(bnem)
             ## sfExport(list = exportVars("loc"), local = TRUE)
         }
@@ -3036,7 +3034,8 @@ localSearch <-
             new <- FALSE
             bitString <- bitStrings[row, ]
             compMatTmp <- t(t(bitStringsMem) - bitString)
-            compScore <-rowMaxs(abs(compMatTmp))
+            compScore <- rowMaxs(abs(compMatTmp))
+            if (length(compScore) == 0) { compScore <- 1 }
             if (min(compScore) == 0) {
                 new <- FALSE
                 safeNumber <- 0
@@ -3170,7 +3169,7 @@ localSearch <-
                 }
                 if (sizeFac == 0) {
                     sizes <- scores[2, ]
-                    scores <- scores[1, ] 
+                    scores <- scores[1, ]
                     size <-
                         length(
                             unlist(
@@ -3486,7 +3485,7 @@ makeDesignFull <-
         design <- rep(0, ncol(x))
         design[grepCtrl] <- 1
         designNames <- "Ctrl"
-        
+
         for (i in grepStims) {
             stimNames <- paste(sort(names(which(stimuliDesign[i, ] >= 1))),
                                collapse = "_")
@@ -3510,7 +3509,7 @@ makeDesignFull <-
                 design[i, which(designNames %in% stimNames)] <- 1
             }
         }
-        
+
         for (i in grepStimsKds) {
             stimNames <- paste(c(sort(names(which(inhibitorsDesign[i, ] >= 1))),
                                  sort(names(which(stimuliDesign[i, ] >= 1)))),
@@ -3523,10 +3522,10 @@ makeDesignFull <-
                 design[i, which(designNames %in% stimNames)] <- 1
             }
         }
-        
+
         if (!is.null(batches))  {
             for (i in batches) {
-                if (!is.null(runs)) { 
+                if (!is.null(runs)) {
                     for (j in runs) {
                         tmp <- numeric(ncol(x))
                         tmp[intersect(grep(i, colnames(x)),
@@ -3586,7 +3585,7 @@ the same.") }
             }
             sfExport("testList", "goList")
         }
-        
+
         startTime <- Sys.time()
 
         if (conservative) {
@@ -3595,12 +3594,12 @@ the same.") }
             Complete <- unique(c(unlist(testList),unlist(goList)))
         }
         N <- length(Complete)
-        
+
         checkGeneCluster <- function(j,i) {
 
             resDf <- data.frame()
             genelist <- unique(intersect(testList[[i]],Complete))
-            
+
             if (!is.null(genelist)) {
                 targetlist <- intersect(goList[[j]],Complete)
                 n <- length(targetlist)
@@ -3612,12 +3611,12 @@ the same.") }
                 resDf <- rbind(resDf, data.frame(test = names(testList)[i],
                                                  go = names(goList)[j],
                                                  pval = ABpval, overlap = AinB,
-                                                 targetset = n, testset = D))  
+                                                 targetset = n, testset = D))
             }
-            
+
             return(resDf)
         }
-        
+
         dfList <- NULL
         if (is.null(parallel)) {
             for (i in seq_len(length(testList))) {
@@ -3625,7 +3624,7 @@ the same.") }
                 dfList <- c(dfList, lapply(seq_len(length(goList)),
                                            checkGeneCluster, i))
             }
-        } else { 
+        } else {
             for (i in seq_len(length(testList))) {
                 dfList <- c(dfList, sfLapply(seq_len(length(goList)),
                                              checkGeneCluster, i))
@@ -3637,9 +3636,9 @@ the same.") }
         print("all hypergeometric tests (=fisher tests with 'greater')
  completed...")
         print("preparing data...")
-        
+
         bigDf <- do.call("rbind", dfList)
-        
+
         bigDf <- bigDf[order(bigDf[, 3]), ]
 
         if (adjust.method %in% "FDR") {
@@ -3655,15 +3654,15 @@ the same.") }
             qvals[which(qvals > 1)] <- 1
 
         } else {
-            
+
             qvals <- p.adjust(bigDf[, 3], method = adjust.method)
 
         }
-        
+
         bigDf <- cbind(bigDf, qvals = qvals)
 
         bigDf <- bigDf[order(bigDf[, 7]), ]
-        
+
         if (!is.null(parallel)) {
             sfStop()
         }
@@ -3930,7 +3929,7 @@ simulateDnf <-
 #' @noRd
 #' @import
 #' matrixStats
-#' Biobase
+#' @importFrom Biobase rowMin rowMax
 simulateStatesRecursiveAdd <-
     function(CNOlist, model, bString, NEMlist = NULL) {
         getStateAdd <- function(CNOlist, node, signalStates, graph,
@@ -4008,7 +4007,7 @@ simulateStatesRecursiveAdd <-
                                         pobMult2 <- add1 - subResult2[, j2]
                                     }
                                     pobMult2[pobMult2 == 2] <- 1
-                                    
+
                                     pobNA <- numeric(length(pob))
                                     pobNA[is.na(pob)] <- 1
                                     pobNA[is.na(pobMult)] <- 1
@@ -4016,10 +4015,10 @@ simulateStatesRecursiveAdd <-
                                     pobMult[is.na(pobMult)] <- 1
                                     pobMult[which(pobMult != pobMult2)] <- 1
                                     pob[is.na(pob)] <- 1
-                                    
+
                                     ##pobMult[pobMult == -1] <- 0
                                     pob <- rowMin(cbind(pob,pobMult))
-                                    
+
                                     pobNA[which(pob == 0)] <- 0
                                     pob[which(pobNA > 0)] <- NA
                                 } else {
@@ -4049,23 +4048,23 @@ simulateStatesRecursiveAdd <-
                                                         signalStatesTemp,
                                                     graph = subGraph,
                                                     children = NULL, NEMlist)
-                                    
+
                                     if (add1 == 0) {
                                         pobMult <- subResult[, j2]
                                     } else {
                                         pobMult <- add1 - subResult[, j2]
                                     }
                                     pobMult[pobMult == 2] <- 1
-                                    
+
                                     pobNA <- numeric(length(pob))
                                     pobNA[is.na(pob)] <- 1
                                     pobNA[is.na(pobMult)] <- 1
                                     pobMult[is.na(pobMult)] <- 1
                                     pob[is.na(pob)] <- 1
-                                    
+
                                     ##pobMult[pobMult == -1] <- 0
                                     pob <- rowMin(cbind(pob,pobMult))
-                                    
+
                                     pobNA[which(pob == 0)] <- 0
                                     pob[which(pobNA > 0)] <- NA
                                 }
@@ -4084,14 +4083,14 @@ simulateStatesRecursiveAdd <-
                                                 children =
                                                     unique(c(children, node2)),
                                                 NEMlist)
-                                
+
                                 if (add1 == 0) {
                                     pobMult <- signalStates[, j2]
                                 } else {
                                     pobMult <- add1 - signalStates[, j2]
                                 }
                                 pobMult[pobMult == 2] <- 1
-                                
+
                                 pobNA <- numeric(length(pob))
                                 pobNA[is.na(pob)] <- 1
                                 pobNA[is.na(pobMult)] <- 1
@@ -4100,7 +4099,7 @@ simulateStatesRecursiveAdd <-
 
                                 ##pobMult[pobMult == -1] <- 0
                                 pob <- rowMin(cbind(pob,pobMult))
-                                
+
                                 pobNA[which(pob == 0)] <- 0
                                 pob[which(pobNA > 0)] <- NA
                             }
@@ -4110,21 +4109,21 @@ simulateStatesRecursiveAdd <-
                             } else {
                                 add1 <- 1
                             }
-                            
+
                             if (add1 == 0) {
                                 pobMult <- signalStates[, j2]
                             } else {
                                 pobMult <- add1 - signalStates[, j2]
                             }
                             pobMult[pobMult == 2] <- 1
-                            
+
                             pobNA <- numeric(length(pob))
                             pobNA[is.na(pob)] <- 1
                             pobNA[is.na(pobMult)] <- 1
                             pobMult[is.na(pobMult)] <- 1
                             pob[is.na(pob)] <- 1
                             pob <- rowMin(cbind(pob,pobMult))
-                            
+
                             pobNA[which(pob == 0)] <- 0
                             pob[which(pobNA > 0)] <- NA
                         }
@@ -4186,10 +4185,10 @@ smoothMatrix <-
         Msmooth <- M
         if (n > 0) {
             for (i in seq_len(n)) {
-                
+
                 cat('\r', i)
                 flush.console()
-                
+
                 Mtmp <- Msmooth
                 M1 <- M2 <- M3 <- M4 <- M5 <- M6 <- M7 <- M8 <- M*0
                 if (torus) {

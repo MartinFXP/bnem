@@ -6,7 +6,8 @@
 \usage{
 simBoolGtn(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2,
   maxInhibit = 1, m = 10, mflip = 0.33, r = 3, sd = 1,
-  keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE)
+  keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{n}{number of S-genes}
@@ -31,20 +32,26 @@ simBoolGtn(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2,
 
 \item{keepsif}{if TRUE does not delete sif file, which encodes the network}
 
-\item{maxcount}{while loopes ensure a reasonable network, maxcount makes sure while loops do not run in infinity}
+\item{maxcount}{while loopes ensure a reasonable network, maxcount makes sure
+while loops do not run in infinity}
 
 \item{negation}{if TRUE negative edges are allowed}
 
 \item{allstim}{full network in which all S-genes are possibly stimulated}
+
+\item{verbose}{TRUE for verbose output}
 }
 \value{
-list with the corresponding prior graph, ground truth network and data
+list with the corresponding prior graph, ground truth network and
+dataexample
 }
 \description{
-Draw a random prior network, samples a ground truth from the full boolean extension and generates data
+Draw a random prior network, samples a ground truth from the full boolean
+extension and generates data
 }
 \examples{
 sim <- simBoolGtn()
+mnem::plotDnf(sim$PKN$reacID)
 }
 \author{
 Martin Pirkl

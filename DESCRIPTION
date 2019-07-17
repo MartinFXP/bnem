@@ -22,14 +22,16 @@ Imports:
     cluster,
     flexclust,
     stats,
-    Biobase,
     RColorBrewer,
     epiNEM,
     mnem,
+    Biobase,
     methods,
     utils,
-    graphics
+    graphics,
+    graph
 VignetteBuilder: knitr
 Suggests:
-    knitr
+    knitr, 
+    BiocGenerics
 RoxygenNote: 6.1.1

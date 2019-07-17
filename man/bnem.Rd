@@ -64,8 +64,8 @@ number of threads on the local machine. A list object as in list(c(1,2,3),
 c("machine1", "machine2", "machine3")) specifies the threads distributed
 on different machines (local or others).}
 
-\item{method}{Scoring method can be a correlation or distance measure.
-See ?cor and ?dist for details.}
+\item{method}{Scoring method can be a correlation, distance measure or a
+probability based score "llr". See ?cor and ?dist for details.}
 
 \item{approach}{atm not used}
 
@@ -142,7 +142,8 @@ List object including the optimized hyper-graph and its
 corresponding binary string.
 }
 \description{
-This function takes a prior network and normalized perturbations as input and trains logical function on that prior network
+This function takes a prior network and normalized perturbations as input and
+trains logical function on that prior network
 }
 \examples{
 library(CellNOptR)
@@ -156,7 +157,8 @@ unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 maxInhibit = 2, signals = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,

@@ -32,7 +32,8 @@ unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signals = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)
 }
 \author{

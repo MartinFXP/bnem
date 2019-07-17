@@ -10,7 +10,7 @@ epiNEM2Bg(t)
 \item{t}{full epiNEM model}
 }
 \value{
-boolean hyper-graph
+differential effects pattern
 }
 \description{
 Convert epiNEM model into general Boolean graph.
@@ -19,8 +19,8 @@ Only needed for comparing accuracy of inferred network for bnem and epiNEM.
 \examples{
 topology <- epiNEM::CreateTopology(3, 1, force = TRUE)
 topology <- unlist(unique(topology), recursive = FALSE)
-extTopology <- ExtendTopology(topology$model, 100)
-b <- EpiNEM2BooleanGraph(extTopology)
+extTopology <- epiNEM::ExtendTopology(topology$model, 100)
+b <- epiNEM2Bg(extTopology)
 }
 \seealso{
 CreateTopology

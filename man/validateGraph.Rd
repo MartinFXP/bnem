@@ -104,14 +104,15 @@ unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
-res <- bnem(search = "greedy", CNOlist = CNOlist, NEMlist = NEMlist,
+res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc,
 model = model, parallel = NULL, initBstring = initBstring, draw = FALSE,
 verbose = FALSE, maxSteps = Inf)
 rownames(fc) <- seq_len(nrow(fc))
-val <- validateGraph(CNOlist = CNOlist, NEMlist = NEMlist, model = model,
+val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
 bString = res$bString, Egenes = 10, Sgene = 4)
 }
 \author{

@@ -1,6 +1,28 @@
+#' B-Cell receptor signalling perturbations
+#'
+#' Processed data from experiments with a stimulated B-Cell receptor (bcr)
+#' and perturbed signalling genes. The raw data is available at
+#' https://www.ncbi.nlm.nih.gov/geo/ with accession id GSE68761. For the
+#' process steps we refer to the publication
+#' Martin Pirkl, Elisabeth Hand, Dieter Kube, Rainer Spang, Analyzing
+#' synergistic and non-synergistic interactions in signalling pathways
+#' using Boolean Nested Effect Models, Bioinformatics, Volume 32, Issue 6,
+#' 15 March 2016, Pages 893–900, https://doi.org/10.1093/bioinformatics/btv680.
+#' @name bcr
+#' @docType data
+#' @usage bcr
+#' @references Martin Pirkl, Elisabeth Hand, Dieter Kube, Rainer Spang,
+#' Analyzing synergistic and non-synergistic interactions in signalling
+#' pathways using Boolean Nested Effect Models, Bioinformatics, Volume 32,
+#' Issue 6, 15 March 2016, Pages 893–900,
+#' https://doi.org/10.1093/bioinformatics/btv680
+#' @examples
+#' data(bcr)
+NA
 #' Sample random network and simulate data
 #'
-#' Draw a random prior network, samples a ground truth from the full boolean extension and generates data
+#' Draw a random prior network, samples a ground truth from the full boolean
+#' extension and generates data
 #' @param n number of S-genes
 #' @param e number of maximum edges
 #' @param s number of stimulated S-genes
@@ -12,20 +34,33 @@
 #' @param r numbero f replicates
 #' @param sd standard deviation for the gaussian noise
 #' @param keepsif if TRUE does not delete sif file, which encodes the network
-#' @param maxcount while loopes ensure a reasonable network, maxcount makes sure while loops do not run in infinity
+#' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
+#' while loops do not run in infinity
 #' @param negation if TRUE negative edges are allowed
 #' @param allstim full network in which all S-genes are possibly stimulated
+#' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
-#' @return list with the corresponding prior graph, ground truth network and data
+#' @return list with the corresponding prior graph, ground truth network and
+#' dataexample
 #' @export
+#' @importFrom mnem plotDnf
 #' @examples
 #' sim <- simBoolGtn()
+#' mnem::plotDnf(sim$PKN$reacID)
 simBoolGtn <-
-    function(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2, maxInhibit = 1, m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE) {
+    function(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2, maxInhibit = 1,
+             m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE,
+             maxcount = 10, negation = TRUE, allstim = FALSE,
+             verbose = FALSE) {
         if (allstim) {
-            dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag, negation = negation)
-            cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
-            inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
+            dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag,
+                             negation = negation)
+            cues <- sort(unique(gsub("!", "",
+                                     unlist(strsplit(unlist(strsplit(dnf, "=")),
+                                                     "\\+")))))
+            inputs <-
+                unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)),
+                                             "=")))
             outputs <- unique(gsub(".*=", "", dnf))
             stimuli <- cues
             inhibitors <- cues
@@ -34,18 +69,25 @@ simBoolGtn <-
                 dnf <- gsub(i, paste(i, "inhibit", sep = ""), dnf)
                 dnf <- c(dnf, paste(i, "stim=", i, "inhibit", sep = ""))
                 stimuli <- gsub(i, paste(i, "stim", sep = ""), stimuli)
-                inhibitors  <- gsub(i, paste(i, "inhibit", sep = ""), inhibitors)
+                inhibitors  <- gsub(i, paste(i, "inhibit", sep = ""),
+                                    inhibitors)
             }
         } else {
-            stimuli <- "dummy"
+            stimuli <- NULL
             count <- 0
             while(length(stimuli) != s & count < maxcount) {
                 count <- count + 1
-                dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag, negation = negation)
-                cues <- sort(unique(gsub("!", "", unlist(strsplit(unlist(strsplit(dnf, "=")), "\\+")))))
-                inputs <- unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)), "=")))
+                dnf <- randomDnf(n, max.edges = e, max.edge.size = 1,
+                                 dag = dag, negation = negation)
+                cues <-
+                    sort(unique(gsub("!", "",
+                                     unlist(strsplit(unlist(strsplit(dnf, "=")),
+                                                     "\\+")))))
+                inputs <-
+                    unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)),
+                                           "=")))
                 outputs <- unique(gsub(".*=", "", dnf))
-                stimuli <- inputs[which(!(inputs %in% outputs))]   
+                stimuli <- inputs[which(!(inputs %in% outputs))]
             }
             inhibitors <- unique(c(inputs, outputs))
             inhibitors <- inhibitors[-which(inhibitors %in% stimuli)]
@@ -70,43 +112,55 @@ simBoolGtn <-
             unlink("temp.sif")
         }
         CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
-                                maxStim = maxStim, maxInhibit = maxInhibit, signals = NULL)
-        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-        bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-        steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
+                                maxStim = maxStim, maxInhibit = maxInhibit,
+                                signals = NULL)
+        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100,
+                               verbose = verbose)
+        bString <- absorption(sample(c(0,1), length(model$reacID),
+                                     replace = TRUE), model)
+        steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
+                                                               bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
         steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
         count <- 0
-        while(any(apply(steadyState, 2, sd) == 0) | any(apply(steadyState2, 2, sd) == 0)) {
+        while(any(apply(steadyState, 2, sd) == 0) |
+              any(apply(steadyState2, 2, sd) == 0)) {
             if (count >= maxcount) { break() }
             count <- count + 1
-            bString <- absorption(sample(c(0,1), length(model$reacID), replace = TRUE), model)
-            steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model, bString)
-            ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
+            bString <- absorption(sample(c(0,1), length(model$reacID),
+                                         replace = TRUE), model)
+            steadyState <- steadyState2 <-
+                simulateStatesRecursive(CNOlist, model, bString)
+            ind <- grep(paste(inhibitors, collapse = "|"),
+                        colnames(steadyState2))
             steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
         }
-        exprs <- t(steadyState)[rep(1:ncol(steadyState), m), rep(1:nrow(steadyState), r)]
+        exprs <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
+                                rep(seq_len(nrow(steadyState)), r)]
         ERS <- computeFc(CNOlist, t(steadyState))
         stimcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
         stimuli.pairs <- apply(stimcomb, 1, paste, collapse = "_")
         ind <- grep(paste(c(paste("Ctrl_vs_", c(stimuli, inhibitors), sep = ""),
                             paste(stimuli, "_vs_", stimuli, "_",
-                                  rep(inhibitors, each = length(stimuli)), sep = ""),
+                                  rep(inhibitors, each = length(stimuli)),
+                                  sep = ""),
                             paste(stimuli.pairs, "_vs_", stimuli.pairs, "_",
-                                  rep(inhibitors, each = length(stimuli.pairs)), sep = "")),
+                                  rep(inhibitors, each = length(stimuli.pairs)),
+                                  sep = "")),
                           collapse = "|"), colnames(ERS))
         ERS <- ERS[, ind]
-        fc <- ERS[rep(1:nrow(ERS), m), rep(1:ncol(ERS), r)]
+        fc <- ERS[rep(seq_len(nrow(ERS)), m), rep(seq_len(ncol(ERS)), r)]
         fc <- fc + rnorm(length(fc), 0, sd)
-        flip <- sample(1:nrow(fc), floor(mflip*row(fc)))
+        flip <- sample(seq_len(nrow(fc)), floor(mflip*row(fc)))
         fc[flip, ] <- fc[flip, ]*(-1)
-        rownames(fc) <- paste(rownames(fc), 1:nrow(fc), sep = "_")
-        sim <- list(PKN = PKN, CNOlist = CNOlist, model = model, bString = bString, fc = fc, exprs = exprs, ERS = ERS)
+        rownames(fc) <- paste(rownames(fc), seq_len(nrow(fc)), sep = "_")
+        sim <- list(PKN = PKN, CNOlist = CNOlist, model = model,
+                    bString = bString, fc = fc, exprs = exprs, ERS = ERS)
         class(sim) <- "bnemsim"
         return(sim)
     }
 #' Inverse absorption
-#' 
+#'
 #' applies "inverse" absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
 #' @param model model for respective binary vector
@@ -170,7 +224,7 @@ absorptionII <-
         return(bString)
     }
 #' Absorption
-#' 
+#'
 #' applies absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
 #' @param model model for respective binary vector
@@ -217,7 +271,8 @@ absorption <-
     }
 #' Boolean Nested Effects Model main function
 #'
-#' This function takes a prior network and normalized perturbations as input and trains logical function on that prior network
+#' This function takes a prior network and normalized perturbations as input and
+#' trains logical function on that prior network
 #' @param search Type of search heuristic. Either "greedy", "genetic" or
 #' "exhaustive". "greedy" uses a greedy algorithm to move through the local
 #' neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
@@ -247,8 +302,8 @@ absorption <-
 #' number of threads on the local machine. A list object as in list(c(1,2,3),
 #' c("machine1", "machine2", "machine3")) specifies the threads distributed
 #' on different machines (local or others).
-#' @param method Scoring method can be a correlation or distance measure.
-#' See ?cor and ?dist for details.
+#' @param method Scoring method can be a correlation, distance measure or a
+#' probability based score "llr". See ?cor and ?dist for details.
 #' @param relFit atm not used
 #' @param verbose TRUE gives additional information during the search.
 #' @param reduce atm not used
@@ -312,7 +367,8 @@ absorption <-
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
 #' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
@@ -321,7 +377,7 @@ absorption <-
 #' maxSteps = Inf)
 bnem <-
     function(search = "greedy",
-             
+
              fc=NULL,
              exprs=NULL,
              egenes=NULL,
@@ -390,7 +446,8 @@ bnem <-
         if (search %in% c("greedy", "genetic", "exhaustive")) {
 
             if (search %in% "greedy") {
-                res <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist, model=model,
+                res <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist,
+                                   model=model,
                                    approach = approach, initSeed = initBstring,
                                    seeds = seeds, parameters = parameters,
                                    sizeFac = sizeFac, NAFac = NAFac,
@@ -398,7 +455,8 @@ bnem <-
                                    parallel=parallel, parallel2 = parallel2,
                                    relFit = relFit, method = method,
                                    max.steps = maxSteps, max.time = maxTime,
-                                   node = node, absorpII = absorpII, draw = draw,
+                                   node = node, absorpII = absorpII,
+                                   draw = draw,
                                    prior = prior, ...)
                 minSeed <- 1
                 if (length(res$scores) > 1) {
@@ -415,7 +473,8 @@ bnem <-
             }
             if (search %in% "genetic") {
                 res <- gaBinaryNemT1(CNOlist=CNOlist, model=model,
-                                     initBstring = initBstring,sizeFac = sizeFac,
+                                     initBstring = initBstring,
+                                     sizeFac = sizeFac,
                                      NAFac = NAFac,popSize = popSize,
                                      pMutation = pMutation,maxTime = maxTime,
                                      maxGens = maxGens,
@@ -453,7 +512,7 @@ bnem <-
         }
     }
 #' Compute repsonse scheme
-#' 
+#'
 #' computes response scheme given an activation pattern
 #' (absolute gene expression, truth table)
 #' @param CNOlist a CNOlist object with correct annotation
@@ -475,7 +534,8 @@ bnem <-
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signals = c("A", "B","C","D"))
 #' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
 computeFc <-
     function (CNOlist, y, test = 1) {
@@ -580,7 +640,8 @@ computeFc <-
             if (length(grepStimsKds) > 0 & length(grepKds) > 0) {
                 CompMat <-
                     cbind(CompMat, y[, rep(grepStimsKds, length(grepKds))] -
-                                   y[, sort(rep(grepKds, length(grepStimsKds)))])
+                                   y[, sort(rep(grepKds,
+                                                length(grepStimsKds)))])
                 orderKds <- order(rep(grepKds, length(grepStimsKds)))
                 CompMatNames <-
                     c(CompMatNames,
@@ -693,7 +754,7 @@ computeFc <-
         return(CompMat)
     }
 #' Convert normal form
-#' 
+#'
 #' converts a disjunctive normal form into a conjunctive normal form and
 #' vice versa
 #' @param g graph in normal form
@@ -737,7 +798,7 @@ convertGraph <-
         return(g.new)
     }
 #' Create dummy CNOlist
-#' 
+#'
 #' creates a general CNOlist object from meta information
 #' @param stimuli character vector of stimulated genes
 #' @param inhibitors character vector of inhibited genes
@@ -895,7 +956,7 @@ dummyCNOlist <-
         return(cnolist)
     }
 #' Switch between epiNEM and B-NEM
-#' 
+#'
 #' Convert epiNEM model into general Boolean graph.
 #' Only needed for comparing accuracy of inferred network for bnem and epiNEM.
 #' @param t full epiNEM model
@@ -906,9 +967,9 @@ dummyCNOlist <-
 #' @examples
 #' topology <- epiNEM::CreateTopology(3, 1, force = TRUE)
 #' topology <- unlist(unique(topology), recursive = FALSE)
-#' extTopology <- ExtendTopology(topology$model, 100)
-#' b <- EpiNEM2BooleanGraph(extTopology)
-#' @return boolean hyper-graph
+#' extTopology <- epiNEM::ExtendTopology(topology$model, 100)
+#' b <- epiNEM2Bg(extTopology)
+#' @return differential effects pattern
 epiNEM2Bg <- function(t) {
     if (is.matrix(t)) {
         colnames(t) <- paste("S_vs_S_", gsub("\\.", "_", colnames(t)),
@@ -1029,7 +1090,7 @@ epiNEM2Bg <- function(t) {
     }
 }
 #' compute residuals
-#' 
+#'
 #' calculates residuals (data and optimized network do not match) and
 #' visualizes them
 #' @param bString Binary vector denoting the network given a model
@@ -1069,7 +1130,8 @@ epiNEM2Bg <- function(t) {
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc, model = model,
@@ -1085,8 +1147,9 @@ findResiduals <-
                                              scoring = c(0.1,0.2,0.9)),
              method = "s", sizeFac = 10^-10,
              main = "residuals for decoupled vertices",
-             sub = "green residuals are added effects (left positive,
-right negative) and red residuals are deleted effects",
+             sub = paste0("green residuals are added effects (left positive,",
+                          " right negative) and red residuals are deleted ",
+                          "effects"),
 cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
         if (is.null(NEMlist)) {
             NEMlist <- list()
@@ -1119,7 +1182,7 @@ cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
                         " S-genes based on ", length(unique(EtoS[, 1])),
                         " E-genes.", sep = ""))
         }
-        
+
         resMat <- matrix(0, nrow = ncol(CNOlist@signals[[1]]),
                          ncol = 2*ncol(NEMlist$fc))
         resVec <- numeric(ncol(CNOlist@signals[[1]]))
@@ -1160,7 +1223,7 @@ cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
                                   sep = ""))
                         flush.console()
                     }
-                    
+
                     sgene <- SCompMat[i, ]
                     mem <- sgene[j]
                     if (mem == 0) {
@@ -1201,7 +1264,7 @@ cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
             }
             return(list(resMat = resMat, resType = resType, resVec = resVec))
         }
-        
+
         if (!is.null(parallel)) {
             if (is.list(parallel)) {
                 if (length(parallel[[1]]) != length(parallel[[2]])) {
@@ -1219,18 +1282,18 @@ same.") }
             }
             sfLibrary("CellNOptR")
         }
-        
+
         if (!is.null(parallel)) {
             resTmp <- sfLapply(as.list(seq_len(nrow(resMat))), checkSgene)
             sfStop()
         } else {
             resTmp <- lapply(as.list(seq_len(nrow(resMat))), checkSgene)
         }
-        
+
         for (i in seq_len(nrow(resMat))) {
             resMat[i, ] <- resTmp[[i]]$resMat
             resType[i, ] <- resTmp[[i]]$resType
-            resVec[i] <- resTmp[[i]]$resVec
+            resVec[i] <- resTmp[[i]]$resVec[1]
         }
         resType <- resType*(-1)
         resDiff <- (resVec - resMat)/nrow(NEMlist$fc)
@@ -1270,7 +1333,7 @@ same.") }
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (positive effects)", sub = "",
                         xrot = "60", breaks = res.breaks, colorkey = FALSE)
-        
+
         p2 <- HeatmapOP(resDiff3[, (ncol(NEMlist$fc)+2):(2*ncol(NEMlist$fc)+1)],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (negative effects)", sub = "",
@@ -1310,7 +1373,7 @@ same.") }
                     resDiff3 = resDiff3))
     }
 #' reduce graph
-#' 
+#'
 #' reduces the size of a graph if possible to an equivalent sub-graph
 #' @param bString binary vector indicating the sub-graph given a model
 #' @param model model object for the whole graph space
@@ -1327,9 +1390,9 @@ same.") }
 #' quote = FALSE)
 #' PKN <- readSIF("temp.sif")
 #' unlink('temp.sif')
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' bString <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 reduceGraph <-
     function(bString, model, CNOlist) {
@@ -1355,7 +1418,7 @@ reduceGraph <-
         return(bString)
     }
 #' simulate states
-#' 
+#'
 #' simulates the activation pattern (truth table) of a hyper-graph and
 #' annotated perturbation experiments
 #' @param CNOlist, CNOlist object
@@ -1513,7 +1576,7 @@ simulateStatesRecursive <-
         return(signalStates = signalStates)
     }
 #' transitive closure
-#' 
+#'
 #' calculates transitive closure of a hyper-graph
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal iteration till convergence
@@ -1539,7 +1602,7 @@ transClose <-
         g.closed <- g
         for (iter in seq_len(max.iter)) {
             g.old <- g.closed
-            
+
             if (verbose) {
                 cat('\r', paste("iteration: ", iter, sep = ""))
                 flush.console()
@@ -1612,7 +1675,7 @@ transClose <-
         return(g.closed)
     }
 #' transitive reduction
-#' 
+#'
 #' calculates transitive reduction of a hyper-graph in normal form
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal number of iterations till convergence
@@ -1661,7 +1724,7 @@ transRed <-
         return(g5)
     }
 #' validate graph
-#' 
+#'
 #' plotting the observed response scheme of an effect reporter and the
 #' expected response scheme of the regulating signalling gene
 #' @param CNOlist CNOlist object.
@@ -1722,14 +1785,15 @@ transRed <-
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
 #' initBstring <- rep(0, length(model$reacID))
-#' res <- bnem(search = "greedy", CNOlist = CNOlist, NEMlist = NEMlist,
+#' res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc,
 #' model = model, parallel = NULL, initBstring = initBstring, draw = FALSE,
 #' verbose = FALSE, maxSteps = Inf)
 #' rownames(fc) <- seq_len(nrow(fc))
-#' val <- validateGraph(CNOlist = CNOlist, NEMlist = NEMlist, model = model,
+#' val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
 #' bString = res$bString, Egenes = 10, Sgene = 4)
 validateGraph <-
     function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString,
@@ -2081,8 +2145,8 @@ validateGraph <-
                             real.breaks <-
                                 real.breaks[
                                     c((floor(length(
-                                          real.breaks)/2)-50):floor(length(
-                                                                  real.breaks)/2),
+                                          real.breaks)/2)-50):
+                                      floor(length(real.breaks)/2),
                                     (floor(length(real.breaks)/2)+1):
                                     (floor(length(real.breaks)/2)+50))]
                         }
@@ -2678,7 +2742,7 @@ validateGraph <-
         }
     }
 #' sample normal form
-#' 
+#'
 #' creates a random normal form or hyper-graph
 #' @param vertices number of vertices
 #' @param negation allowed?

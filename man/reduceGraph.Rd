@@ -28,9 +28,9 @@ col.names = FALSE,
 quote = FALSE)
 PKN <- readSIF("temp.sif")
 unlink('temp.sif')
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
+model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 bString <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 }
 \author{

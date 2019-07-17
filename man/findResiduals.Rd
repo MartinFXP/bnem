@@ -8,7 +8,8 @@ findResiduals(bString, CNOlist, model, fc = NULL, exprs = NULL,
   egenes = NULL, NEMlist = NULL, parameters = list(cutOffs = c(0, 1,
   0), scoring = c(0.1, 0.2, 0.9)), method = "s", sizeFac = 10^-10,
   main = "residuals for decoupled vertices",
-  sub = "green residuals are added effects (left positive,\\nright negative) and red residuals are deleted effects",
+  sub = paste0("green residuals are added effects (left positive,",
+  " right negative) and red residuals are deleted ", "effects"),
   cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE,
   ...)
 }
@@ -68,7 +69,8 @@ unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(CNOlist@cues)*10), 10, nrow(CNOlist@cues))
+exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc, model = model,
