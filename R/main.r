@@ -27,8 +27,9 @@ NA
 #' @param e number of maximum edges
 #' @param s number of stimulated S-genes
 #' @param dag if TRUE graph will be acyclic
+#' @param maxSize maximum number of S-genes in a disjunction or clause
 #' @param maxStim maximum stimulated S-genes in the data samples
-#' @param maxInhibit maximum inhibited number of S-genes in the data samples
+#' @param maxInhibit maximum inhibited S-genes in the data samples
 #' @param m E-genes per S-gene
 #' @param mflip number of inhibited E-genes
 #' @param r numbero f replicates
@@ -48,7 +49,8 @@ NA
 #' sim <- simBoolGtn()
 #' mnem::plotDnf(sim$PKN$reacID)
 simBoolGtn <-
-    function(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2, maxInhibit = 1,
+    function(n = 10, e = 25, s = 2, p = NULL, dag = TRUE, maxSize = 2,
+             maxStim = 2, maxInhibit = 1,
              m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE,
              maxcount = 10, negation = TRUE, allstim = FALSE,
              verbose = FALSE) {
@@ -73,24 +75,24 @@ simBoolGtn <-
                                     inhibitors)
             }
         } else {
-            stimuli <- NULL
-            count <- 0
-            while(length(stimuli) != s & count < maxcount) {
-                count <- count + 1
-                dnf <- randomDnf(n, max.edges = e, max.edge.size = 1,
-                                 dag = dag, negation = negation)
-                cues <-
-                    sort(unique(gsub("!", "",
-                                     unlist(strsplit(unlist(strsplit(dnf, "=")),
-                                                     "\\+")))))
-                inputs <-
-                    unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)),
-                                           "=")))
-                outputs <- unique(gsub(".*=", "", dnf))
-                stimuli <- inputs[which(!(inputs %in% outputs))]
+            Sgenes <- paste0("S", seq_len(n))
+            if (length(Sgenes) > 9) { Sgenes <- paste0(Sgenes, "g") }
+            stimuli <- prev <- sample(Sgenes, s)
+            Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
+            pkn <- NULL
+            while(length(Sgenes) > 0) {
+                if (is.null(p)) { pp <- runif(1) } else { pp <- p }
+                layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
+                Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
+                for (i in seq_len(length(prev))) {
+                    pkn <- c(pkn, paste0(prev[i], "=", layer))
+                    if (negation) {
+                        pkn <- c(pkn, paste0("!", prev[i], "=", layer))
+                    }
+                }
+                prev <- layer
             }
-            inhibitors <- unique(c(inputs, outputs))
-            inhibitors <- inhibitors[-which(inhibitors %in% stimuli)]
+            dnf <- pkn
         }
         sifMatrix <- NULL
         for (i in dnf) {
@@ -114,10 +116,10 @@ simBoolGtn <-
         CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
                                 maxStim = maxStim, maxInhibit = maxInhibit,
                                 signals = NULL)
-        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100,
+        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=maxSize,
                                verbose = verbose)
-        bString <- absorption(sample(c(0,1), length(model$reacID),
-                                     replace = TRUE), model)
+        bString <- reduceGraph(sample(c(0,1), length(model$reacID),
+                                      replace = TRUE), model, CNOlist)
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
@@ -135,6 +137,9 @@ simBoolGtn <-
                         colnames(steadyState2))
             steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
         }
+        graph <- model$reacID[as.logical(bString)]
+        graph[-grep("\\+", graph)] <- gsub("!", "", graph[-grep("\\+", graph)])
+        bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
         exprs <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
                                 rep(seq_len(nrow(steadyState)), r)]
         ERS <- computeFc(CNOlist, t(steadyState))

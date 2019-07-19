@@ -2561,10 +2561,10 @@ getNemFit <-
                 if ("llr" %in% method) {
                     S.mat <- SCompMat
                     E.mat <- NEMlist$fc
-                    cosine.sim <- -E.mat%*%S.mat
+                    cosine.sim <- E.mat%*%S.mat
                     cosine.sim[is.na(cosine.sim)] <- 0
-                    MSEAfc <- cosine.sim
-                    MSEIfc <- -cosine.sim
+                    MSEAfc <- -cosine.sim
+                    MSEIfc <- cosine.sim
                 } else {
                     S0 <- as.matrix(1 - abs(SCompMat))
                     Spos <- SCompMat
