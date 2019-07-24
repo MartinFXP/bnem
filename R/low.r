@@ -2476,15 +2476,15 @@ getNemFit <-
             } else {
                 SCompMat <- SCompMat[colnames(NEMlist$fc), ]
             }
+            if (ncol(SCompMat) != ncol(NEMlist$fc)) {
+                SCompMat <- t(SCompMat)
+            }
+            if (length(grep("_vs_", rownames(SCompMat))) > 0) {
+                SCompMat <- t(SCompMat)
+            }
             if (any(c("cosine", "euclidean", "maximum", "manhattan", "canberra",
                       "binary", "minkowski", "spearman", "pearson",
                       "kendall") %in% method)) {
-                if (ncol(SCompMat) != ncol(NEMlist$fc)) {
-                    SCompMat <- t(SCompMat)
-                }
-                if (length(grep("_vs_", rownames(SCompMat))) > 0) {
-                    SCompMat <- t(SCompMat)
-                }
                 S.mat <- SCompMat
                 E.mat <- NEMlist$fc
                 if (any(c("euclidean", "maximum", "manhattan", "canberra",
@@ -2540,7 +2540,7 @@ getNemFit <-
                         vprod <- function(x) { return(x%*%x) }
                         S.mat <- S.mat/(apply(S.mat, 1, vprod)^0.5)
                         E.mat <- E.mat/(apply(E.mat, 1, vprod)^0.5)
-                        cosine.sim <- -t(S.mat%*%t(E.mat))
+                        cosine.sim <- -E.mat%*%t(S.mat)
                     }
                     if ("test" %in% method) {
                         cs.fisher <- atanh(cosine.sim)
@@ -2561,10 +2561,10 @@ getNemFit <-
                 if ("llr" %in% method) {
                     S.mat <- SCompMat
                     E.mat <- NEMlist$fc
-                    cosine.sim <- E.mat%*%S.mat
+                    cosine.sim <- -E.mat%*%t(S.mat)
                     cosine.sim[is.na(cosine.sim)] <- 0
-                    MSEAfc <- -cosine.sim
-                    MSEIfc <- cosine.sim
+                    MSEAfc <- cosine.sim
+                    MSEIfc <- -cosine.sim
                 } else {
                     S0 <- as.matrix(1 - abs(SCompMat))
                     Spos <- SCompMat

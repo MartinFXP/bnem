@@ -47,7 +47,7 @@ NA
 #' @importFrom mnem plotDnf
 #' @examples
 #' sim <- simBoolGtn()
-#' mnem::plotDnf(sim$PKN$reacID)
+#' plot(sim)
 simBoolGtn <-
     function(n = 10, e = 25, s = 2, p = NULL, dag = TRUE, maxSize = 2,
              maxStim = 2, maxInhibit = 1,
@@ -107,11 +107,12 @@ simBoolGtn <-
                 }
             }
         }
-        write.table(sifMatrix, file = "temp.sif", sep = "\t",
+        mark <- as.numeric(Sys.time())+rnorm(1)
+        write.table(sifMatrix, file = paste0("bnemsim", mark, ".sif"), sep = "\t",
                     row.names = FALSE, col.names = FALSE, quote = FALSE)
-        PKN <- readSIF("temp.sif")
+        PKN <- readSIF(paste0("bnemsim", mark, ".sif"))
         if (!keepsif) {
-            unlink("temp.sif")
+            unlink(paste0("bnemsim", mark, ".sif"))
         }
         CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
                                 maxStim = maxStim, maxInhibit = maxInhibit,
@@ -2800,4 +2801,54 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
         dnf <- removeCycles(dnf = dnf)
     }
     return(unique(dnf))
+}
+#' score a boolean network
+#'
+#' computes the score of a boolean network given the model and data
+#' @param bString binary string denoting the boolean network
+#' @param CNOlist CNOlist object
+#' @param fc data
+#' @param model network model
+#' @param method scoring method
+#' @author Martin Pirkl
+#' @return random hyper-graph in normal form
+#' @export
+#' @examples
+#' sim <- simBoolGtn()
+#' scoreDnf(sim$bString, sim$CNOlist, sim$fc, sim$model)
+scoreDnf <- function(bString, CNOlist, fc, model, method = "llr") {
+    res <- bnem(search = "greedy", fc = fc, CNOlist = CNOlist,
+                model = model, method = method, maxSteps = 0,
+                initBstring = bString, draw = FALSE, verbose = FALSE)
+    return(min(res$scores[[1]]))
+}
+#' plot simulation object
+#'
+#' plots the boolen network as disjunctive normal form
+#' @param x bnemsim object
+#' @param ... further arguments; see function mnem::plotDnf
+#' @author Martin Pirkl
+#' @return plot of boolean network
+#' @export
+#' @importFrom mnem plotDnf
+#' @examples
+#' sim <- simBoolGtn()
+#' plot(sim)
+plot.bnemsim <- function(x, ...) {
+    plotDnf(x$model$reacID[as.logical(x$bString)])
+}
+#' plot bnem opbject
+#'
+#' plots the boolen network as disjunctive normal form
+#' @param x bnemsim object
+#' @param ... further arguments; see function mnem::plotDnf
+#' @author Martin Pirkl
+#' @return plot of boolean network
+#' @export
+#' @importFrom mnem plotDnf
+#' @examples
+#' sim <- simBoolGtn()
+#' plot(sim)
+plot.bnem <- function(x, ...) {
+    plotDnf(x$model$reacID[as.logical(x$bString)])
 }

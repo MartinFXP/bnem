@@ -13,8 +13,7 @@ library(CellNOptR)
 library(matrixStats)
 
 ## library(bnem)
-## source("~/Documents/B-NEM/R/main.r")
-## source("~/Documents/B-NEM/R/low.r")
+## source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
 
 maxrun <- as.numeric(commandArgs(TRUE)[1])
 
@@ -22,26 +21,34 @@ frac <- as.numeric(commandArgs(TRUE)[2])
 
 part <- as.numeric(commandArgs(TRUE)[3])
 
-runs <- (maxrun/frac*part - maxrun/frac):(maxrun/frac*part)
+sd <- as.numeric(commandArgs(TRUE)[4])
 
-n <- 10
+n <- as.numeric(commandArgs(TRUE)[5])
+
+## maxrun <- 2; frac <- 2; part <- 1; sd <- 0; n <- 5;
+
+runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
+
 m <- 10
 s <- 2
-maxSize = 2
+maxSize <- 2
 maxStim <- 2
 maxInhibit <- 1
-sd <- 1
 method <- "llr"
 
 verbose <- FALSE
 draw <- FALSE
 
-result <- array(0, c(maxrun, 4, 3), list(paste0("run", seq_len(maxrun)), c("greedy", "genetic_quick", "genetic_long", "random"), c("time", "accracy truth table", "accuracy differential effects")))
+result <- array(0, c(maxrun, 5, 4), list(paste0("run", seq_len(maxrun)), c("greedy", "greedy_ia", "genetic_quick", "genetic_long", "random"), c("time", "accracy truth table", "accuracy differential effects", "score")))
 
 for (run in runs) {
     cat(run)
-    sim <- simBoolGtn(n=n, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1)
-
+    bString <- numeric(100000)
+    while(length(bString) > 1000) {
+        sim <- simBoolGtn(n=n, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1)
+        bString <- sim$bString
+        ## print(length(bString))
+    }
     ## Rprof("temp.txt", line.profiling=TRUE)
     ## sim <- simBoolGtn(n=n, e=e, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1, maxcount = 1)
     ## Rprof(NULL)
@@ -56,66 +63,109 @@ for (run in runs) {
 
     ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     start <- as.numeric(Sys.time())
-    res1 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
+    res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE)
     result[run, 1, 1] <- as.numeric(Sys.time()) - start
+
+    ETT0 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res0$bString))
+
+    result[run, 1, 2] <- sum(ETT0 == ETT)/length(ETT)
+
+    ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT0)
+    ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+
+    tp <- (sum(sim$ERS == 1 & ERS == 1)+sum(sim$ERS == -1 & ERS == -1))
+    fn <- sum(abs(sim$ERS) == 1 & sim$ERS != ERS)
+    tn <- sum(sim$ERS == 0 & ERS == 0)
+    fp <- sum(sim$ERS == 0 & sim$ERS != ERS)
+
+    result[run, 1, 3] <- (tp/(tp+fn)+tn/(tn+fp))/2 # sum(ERS == sim$ERS)/length(ERS)
+
+    result[run, 1, 4] <- min(res0$scores[[1]])
+
+    start <- as.numeric(Sys.time())
+    res1 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
+    result[run, 2, 1] <- as.numeric(Sys.time()) - start
 
     ETT1 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res1$bString))
 
-    result[run, 1, 2] <- sum(ETT1 == ETT)/length(ETT)
+    result[run, 2, 2] <- sum(ETT1 == ETT)/length(ETT)
 
     ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT1)
     ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
 
-    result[run, 1, 3] <- sum(ERS == sim$ERS)/length(ERS)
+    tp <- (sum(sim$ERS == 1 & ERS == 1)+sum(sim$ERS == -1 & ERS == -1))
+    fn <- sum(abs(sim$ERS) == 1 & sim$ERS != ERS)
+    tn <- sum(sim$ERS == 0 & ERS == 0)
+    fp <- sum(sim$ERS == 0 & sim$ERS != ERS)
+
+    result[run, 2, 3] <- (tp/(tp+fn)+tn/(tn+fp))/2 # sum(ERS == sim$ERS)/length(ERS)
+
+    result[run, 2, 4] <- min(res1$scores[[1]])
 
     maxTime <- result[run, 1, 1]
 
     start <- as.numeric(Sys.time())
     res2 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
-    result[run, 2, 1] <- as.numeric(Sys.time()) - start
+    result[run, 3, 1] <- as.numeric(Sys.time()) - start
 
     ETT2 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res2$bString))
 
-    result[run, 2, 2] <- sum(ETT2 == ETT)/length(ETT)
+    result[run, 3, 2] <- sum(ETT2 == ETT)/length(ETT)
 
     ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT2)
     ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
 
-    result[run, 2, 3] <- sum(ERS == sim$ERS)/length(ERS)
+    tp <- (sum(sim$ERS == 1 & ERS == 1)+sum(sim$ERS == -1 & ERS == -1))
+    fn <- sum(abs(sim$ERS) == 1 & sim$ERS != ERS)
+    tn <- sum(sim$ERS == 0 & ERS == 0)
+    fp <- sum(sim$ERS == 0 & sim$ERS != ERS)
+
+    result[run, 3, 3] <- (tp/(tp+fn)+tn/(tn+fp))/2 # sum(ERS == sim$ERS)/length(ERS)
+
+    result[run, 3, 4] <- min(res2$scores)
 
     maxTime <- result[run, 1, 1]*10
 
     start <- as.numeric(Sys.time())
     res3 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
-    result[run, 3, 1] <- as.numeric(Sys.time()) - start
+    result[run, 4, 1] <- as.numeric(Sys.time()) - start
 
     ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res3$bString))
 
-    result[run, 3, 2] <- sum(ETT3 == ETT)/length(ETT)
+    result[run, 4, 2] <- sum(ETT3 == ETT)/length(ETT)
 
     ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT3)
     ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
 
-    result[run, 3, 3] <- sum(ERS == sim$ERS)/length(ERS)
+    result[run, 4, 3] <- sum(ERS == sim$ERS)/length(ERS)
+
+    result[run, 4, 4] <- min(res3$scores)
 
     start <- as.numeric(Sys.time())
     rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
-    result[run, 4, 1] <- as.numeric(Sys.time()) - start
+    result[run, 5, 1] <- as.numeric(Sys.time()) - start
 
     ETT4 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=rand))
 
-    result[run, 4, 2] <- sum(ETT4 == ETT)/length(ETT)
+    result[run, 5, 2] <- sum(ETT4 == ETT)/length(ETT)
 
     ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT4)
     ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
 
-    result[run, 4, 3] <- sum(ERS == sim$ERS)/length(ERS)
+    tp <- (sum(sim$ERS == 1 & ERS == 1)+sum(sim$ERS == -1 & ERS == -1))
+    fn <- sum(abs(sim$ERS) == 1 & sim$ERS != ERS)
+    tn <- sum(sim$ERS == 0 & ERS == 0)
+    fp <- sum(sim$ERS == 0 & sim$ERS != ERS)
+
+    result[run, 5, 3] <- (tp/(tp+fn)+tn/(tn+fp))/2 # sum(ERS == sim$ERS)/length(ERS)
+
+    result[run, 5, 4] <- scoreDnf(rand, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method)
 
     ## result[run,,]
 
 }
 
-save(result, file = paste("bnem/bnem_sim", maxrun, frac, part, n, e, s, sd, ".rda", sep = "_"))
+save(result, file = paste("bnem/bnem_sim", maxrun, frac, part, n, s, sd, ".rda", sep = "_"))
 
 stop()
 
@@ -145,9 +195,11 @@ rm output.txt
 
 ## bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_sim.r"
 
-for i in {1..10}; do
+frac=100
+
+for i in {1..99}; do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '100' '10' '${i}' < bnem_sim.r"
+	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '100' '${frac}' '${i}' '1' '20' < bnem_app.r"
     #fi
 done
 
@@ -155,16 +207,15 @@ done
 
 path <- "~/Mount/Leo/"
 
-n <- 10
-e <- n*3
+n <- 5
 s <- 2
-sd <- 2
+sd <- 1
 maxrun <- 100
 frac <- 10
 for (part in seq_len(frac)) {
     runs <- (maxrun/frac*part - maxrun/frac):(maxrun/frac*part)
-    file <- paste("bnem/bnem_sim", maxrun, frac, part, n, e, s, sd, ".rda", sep = "_")
-    if (i == 1) {
+    file <- paste("bnem/bnem_sim", maxrun, frac, part, n, s, sd, ".rda", sep = "_")
+    if (part == 1) {
         load(paste0(path, file))
         result2 <- result
     } else {
@@ -175,10 +226,11 @@ for (part in seq_len(frac)) {
 result <- result2
 
 pdf(paste("bnem_sim", n, e, s, sd, ".pdf", sep = "_"), width = 10, height = 6)
-par(mfrow=c(1,3))
-boxplot(result[,1:4,1], col = 2:4, ylab = "seconds", main = "Running time")
-boxplot(result[,1:4,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
-boxplot(result[,1:4,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
+par(mfrow=c(1,4))
+boxplot(result[,1:5,1], col = 2:4, ylab = "seconds", main = "Running time")
+boxplot(result[,1:5,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
+boxplot(result[,1:5,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
+boxplot(result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score")
 dev.off()
 
 ## analyze BCR:
