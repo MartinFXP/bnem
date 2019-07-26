@@ -193,13 +193,15 @@ rm error.txt
 
 rm output.txt
 
+rm .RData
+
 ## bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_sim.r"
 
-frac=100
+frac=20
 
-for i in {1..99}; do
+for i in {1..20}; do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '100' '${frac}' '${i}' '1' '20' < bnem_app.r"
+	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '100' '${frac}' '${i}' '0' '10' < bnem_app.r"
     #fi
 done
 
@@ -207,14 +209,15 @@ done
 
 path <- "~/Mount/Leo/"
 
-n <- 5
+n <- 10
 s <- 2
-sd <- 1
+sd <- 0
 maxrun <- 100
-frac <- 10
+frac <- 20
 for (part in seq_len(frac)) {
-    runs <- (maxrun/frac*part - maxrun/frac):(maxrun/frac*part)
+    runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
     file <- paste("bnem/bnem_sim", maxrun, frac, part, n, s, sd, ".rda", sep = "_")
+    if (!file.exists(paste0(path, file))) { next() }
     if (part == 1) {
         load(paste0(path, file))
         result2 <- result
@@ -222,6 +225,7 @@ for (part in seq_len(frac)) {
         load(paste0(path, file))
         result2[runs,,] <- result[runs,,]
     }
+    cat(part)
 }
 result <- result2
 
@@ -230,7 +234,7 @@ par(mfrow=c(1,4))
 boxplot(result[,1:5,1], col = 2:4, ylab = "seconds", main = "Running time")
 boxplot(result[,1:5,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
 boxplot(result[,1:5,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
-boxplot(result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score")
+boxplot(result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score", ylim = c(0.7,1))
 dev.off()
 
 ## analyze BCR:
