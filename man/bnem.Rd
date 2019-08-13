@@ -15,7 +15,7 @@ bnem(search = "greedy", fc = NULL, exprs = NULL, egenes = NULL,
   priorBitString = NULL, selPress = c(1.2, 1e-04), fit = "linear",
   targetBstring = "none", elitism = NULL, inversion = NULL,
   selection = c("t"), type = "SOCK", exhaustive = FALSE,
-  delcyc = TRUE, seeds = 1, maxSteps = Inf, node = NULL,
+  delcyc = FALSE, seeds = 1, maxSteps = Inf, node = NULL,
   absorpII = TRUE, draw = TRUE, prior = NULL, maxInputsPerGate = 2,
   ...)
 }

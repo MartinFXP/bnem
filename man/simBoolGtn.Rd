@@ -4,10 +4,10 @@
 \alias{simBoolGtn}
 \title{Sample random network and simulate data}
 \usage{
-simBoolGtn(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2,
-  maxInhibit = 1, m = 10, mflip = 0.33, r = 3, sd = 1,
-  keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE,
-  verbose = FALSE)
+simBoolGtn(n = 10, e = 25, s = 2, p = NULL, dag = TRUE,
+  maxSize = 2, maxStim = 2, maxInhibit = 1, m = 10, mflip = 0.33,
+  r = 3, sd = 1, keepsif = FALSE, maxcount = 10, negation = TRUE,
+  allstim = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{n}{number of S-genes}
@@ -18,9 +18,11 @@ simBoolGtn(n = 10, e = 25, s = 2, dag = TRUE, maxStim = 2,
 
 \item{dag}{if TRUE graph will be acyclic}
 
+\item{maxSize}{maximum number of S-genes in a disjunction or clause}
+
 \item{maxStim}{maximum stimulated S-genes in the data samples}
 
-\item{maxInhibit}{maximum inhibited number of S-genes in the data samples}
+\item{maxInhibit}{maximum inhibited S-genes in the data samples}
 
 \item{m}{E-genes per S-gene}
 
@@ -51,7 +53,7 @@ extension and generates data
 }
 \examples{
 sim <- simBoolGtn()
-mnem::plotDnf(sim$PKN$reacID)
+plot(sim)
 }
 \author{
 Martin Pirkl

@@ -108,7 +108,8 @@ simBoolGtn <-
             }
         }
         mark <- as.numeric(Sys.time())+rnorm(1)
-        write.table(sifMatrix, file = paste0("bnemsim", mark, ".sif"), sep = "\t",
+        write.table(sifMatrix, file = paste0("bnemsim", mark, ".sif"),
+                    sep = "\t",
                     row.names = FALSE, col.names = FALSE, quote = FALSE)
         PKN <- readSIF(paste0("bnemsim", mark, ".sif"))
         if (!keepsif) {
@@ -421,7 +422,7 @@ bnem <-
              selection = c("t"),
              type = "SOCK",
              exhaustive = FALSE,
-             delcyc = TRUE,
+             delcyc = FALSE,
 
              seeds = 1,
              maxSteps = Inf,
