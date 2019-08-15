@@ -45,7 +45,7 @@ while loops do not run in infinity}
 }
 \value{
 list with the corresponding prior graph, ground truth network and
-dataexample
+data example
 }
 \description{
 Draw a random prior network, samples a ground truth from the full boolean

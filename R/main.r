@@ -1,3 +1,271 @@
+#' BCR perturbation reproduction
+#'
+#' Produce the application data from the BCR paper
+#' of Pirkl, et al., 2016, Bioinformatics. Raw data is available at
+#' https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE68761
+#' @param path path to the CEL.gz files
+#' @author Martin Pirkl
+#' @return data matrix with foldchanges
+#' @export
+#' @importFrom vsn justvsn
+#' @importFrom limma lmFit eBayes makeContrasts contrasts.fit
+#' @importFrom sva ComBat
+#' @importFrom affy rma ReadAffy list.celfiles
+#' @examples
+#'\dontrun{
+#' processData()
+#' }
+#' data(bcr)
+processData <- function(path = "") {
+
+    ## path <- "~/Downloads/celfiles/"
+
+    wd <- getwd()
+    setwd(path)
+    fns <- affy::list.celfiles()
+    ab <- affy::ReadAffy(filenames=fns
+                         ##, compress = TRUE,
+                         ## rm.outliers = TRUE,
+                         ## m.mask = TRUE
+                         )
+    setwd(wd)
+    ## e <- affy::rma(ab)
+    ev <- vsn::vsnrma(ab)
+    data <- exprs(ev)
+    colnames(data) <- gsub("GSM16808[0-9][0-9]_|\\.CEL\\.gz", "",
+                          colnames(data))
+
+    batch <- gsub(".*_", "", colnames(data))
+    batch[which(batch == "Batch")] <- "Batch3"
+    dataCB <- sva::ComBat(data, batch)
+    colnames(dataCB) <- gsub("SP600125", "Jnk", colnames(dataCB))
+    colnames(dataCB) <- gsub("SB203580", "p38", colnames(dataCB))
+    colnames(dataCB) <- gsub("10058F4", "Myc", colnames(dataCB))
+    colnames(dataCB) <- gsub("Ko", "KO", colnames(dataCB))
+    colnames(dataCB) <- gsub("Ly294002", "LY294002", colnames(dataCB))
+    colnames(dataCB) <- gsub("LY294002", "Pi3k", colnames(dataCB))
+    colnames(dataCB) <- gsub("U0126", "Erk", colnames(dataCB))
+    colnames(dataCB) <- gsub("DMSO", "Ctrl", colnames(dataCB))
+    colnames(dataCB) <- gsub("IKK2", "Ikk2", colnames(dataCB))
+    colnames(dataCB) <- gsub("TAK1", "Tak1", colnames(dataCB))
+    vars <- unique(unlist(strsplit(gsub("_Batch.*", "", colnames(dataCB)),
+                                   "_")))
+    vars <- sort(vars[-grep("\\+", vars)])
+    vars <- vars[-which(vars %in% c("KO"))]
+    design <- matrix(0, ncol(dataCB), length(vars))
+    colnames(design) <- vars
+    rownames(design) <- colnames(dataCB)
+    for (i in vars) {
+        design[grep(i, colnames(dataCB)), i] <- 1
+    }
+    combos <- NULL
+    for (i in which(apply(design, 1, sum) > 1)) {
+        combos <- c(combos,
+                    paste(sort(colnames(design)[which(design[i, ] > 0)]),
+                          collapse = "_"))
+    }
+    combos <- sort(unique(combos))
+    ##combos <- combos[-(14:17)]
+    design2 <- design
+    design2[which(apply(design, 1, sum) > 1), ] <- 0
+    for (i in combos) {
+        comb <- unlist(strsplit(i, "_"))
+        tmp2 <- numeric(nrow(design))
+        tmp2[which(apply(design[, comb], 1, sum) == length(comb) &
+                  apply(design, 1, sum) == length(comb))] <- 1
+        design2 <- cbind(design2, tmp2)
+        colnames(design2)[ncol(design2)] <- i
+    }
+    design2 <- design2[, -which(colnames(design2) %in% "BCR")]
+    colnames(design2)[which(colnames(design2) %in% "BCR_Ctrl")] <- "BCR"
+
+
+    fit <- limma::lmFit(dataCB, design2)
+
+    fc <- matrix(0, nrow(dataCB), (ncol(design2)-2)*2 + 1)
+    colnames(fc) <- seq_len(ncol(fc))
+    contmat <- limma::makeContrasts(Ctrl_vs_BCR=BCR-Ctrl, levels=design2)
+    fit2 <- limma::contrasts.fit(fit, contmat)
+    fit2 <- limma::eBayes(fit2)
+    fc[, 1] <- fit2$coefficients
+    colnames(fc)[1] <- "Ctrl_vs_BCR"
+    colnames(fc)[-1] <- c(paste("Ctrl_vs",
+                                colnames(design2)[-which(colnames(design2) %in%
+                                                         c("Ctrl", "BCR"))],
+                                sep = "_"),
+                          paste("BCR_vs",
+                                colnames(design2)[-which(colnames(design2) %in%
+                                                         c("Ctrl", "BCR"))],
+                                sep = "_"))
+    for (i in colnames(design2)) {
+        if (i %in% c("Ctrl", "BCR")) { next() }
+        contmat <- contmat*0
+        contmat[which(colnames(design2) %in% "Ctrl")] <- -1
+        contmat[i, ] <- 1
+        fit2 <- limma::contrasts.fit(fit, contmat)
+        fit2 <- limma::eBayes(fit2)
+        fc[, paste0("Ctrl_vs_", i)] <- fit2$coefficients
+        contmat <- contmat*0
+        contmat[which(colnames(design2) %in% "BCR")] <- -1
+        contmat[i, ] <- 1
+        fit2 <- limma::contrasts.fit(fit, contmat)
+        fit2 <- limma::eBayes(fit2)
+        fc[, paste0("BCR_vs_", i)] <- fit2$coefficients
+    }
+    targets <- paste("BCR_vs_BCR",
+                                colnames(design2)[-which(colnames(design2) %in%
+                                                         c("DMSO", "BCR"))],
+                                sep = "_")
+    targets <- targets[-grep("Myc|LY294|U0126|Vivit|BCR_BCR|BCR_Ctrl", targets)]
+    fc <- fc[, c("Ctrl_vs_BCR", targets)]
+    rownames(fc) <- rownames(data)
+
+    fc2 <- fc[which(abs(fc[, "Ctrl_vs_BCR"]) > 1 &
+                   apply(abs(fc[, -which(colnames(fc) %in%
+                                         "Ctrl_vs_BCR")]), 1, max) >
+                   log2(1.5)), ]
+    fci <- fc2[, -which(colnames(fc2) %in% "Ctrl_vs_BCR")]*sign(fc2[, "Ctrl_vs_BCR"])
+    argl <- apply(fci, 1, min)
+    fc2 <- fc2[-which(argl > 0), ]
+
+}
+#' Plot Bootstrap result
+#'
+#' Shows the result of a Boostrap with either edge frequencies
+#' or confidence intervals
+#' @param x bnembs object
+#' @param scale numeric value for scaling the edgewidth
+#' @param shift numeric value for shifting the edgewidth
+#' @param cut shows only edges with a fraction larger than cut
+#' @param dec integer for function round
+#' @param ci if TRUE shows confidence intervals
+#' @param cip range for the confidence interval
+#' @param method method to use for conidence itneral
+#' computation (see function binom.confint from package binom)
+#' @param ... additional parameters for the function plotDnf
+#' from package mnem
+#' @author Martin Pirkl
+#' @return plots the network from the bootstrap
+#' @export
+#' @importFrom mnem plotDnf
+#' @importFrom binom binom.confint
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
+#' c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
+#' maxInhibit = 2, signals = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
+#' fc <- computeFc(CNOlist, exprs)
+#' initBstring <- rep(0, length(model$reacID))
+#' res <- bnemBs(search = "greedy", model = model, CNOlist = CNOlist,
+#' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
+#' parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
+#' maxSteps = Inf)
+plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
+                        ci = 0, cip = 0.95, method = "exact", ...) {
+    y <- x$x
+    n <- x$n
+    x <- list()
+    x$graph <- sort(unique(y))
+    x$freq <- table(y)
+    x$freq <- x$freq[order(names(x$freq))]/n
+    graph <- x$graph
+    freq <- x$freq
+    graph <- graph[which(freq >= cut)]
+    freq <- freq[which(freq >= cut)]
+    freq2 <- NULL
+    for (i in seq_len(length(graph))) {
+        tmp <- rep(freq[i], length(unlist(strsplit(graph[i], "\\+"))))
+        if (length(tmp) > 1) {
+            freq2 <- c(freq2, tmp[1])
+        }
+        freq2 <- c(freq2, tmp)
+    }
+    freq2 <- as.vector(freq2)
+    if (ci) {
+        freqn <- freq2*n
+        cis <- round(binom::binom.confint(freqn, n, cip,
+                                          method = method)[, 5:6], dec)
+        cis <-  paste0("[", apply(cis, 1, paste, collapse = " - "), "]")
+        plotDnf(graph, edgewidth = freq*scale+shift, edgelabel = cis, ...)
+    } else {
+        freq2 <- round(freq2, dec)
+        plotDnf(graph, edgewidth = freq*scale+shift, edgelabel = freq2, ...)
+    }
+}
+#' Bootstraped Network
+#'
+#' Runs Bootstraps on the data
+#' @param fc matrix with foldchanges or signed effects
+#' @param x number of bootstraps
+#' @param f percentage to sample, e.g. f = 0.5 samples only 50%
+#' the amount of E-genes as the original data
+#' @param replace if TRUE classical bootstrap, if FALSE sub-sampling without
+#' replacement
+#' @param startString matrix with each row being a string denoting a
+#' network to start inference several times with a specific network
+#' ... additional parameters for the bnem function
+#' @author Martin Pirkl
+#' @return list with the accumulation of edges in x and the number of
+#' bootstraps in n
+#' @export
+#' @examples
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
+#' c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
+#' maxInhibit = 2, signals = c("A", "B","C","D"))
+#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
+#' fc <- computeFc(CNOlist, exprs)
+#' initBstring <- rep(0, length(model$reacID))
+#' res <- bnemBs(search = "greedy", model = model, CNOlist = CNOlist,
+#' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
+#' parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
+#' maxSteps = Inf)
+bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
+                   ...) {
+    accum <- NULL
+    for (i in seq_len(x)) {
+        cat(i)
+        fcsub <- fc[sample(seq_len(nrow(fc)), ceiling(nrow(fc)*f),
+                           replace = replace), ]
+        if (is.null(startString)) {
+            tmp <- bnem(fc = fcsub, ...)
+        } else {
+            if (!is(startString, "matrix")) {
+                startString <- t(as.matrix(startString))
+            }
+            score <- 1
+            for (j in seq_len(nrow(startString))) {
+                tmp0 <- bnem(initBstring = startString[j, ], fc = fcsub, ...)
+                if (min(unlist(tmp0$scores)) < score) {
+                    tmp <- tmp0
+                }
+            }
+        }
+
+        accum <- c(accum, tmp$graph)
+    }
+
+    accum <- list(x = accum, n = x)
+
+    class(accum) <- "bnembs"
+
+    return(accum)
+}
 #' B-Cell receptor signalling perturbations
 #'
 #' Processed data from experiments with a stimulated B-Cell receptor (bcr)
@@ -42,7 +310,7 @@ NA
 #' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return list with the corresponding prior graph, ground truth network and
-#' dataexample
+#' data example
 #' @export
 #' @importFrom mnem plotDnf
 #' @examples
@@ -363,7 +631,6 @@ absorption <-
 #' @return List object including the optimized hyper-graph and its
 #' corresponding binary string.
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t",

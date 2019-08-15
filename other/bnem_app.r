@@ -1,5 +1,7 @@
 ## other:
 
+run <- as.numeric(commandArgs(TRUE)[1])
+
 source("main.r")
 source("low.r")
 library(CellNOptR)
@@ -25,57 +27,25 @@ sifMatrix <- rbind(c("BCR", 1, "Pi3k"),
                    c("Tak1", 1, "Jnk"),
                    c("Ikk2", 1, "Jnk"),
                    c("p38", 1, "Jnk"))
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
+uniquesample <- rnorm(1)
+write.table(sifMatrix, file = paste0("temp", uniquesample, ".sif"), sep = "\t", row.names = FALSE,
             col.names = FALSE,
             quote = FALSE)
-PKN <- readSIF("temp.sif")
-unlink('temp.sif')
+PKN <- readSIF(paste0("temp", uniquesample, ".sif"))
+unlink(paste0("temp", uniquesample, ".sif"))
 
 CNOlist <- dummyCNOlist("BCR", c("Erk", "Ikk2", "Jnk", "p38", "Pi3k", "Tak1"), 1, 3)
 
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-
-bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, independent = TRUE, startString = NULL, ...) {
-    accum <- NULL
-    for (i in seq_len(x)) {
-        cat(i)
-        fcsub <- fc[sample(seq_len(nrow(fc)), ceiling(nrow(fc)*f), replace = replace), ]
-        if (is.null(startString)) {
-            tmp <- bnem(fc = fcsub, ...)
-        } else {
-            if (!is(startString, "matrix")) {
-                startString <- t(as.matrix(startString))
-            }
-            score <- 1
-            for (j in seq_len(nrow(startString))) {
-                tmp0 <- bnem(initBstring = startString[j, ], fc = fcsub, ...)
-                if (min(unlist(tmp0$scores)) < score) {
-                    tmp <- tmp0
-                }
-            }
-        }
-
-        accum <- c(accum, tmp$graph)
-    }
-
-    graph <- names(table(accum))
-    freq <- table(accum)/x
-
-    accum <- list(graph = graph, freq = freq)
-
-    class(accum) <- "bnembs"
-
-    return(accum)
-}
 
 initBstring = rbind(rep(0, length(model$reacID)),
                     rep(1, length(model$reacID)))
 
 ## initBstring <- initBstring[1, ]
 
-bsres <- bnemBs(fc = fc, 1000, f = 1, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
+bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
 
-save(bsres, file = "bcr_boot.rda")
+save(bsres, file = paste0("bnem/bcr_boot_", run, ".rda"))
 
 stop()
 
@@ -132,7 +102,6 @@ for (run in runs) {
     while(length(bString) > 1000) {
         sim <- simBoolGtn(n=n, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1)
         bString <- sim$bString
-        ## print(length(bString))
     }
     ## Rprof("temp.txt", line.profiling=TRUE)
     ## sim <- simBoolGtn(n=n, e=e, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1, maxcount = 1)
@@ -141,10 +110,6 @@ for (run in runs) {
     ## head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
 
     ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
-
-    ## plotDnf(sim$model$reacID[as.logical(reduceGraph(sim$bString, sim$model, sim$CNOlist))])
-
-    ## plotDnf(sim$model$reacID[as.logical(reduceGraph(rand, sim$model, sim$CNOlist))])
 
     ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     start <- as.numeric(Sys.time())
@@ -157,11 +122,6 @@ for (run in runs) {
 
     ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT0)
     ERS0 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
-
-    ## tp <- (sum(sim$ERS == 1 & ERS == 1)+sum(sim$ERS == -1 & ERS == -1))
-    ## fn <- sum(abs(sim$ERS) == 1 & sim$ERS != ERS)
-    ## tn <- sum(sim$ERS == 0 & ERS == 0)
-    ## fp <- sum(sim$ERS == 0 & sim$ERS != ERS)
 
     result[run, 1, 3] <- sum(ERS == sim$ERS)/length(ERS)
 
@@ -198,10 +158,6 @@ for (run in runs) {
     result[run, 3, 3] <- sum(ERS == sim$ERS)/length(ERS)
 
     result[run, 3, 4] <- min(res2$scores)
-
-    ## result[1,,]; par(mfrow=c(1,3)); plotDnf(sim$model$reacID[as.logical(res1$bString)]); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$model$reacID[as.logical(res2$bString)]);
-
-    ## source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
 
     maxTime <- result[run, 1, 1]*10
 
@@ -271,7 +227,7 @@ rm output.txt
 
 rm .RData
 
-bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_app.r"
+## bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_app.r"
 
 frac=100
 
@@ -281,9 +237,21 @@ for i in {1..100}; do
     #fi
 done
 
-## plot sim:
+##
 
-result <- result2 <- result*0
+ram=1000
+
+rm error.txt
+
+rm output.txt
+
+rm .RData
+
+for i in {1..100}; do
+        bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '${i}' < bnem_app.r"
+done
+
+## plot sim:
 
 path <- "~/Mount/Leo/"
 
@@ -362,88 +330,40 @@ greedy0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", searc
 
 greedy1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", initBstring = rep(1, length(model$reacID)))
 
-ga0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "genetic", elitism = 1, inversion = 50)
+ga0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "genetic")
 
 ga1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "genetic", initBstring = rep(1, length(model$reacID)))
+
+greedyM <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", initBstring = ga0$bString)
 
 which.min(c(min(greedy0$scores[[1]]), min(greedy1$scores[[1]]), min(ga0$scores), min(ga1$scores)))
 
 print(c(min(greedy0$scores[[1]]), min(greedy1$scores[[1]]), min(ga0$scores), min(ga1$scores)), 22)
 
-plotDnf(greedy1$graph)
-
-plot.bnem <- function(x, ...) {
-    plotDnf(res$graph)
-}
-
-bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, independent = TRUE, startString = NULL, ...) {
-    accum <- NULL
-    for (i in seq_len(x)) {
-        cat(i)
-        fcsub <- fc[sample(seq_len(nrow(fc)), ceiling(nrow(fc)*f), replace = replace), ]
-        if (is.null(startString)) {
-            tmp <- bnem(fc = fcsub, ...)
-        } else {
-            if (!is(startString, "matrix")) {
-                startString <- t(as.matrix(startString))
-            }
-            score <- 1
-            for (j in seq_len(nrow(startString))) {
-                tmp0 <- bnem(initBstring = startString[j, ], fc = fcsub, ...)
-                if (min(unlist(tmp0$scores)) < score) {
-                    tmp <- tmp0
-                }
-            }
-        }
-
-        accum <- c(accum, tmp$graph)
-    }
-
-    graph <- names(table(accum))
-    freq <- table(accum)/x
-
-    accum <- list(graph = graph, freq = freq, n = x, s = f)
-
-    class(accum) <- "bnembs"
-
-    return(accum)
-}
+plotDnf(greedy0$graph)
 
 initBstring = rbind(rep(0, length(model$reacID)),
                     rep(1, length(model$reacID)))
 
 ## initBstring <- initBstring[1, ]
 
+## takes long use hpc
+
 bsres <- bnemBs(fc = fc, 10, f = 0.5, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
 
-#' @importFrom binom binom.confint
-plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2, ci = TRUE, cip = 0.95, method = "exact", ...) {
-    graph <- x$graph
-    freq <- x$freq
-    graph <- graph[which(freq >= cut)]
-    freq <- freq[which(freq >= cut)]
-    freq2 <- NULL
-    for (i in seq_len(length(graph))) {
-        tmp <- rep(freq[i], length(unlist(strsplit(graph[i], "\\+"))))
-        if (length(tmp) > 1) {
-            freq2 <- c(freq2, tmp[1])
-        }
-        freq2 <- c(freq2, tmp)
-    }
-    freq2 <- as.vector(freq2)
-    freq2 <- round(freq2, dec)
-    if (ci) {
-        freqn <- freq*x$n
-        cis <- paste(binom.confint(freqn, x$n, cip, method = method)[, 5:6])
-        plotDnf(graph, edgewidth = freq*scale+shift, edgelabel = cis, ...)
-    } else {
-        plotDnf(graph, edgewidth = freq*scale+shift, edgelabel = freq2, ...)
-    }
+## read hpc results:
+
+bsfull <- NULL
+
+for (i in 1:100) {
+    if (!file.exists(paste0("~/Mount/Leo/bnem/bcr_boot_", i, ".rda"))) { cat(i); next() }
+    load(paste0("~/Mount/Leo/bnem/bcr_boot_", i, ".rda"))
+    bsfull <- c(bsfull, bsres)
 }
 
-plot(bsres, cut = 0.5, dec = 2, ci = 1)
+bsfull <- list(x = bsfull, n = 1000)
+class(bsfull) <- "bnembs"
 
-
-
-
-
+pdf("temp.pdf", width = 8, height = 8)
+plot(bsfull, cut = 0.5, dec = 2, ci = 0)
+dev.off()
