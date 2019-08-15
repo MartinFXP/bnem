@@ -43,6 +43,12 @@ initBstring = rbind(rep(0, length(model$reacID)),
 
 ## initBstring <- initBstring[1, ]
 
+nemfc <- bcr$fc[, c(1,2,6,8,9,10)]
+colnames(nemfc) <- gsub(".*_", "", colnames(nemfc))
+nemfc[which(abs(nemfc) >= log2(1.5))] <- 1
+nemfc[which(nemfc != 1)] <- 0
+nemres <- mnem:::mynem(nemfc, method = "disc")
+
 bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
 
 save(bsres, file = paste0("bnem/bcr_boot_", run, ".rda"))
@@ -365,5 +371,5 @@ bsfull <- list(x = bsfull, n = 1000)
 class(bsfull) <- "bnembs"
 
 pdf("temp.pdf", width = 8, height = 8)
-plot(bsfull, cut = 0.5, dec = 2, ci = 0)
+plot(bsfull, cut = 0.5, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"))
 dev.off()

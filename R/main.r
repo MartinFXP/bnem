@@ -11,25 +11,18 @@
 #' @importFrom limma lmFit eBayes makeContrasts contrasts.fit
 #' @importFrom sva ComBat
 #' @importFrom affy rma ReadAffy list.celfiles
+#' @importFrom Biobase exprs
 #' @examples
 #'\dontrun{
 #' processData()
 #' }
 #' data(bcr)
 processData <- function(path = "") {
-
-    ## path <- "~/Downloads/celfiles/"
-
     wd <- getwd()
     setwd(path)
     fns <- affy::list.celfiles()
-    ab <- affy::ReadAffy(filenames=fns
-                         ##, compress = TRUE,
-                         ## rm.outliers = TRUE,
-                         ## m.mask = TRUE
-                         )
+    ab <- affy::ReadAffy(filenames=fns)
     setwd(wd)
-    ## e <- affy::rma(ab)
     ev <- vsn::vsnrma(ab)
     data <- exprs(ev)
     colnames(data) <- gsub("GSM16808[0-9][0-9]_|\\.CEL\\.gz", "",
@@ -84,7 +77,7 @@ processData <- function(path = "") {
 
     fc <- matrix(0, nrow(dataCB), (ncol(design2)-2)*2 + 1)
     colnames(fc) <- seq_len(ncol(fc))
-    contmat <- limma::makeContrasts(Ctrl_vs_BCR=BCR-Ctrl, levels=design2)
+    contmat <- limma::makeContrasts(Ctrl_vs_BCR="BCR-Ctrl", levels=design2)
     fit2 <- limma::contrasts.fit(fit, contmat)
     fit2 <- limma::eBayes(fit2)
     fc[, 1] <- fit2$coefficients
@@ -124,7 +117,8 @@ processData <- function(path = "") {
                    apply(abs(fc[, -which(colnames(fc) %in%
                                          "Ctrl_vs_BCR")]), 1, max) >
                    log2(1.5)), ]
-    fci <- fc2[, -which(colnames(fc2) %in% "Ctrl_vs_BCR")]*sign(fc2[, "Ctrl_vs_BCR"])
+    fci <- fc2[, -which(colnames(fc2) %in%
+                        "Ctrl_vs_BCR")]*sign(fc2[, "Ctrl_vs_BCR"])
     argl <- apply(fci, 1, min)
     fc2 <- fc2[-which(argl > 0), ]
 
@@ -146,6 +140,7 @@ processData <- function(path = "") {
 #' from package mnem
 #' @author Martin Pirkl
 #' @return plots the network from the bootstrap
+#' @method plot bnembs
 #' @export
 #' @importFrom mnem plotDnf
 #' @importFrom binom binom.confint
@@ -155,11 +150,11 @@ processData <- function(path = "") {
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -211,7 +206,7 @@ plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
 #' replacement
 #' @param startString matrix with each row being a string denoting a
 #' network to start inference several times with a specific network
-#' ... additional parameters for the bnem function
+#' @param ... additional parameters for the bnem function
 #' @author Martin Pirkl
 #' @return list with the accumulation of edges in x and the number of
 #' bootstraps in n
@@ -222,11 +217,11 @@ plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -294,6 +289,8 @@ NA
 #' @param n number of S-genes
 #' @param e number of maximum edges
 #' @param s number of stimulated S-genes
+#' @param p probability for how many children to sample in the next
+#' hierarchical layer
 #' @param dag if TRUE graph will be acyclic
 #' @param maxSize maximum number of S-genes in a disjunction or clause
 #' @param maxStim maximum stimulated S-genes in the data samples
@@ -379,14 +376,14 @@ simBoolGtn <-
         write.table(sifMatrix, file = paste0("bnemsim", mark, ".sif"),
                     sep = "\t",
                     row.names = FALSE, col.names = FALSE, quote = FALSE)
-        PKN <- readSIF(paste0("bnemsim", mark, ".sif"))
+        PKN <- CellNOptR::readSIF(paste0("bnemsim", mark, ".sif"))
         if (!keepsif) {
             unlink(paste0("bnemsim", mark, ".sif"))
         }
         CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
                                 maxStim = maxStim, maxInhibit = maxInhibit,
                                 signals = NULL)
-        model <- preprocessing(CNOlist, PKN, maxInputsPerGate=maxSize,
+        model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate=maxSize,
                                verbose = verbose)
         bString <- reduceGraph(sample(c(0,1), length(model$reacID),
                                       replace = TRUE), model, CNOlist)
@@ -636,11 +633,11 @@ absorption <-
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -803,11 +800,11 @@ bnem <-
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signals = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -1091,7 +1088,7 @@ convertGraph <-
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signals = c("A", "B","C","D"))
@@ -1399,11 +1396,11 @@ epiNEM2Bg <- function(t) {
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -1662,11 +1659,11 @@ same.") }
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' bString <- reduceGraph(rep(1, length(model$reacID)), model, CNOlist)
 reduceGraph <-
     function(bString, model, CNOlist) {
@@ -1712,11 +1709,11 @@ reduceGraph <-
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' states <- simulateStatesRecursive(CNOlist, model,
 #' rep(1, length(model$reacID)))
 simulateStatesRecursive <-
@@ -2054,11 +2051,11 @@ transRed <-
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 #' col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- readSIF("temp.sif")
+#' PKN <- CellNOptR::readSIF("temp.sif")
 #' unlink('temp.sif')
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
-#' model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 #' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
@@ -3097,6 +3094,7 @@ scoreDnf <- function(bString, CNOlist, fc, model, method = "llr") {
 #' @param ... further arguments; see function mnem::plotDnf
 #' @author Martin Pirkl
 #' @return plot of boolean network
+#' @method plot bnemsim
 #' @export
 #' @importFrom mnem plotDnf
 #' @examples
@@ -3112,6 +3110,7 @@ plot.bnemsim <- function(x, ...) {
 #' @param ... further arguments; see function mnem::plotDnf
 #' @author Martin Pirkl
 #' @return plot of boolean network
+#' @method plot bnem
 #' @export
 #' @importFrom mnem plotDnf
 #' @examples

@@ -19,8 +19,9 @@ the amount of E-genes as the original data}
 replacement}
 
 \item{startString}{matrix with each row being a string denoting a
-network to start inference several times with a specific network
-... additional parameters for the bnem function}
+network to start inference several times with a specific network}
+
+\item{...}{additional parameters for the bnem function}
 }
 \value{
 list with the accumulation of edges in x and the number of
@@ -35,11 +36,11 @@ c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- readSIF("temp.sif")
+PKN <- CellNOptR::readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 maxInhibit = 2, signals = c("A", "B","C","D"))
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)

@@ -29,7 +29,12 @@ Imports:
     methods,
     utils,
     graphics,
-    graph
+    graph,
+    affy,
+    binom,
+    limma,
+    sva,
+    vsn
 VignetteBuilder: knitr
 Suggests:
     knitr, 

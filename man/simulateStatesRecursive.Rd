@@ -29,11 +29,11 @@ c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,
 col.names = FALSE,
 quote = FALSE)
-PKN <- readSIF("temp.sif")
+PKN <- CellNOptR::readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 states <- simulateStatesRecursive(CNOlist, model,
 rep(1, length(model$reacID)))
 }

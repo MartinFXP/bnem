@@ -4,7 +4,7 @@
 \alias{plot.bnemsim}
 \title{plot simulation object}
 \usage{
-plot.bnemsim(x, ...)
+\method{plot}{bnemsim}(x, ...)
 }
 \arguments{
 \item{x}{bnemsim object}

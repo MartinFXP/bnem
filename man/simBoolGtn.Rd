@@ -16,6 +16,9 @@ simBoolGtn(n = 10, e = 25, s = 2, p = NULL, dag = TRUE,
 
 \item{s}{number of stimulated S-genes}
 
+\item{p}{probability for how many children to sample in the next
+hierarchical layer}
+
 \item{dag}{if TRUE graph will be acyclic}
 
 \item{maxSize}{maximum number of S-genes in a disjunction or clause}

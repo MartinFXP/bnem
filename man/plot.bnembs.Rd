@@ -4,8 +4,8 @@
 \alias{plot.bnembs}
 \title{Plot Bootstrap result}
 \usage{
-plot.bnembs(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
-  ci = 0, cip = 0.95, method = "exact", ...)
+\method{plot}{bnembs}(x, scale = 3, shift = 0.1, cut = 0.5,
+  dec = 2, ci = 0, cip = 0.95, method = "exact", ...)
 }
 \arguments{
 \item{x}{bnembs object}
@@ -41,11 +41,11 @@ c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- readSIF("temp.sif")
+PKN <- CellNOptR::readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 maxInhibit = 2, signals = c("A", "B","C","D"))
-model <- preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
 exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 nrow(slot(CNOlist, "cues")))
 fc <- computeFc(CNOlist, exprs)
