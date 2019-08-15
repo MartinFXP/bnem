@@ -271,6 +271,7 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
 #' synergistic and non-synergistic interactions in signalling pathways
 #' using Boolean Nested Effect Models, Bioinformatics, Volume 32, Issue 6,
 #' 15 March 2016, Pages 893–900, https://doi.org/10.1093/bioinformatics/btv680.
+#' See also the function processData for details.
 #' @name bcr
 #' @docType data
 #' @usage bcr
@@ -383,8 +384,9 @@ simBoolGtn <-
         CNOlist <- dummyCNOlist(stimuli = stimuli, inhibitors = inhibitors,
                                 maxStim = maxStim, maxInhibit = maxInhibit,
                                 signals = NULL)
-        model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate=maxSize,
-                               verbose = verbose)
+        model <- CellNOptR::preprocessing(CNOlist, PKN,
+                                          maxInputsPerGate=maxSize,
+                                          verbose = verbose)
         bString <- reduceGraph(sample(c(0,1), length(model$reacID),
                                       replace = TRUE), model, CNOlist)
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
