@@ -15,13 +15,13 @@ vignette: >
 ## Introduction
 
 Boolean Nested effects Models (B-NEM) are used to infer signalling
-pathways. In different experiments (conditions) members of a pathway
+pathways. In different experiments (conditions) genes of a pathway
 (S-genes) are stimulated or inhibited, alone and in combination. In
 each experiment transcriptional targets (E-genes) of the pathway react 
 differently and are higher or lower expressed depending on the
-condition. From these differential expression B-NEM infers Boolean
+condition. From these differential expressions B-NEM infers Boolean
 functions presented as hyper-edges of a hyper-graph connecting parents 
-and children in the pathway. For example if the signal is transducted 
+and children in the pathway. For example, if the signal is transducted 
 by two parents A and B to a child C and the signal can be blocked with 
 a knock-down of either one, they are connected by a typical
 AND-gate. If the signal is still transduced during a single
@@ -31,7 +31,7 @@ by a Boolean function
 \[f: \left\{0,1\right\}^n \to \left\{0,1\right\},~C = f(A_1,\dots,A_n)\]
 with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
 
-The B-NEM package is based on and uses many low level function of the
+The B-NEM package is based on and uses many functions of the
 CellNOptR package of Terfve et al., 2012.
 
 ## Installign and loading B-NEM
@@ -42,34 +42,34 @@ knitr::opts_chunk$set(message=FALSE, out.width="125%", fig.align="center",
                       fig.height = 4, fig.width = 8, error=FALSE)
 fig.cap0 <- "caption"
 ```
-Install the package with the devtools library.
+Install the package with the devtools library or via Bioconductor.
 ```{r, eval=FALSE}
 install.packages("devtools")
 
 library(devtools)
 
 github_install(bnem)
-```
 
+## Bioconductor:
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install("mnem")
+```
+Load the Boolean Nested Effects model package.
 ```{r}
 library(bnem)
-library(mnem)
-library(CellNOptR)
-library(snowfall)
-library(epiNEM)
-library(matrixStats)
 ```
 
-## Toy example for DAG
+## Toy example for a DAG
 
 We show how to use B-NEM on a toy pathway presented by a directed
 acyclic (hyper-)graph (DAG). B-NEM demands several objects as
 input. The two main objects are the differential gene expression
 (data) and prior knowledge respectively the search space.
 
-The following function creates a directed acyclic graph (dag), which
+The following function creates a DAG, which
 is then extended to a full Boolean network. From this network we
-sample a subset of edges to define our groudn truth. In the last step,
+sample a subset of edges to define our ground truth. In the last step,
 the function generates data from the ground truth.
 
 ```{r}
@@ -90,9 +90,10 @@ stimuli <- unique(gsub("=.*|!", "", PKN$reacID))
 stimuli <- stimuli[which(!(stimuli %in% children))]
 ```
 
-The following figure shows the PKN and the ground truth. Red "tee"
-arrows depict repression the others activation of the child. The
-stimulated S-genes are diamond shaped.
+The following figure shows the PKN (left) and the ground truth
+(right). Red "tee" arrows depict repression the others activation of 
+the child. The stimulated S-genes are diamond shaped. Blue diamond edges 
+in the PKN depict the existence of activation and repression in one arrow.
 
 ```{r, fig.width = 5, fig.height = 5}
 par(mfrow=c(1,2))
@@ -100,9 +101,9 @@ plotDnf(PKN$reacID, stimuli = stimuli)
 plotDnf(model$reacID[as.logical(sim$bString)], stimuli = stimuli)
 ```
 
-We suggest to take a look at the sif file in the workign directory. In 
+We suggest to take a look at the sif file in the working directory. In 
 future analyses it is easier to just provide a suitable sif file for
-the investigated pathway. In an real application the underlaying
+the investigated pathway. In a real application the underlaying
 ground truth network (GTN) is not known.
 
 B-NEM uses differential expression between experiments to infer the
@@ -160,8 +161,10 @@ greedy2 <- bnem(search = "greedy",
                 method = "llr"
                 )
 ```
-We comapre the binary strings defining the groudn truth and the
-                inferred networks.
+We compare the binary strings defining the ground truth and the 
+inferred networks. We first look at the respective scores 
+(the smaller the better) and then compute sensitivity and 
+specificity of the edges for both results.
 ```{r}
 print(greedy$scores)
 print(greedy2$scores)
@@ -273,7 +276,9 @@ because repression can lead to an unresolvable ERS. See Pirkl et al.,
 
 We look for stimuli which are also inhibited. For those we add
 additional stimuli S-genes. The stimuli S-gene (parent) and the
-inhibitor S-gene (child) are connected by a positive edge.
+inhibitor S-gene (child) are connected by a positive edge. Hence, 
+if the S-gene is activated, the stimuli is set to 1. If the S-gene 
+is inhibited the inhibitor S-gene is set to 0. 
 
 ```{r}
 set.seed(1337)
@@ -315,7 +320,11 @@ greedy3 <- bnem(search = "greedy",
                 )
 resString2 <- greedy3$bString
 ```
-```{r, fig.width = 10, fig.height = 9}par(mfrow=c(1,2))
+
+Again, we look at the accuracy.
+
+```{r, fig.width = 10, fig.height = 9}
+par(mfrow=c(1,2))
 plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
 plotDnf(model$reacID[as.logical(resString2)], main = "greedy optimum",
         stimuli = stimuli)
@@ -325,7 +334,7 @@ print(sum(bString == 1 & resString2 == 1)/
                                                  resString2 == 0)))
 print(sum(bString == 0 & resString2 == 0)/
       (sum(bString == 0 & resString2 == 0) + sum(bString == 0 &
-                                                ^resString2 == 1)))
+                                                 resString2 == 1)))
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model,
                                                         resString2)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
@@ -334,7 +343,7 @@ print(sum(ERS.res == ERS)/length(ERS))
 
 The greedy optimum looks different from the GTN, even though they share a
 lot, but not all edges (reduced sensitivity and specificity). However
-the accuracy of the ERS is still high.
+the accuracy of the ERS is still very high.
 
 ## Pre-attach E-genes
 One additional challenge for B-NEM compared to methods like
@@ -387,6 +396,8 @@ ERS.res <- computeFc(CNOlist,
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
+In this case the correct attachements do not improve the accuracy 
+even though the problem itself is much easier.
 
 ## Visualizing network residuals
 We can also quantify how well the attached E-genes fit to the learned
@@ -401,14 +412,15 @@ Row denote S-genes in the network. Columns denote Contrasts between
 two experiments. Green colors in the left matrix show the score
 improves, if no (0) or a negative (-1) response in the network's ERS
 is changed to positive (+1). Red colors show a zero changed to
-positive. The right matrix shows the same for switched +1 and -1.
+positive. The right matrix shows the same for switched +1 and -1. 
+See Pirkl 2016 for more details.
 
 ## B-Cell receptor signalling
 
 In this section we analyze the B-Cell receptor (BCR) signalling
 data. The dataset consists of one stimulated S-gene (BCR), three
 S-genes with available single inhibitions (Tak1, Pik3, Erk) and three S-genes
-with up to triple inhibitions.
+with up to triple inhibitions. See Pirkl et al. 2016 for more details.
 
 ```{r}
 data(bcr)
