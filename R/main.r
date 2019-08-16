@@ -110,11 +110,11 @@ processData <- function(path = "") {
                                                          c("DMSO", "BCR"))],
                                 sep = "_")
     targets <- targets[-grep("Myc|LY294|U0126|Vivit|BCR_BCR|BCR_Ctrl", targets)]
-    fc <- fc[, c("Ctrl_vs_BCR", targets)]
+    fc2 <- fc[, c("Ctrl_vs_BCR", targets)]
     rownames(fc) <- rownames(data)
 
-    fc2 <- fc[which(abs(fc[, "Ctrl_vs_BCR"]) > 1 &
-                   apply(abs(fc[, -which(colnames(fc) %in%
+    fc2 <- fc2[which(abs(fc2[, "Ctrl_vs_BCR"]) > 1 &
+                   apply(abs(fc2[, -which(colnames(fc2) %in%
                                          "Ctrl_vs_BCR")]), 1, max) >
                    log2(1.5)), ]
     fci <- fc2[, -which(colnames(fc2) %in%
@@ -122,6 +122,9 @@ processData <- function(path = "") {
     argl <- apply(fci, 1, min)
     fc2 <- fc2[-which(argl > 0), ]
 
+    bcr <- list(exprs = fit$coefficients%*%t(design2), fc = fc2, full = fc)
+
+    return(bcr)
 }
 #' Plot Bootstrap result
 #'
@@ -921,6 +924,20 @@ computeFc <-
                       paste(rep(inhibitorsNames,
                                 length(combiNames))[orderKds], "_vs_",
                             rep(combiNames, length(inhibitorsNames)), sep = ""))
+            }
+            ## get ctrl_vs_stim_kd:
+            combiNames <- NULL
+            for (i in grepStimsKds) {
+                combiNames <-
+                    c(combiNames,
+                      paste(names(which(cbind(CNOlist@stimuli,
+                                              CNOlist@inhibitors)[i, ] >= 1)),
+                            collapse = "_"))
+            }
+            if (length(grepStimsKds) > 0) {
+                CompMat <- cbind(CompMat, y[, grepStimsKds] - y[, grepCtrl])
+                CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", combiNames,
+                                                      sep = ""))
             }
             ## combine:
             colnames(CompMat) <- CompMatNames

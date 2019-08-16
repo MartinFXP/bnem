@@ -12,7 +12,7 @@ vignette: >
     %\VignetteEncoding{UTF-8}
 ---
 
-## Introduction
+# Introduction
 
 Boolean Nested effects Models (B-NEM) are used to infer signalling
 pathways. In different experiments (conditions) genes of a pathway
@@ -34,33 +34,47 @@ with its parents $A_i, i \in \left\{1,\dots,n\right\}$.
 The B-NEM package is based on and uses many functions of the
 CellNOptR package of Terfve et al., 2012.
 
-## Installign and loading B-NEM
+## Installing and loading B-NEM
+
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(message=FALSE, out.width="125%", fig.align="center",
                       strip.white=TRUE, warning=FALSE, tidy=TRUE,
                       #out.extra='style="display:block; margin:auto;"',
                       fig.height = 4, fig.width = 8, error=FALSE)
-fig.cap0 <- "caption"
+fig.cap0 <- "PKN and GTN. The prior knowledge network without any logics 
+(PKN, left) and the ground truth (GTN, right)."
+fig.cap1 <- "GTN and greedy optimum. The GTN (left) and the greedy 
+optmimum (right)."
+fig.cap2 <- "Exepcted and observed data. The expected data pattern 
+(bottom row) of S-gene S1 and the observed data patterns of the 
+E-genes attached to S1."
+fig.cap3 <- "BCR signalling. The PKN (left), the greedy optimum 
+with a empty start network (center) and the greedy optimum with 
+the PKN as a start network."
 ```
+
 Install the package with the devtools library or via Bioconductor.
+
 ```{r, eval=FALSE}
 install.packages("devtools")
 
-library(devtools)
-
-github_install(bnem)
+devtools::github_install(bnem)
 
 ## Bioconductor:
 
-if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
 BiocManager::install("mnem")
 ```
+
 Load the Boolean Nested Effects model package.
+
 ```{r}
 library(bnem)
 ```
 
-## Toy example for a DAG
+# Toy example for a DAG
 
 We show how to use B-NEM on a toy pathway presented by a directed
 acyclic (hyper-)graph (DAG). B-NEM demands several objects as
@@ -74,8 +88,6 @@ the function generates data from the ground truth.
 
 ```{r}
 set.seed(1337)
-## alternative seed and also another great song:
-## set.seed(9247)
 
 sim <- simBoolGtn(n = 4, e = 10, keepsif = TRUE)
 fc <- sim$fc
@@ -95,7 +107,8 @@ The following figure shows the PKN (left) and the ground truth
 the child. The stimulated S-genes are diamond shaped. Blue diamond edges 
 in the PKN depict the existence of activation and repression in one arrow.
 
-```{r, fig.width = 5, fig.height = 5}
+```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap0}
+library(mnem)
 par(mfrow=c(1,2))
 plotDnf(PKN$reacID, stimuli = stimuli)
 plotDnf(model$reacID[as.logical(sim$bString)], stimuli = stimuli)
@@ -103,7 +116,7 @@ plotDnf(model$reacID[as.logical(sim$bString)], stimuli = stimuli)
 
 We suggest to take a look at the sif file in the working directory. In 
 future analyses it is easier to just provide a suitable sif file for
-the investigated pathway. In a real application the underlaying
+the investigated pathway. In a real application the underlying
 ground truth network (GTN) is not known.
 
 B-NEM uses differential expression between experiments to infer the
@@ -114,8 +127,8 @@ column of fc we have the contrast `r gsub(".*_", "", colnames(fc)[1])`
 $-$ control. In the control no S-genes are perturbed.
 
 We search for the GTN in our restricted network space. Each network is
-a sub-graph of the full hyper-graph sim\$model\$reacID. We initialise
-the search with a starting network and greedily search the neighbourhood.
+a sub-graph of the full hyper-graph sim\$model\$reacID. We initialize
+the search with a starting network and greedily search the neighborhood.
 
 We use two different network scores. "s" is the rank correlation and
 "llr" is just the euclidean dot product (hence no shift and scale invariance).
@@ -161,10 +174,12 @@ greedy2 <- bnem(search = "greedy",
                 method = "llr"
                 )
 ```
+
 We compare the binary strings defining the ground truth and the 
 inferred networks. We first look at the respective scores 
 (the smaller the better) and then compute sensitivity and 
 specificity of the edges for both results.
+
 ```{r}
 print(greedy$scores)
 print(greedy2$scores)
@@ -185,12 +200,12 @@ print(sum(bString == 0 & resString == 0)/
 ```
 
 We take a look at the efficiency of the search algorithm with
-sensitivity and specificity of the hyper-eges for the optimized
+sensitivity and specificity of the hyper-edges for the optimized
 network and the accuracy of its ERS (similar to the truth
 table). Since several networks produce the same ERS, the learned
 hyper-graph can differ from the GTN and still be $100\%$ accurate.
 
-```{r, fig.width = 10, fig.height = 5}
+```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap1}
 par(mfrow=c(1,2))
 
 ## GTN:
@@ -217,7 +232,7 @@ print(sum(ERS.res == ERS)/length(ERS))
 After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
 
-```{r, fig.width = 10, fig.height = 10}
+```{r, fig.width = 10, fig.height = 10, fig.cap = fig.cap3}
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
                          bString = resString,
                          Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7,
@@ -233,7 +248,7 @@ observed response scheme (ORS) of the
 ```r colnames(CNOlist@signals[[1]])[1]```-regulated E-genes. Even
 though the Gaussian noise makes the data look almost random, the
 greedy optimum is equal to the GTN.
-Alternatively to the greedy neighbourhood search a genetic algorithm
+Alternatively to the greedy neighborhood search a genetic algorithm
 and exhaustive search are available. The exhaustive search is not
 recommended for search spaces with more than 20 hyper-edges.
 
@@ -266,7 +281,7 @@ exhaustive <- bnem(search = "exhaustive",
 resString <- exhaustive$bString
 ```
 
-## Stimulated and inhibited S-genes can overlap
+# Stimulated and inhibited S-genes can overlap
 
 In this section we show how to use B-NEM, if stimuli and inhibitors
 overlap. Additionally we want to show that B-NEM can resolve
@@ -299,7 +314,7 @@ The next figure shows the cyclic PKN with extra stimuli
 S-genes. Notice, this way the inhibition of the S-genes overrules the 
 stimulation.
 
-```{r, fig.width = 5, fig.height = 9}
+```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap0}
 par(mfrow=c(1,2))
 plotDnf(sim$PKN$reacID, stimuli = stimuli)
 plotDnf(sim$model$reacID[as.logical(bString)], stimuli = stimuli)
@@ -323,7 +338,7 @@ resString2 <- greedy3$bString
 
 Again, we look at the accuracy.
 
-```{r, fig.width = 10, fig.height = 9}
+```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap1}
 par(mfrow=c(1,2))
 plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
 plotDnf(model$reacID[as.logical(resString2)], main = "greedy optimum",
@@ -346,9 +361,10 @@ lot, but not all edges (reduced sensitivity and specificity). However
 the accuracy of the ERS is still very high.
 
 ## Pre-attach E-genes
+
 One additional challenge for B-NEM compared to methods like
 CellNetOptimizer is the fact, that B-NEM optimizes the signalling
-pathway and simulataneously the attachment of the E-genes. However, it
+pathway and simultaneously the attachment of the E-genes. However, it
 is possible to include prior knowledge into the search.
 
 We just have to create a list object, which holds the ERS and prior
@@ -396,7 +412,8 @@ ERS.res <- computeFc(CNOlist,
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
-In this case the correct attachements do not improve the accuracy 
+
+In this case the correct attachments do not improve the accuracy 
 even though the problem itself is much easier.
 
 ## Visualizing network residuals
@@ -418,7 +435,7 @@ See Pirkl 2016 for more details.
 ## B-Cell receptor signalling
 
 In this section we analyze the B-Cell receptor (BCR) signalling
-data. The dataset consists of one stimulated S-gene (BCR), three
+data. The data set consists of one stimulated S-gene (BCR), three
 S-genes with available single inhibitions (Tak1, Pik3, Erk) and three S-genes
 with up to triple inhibitions. See Pirkl et al. 2016 for more details.
 
@@ -433,6 +450,7 @@ We build a PKN to incorporate biological knowledge and account for
 missing combinatorial inhibitions.
 
 ```{r}
+library(CellNOptR)
 negation <- FALSE # what happens if we allow negation?
 sifMatrix <- numeric()
 for (i in "BCR") {
@@ -470,7 +488,7 @@ unlink("temp.sif")
 
 In the next step, we create the meta information. This ensures, that
 we simulate all the conditions, which are actually available in the
-data. Furthermore we build our boolean search space based on the PKN.
+data. Furthermore we build our Boolean search space based on the PKN.
 
 ```{r}
 CNOlist <- dummyCNOlist(stimuli = "BCR",
@@ -508,7 +526,7 @@ bcrRes[[2]] <- bnem(search = "greedy",
                    method = "llr"
                    )
 ```
-```{r, fig.width = 10, fig.height = 5}
+```{r, fig.width = 10, fig.height = 5, fig.cap = fig.cap3}
 par(mfrow=c(1,3))
 plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
 plotDnf(bcrRes[[1]]$graph, main = "greedy optimum (empty start)",
