@@ -295,18 +295,18 @@ NA
 #'
 #' Draw a random prior network, samples a ground truth from the full boolean
 #' extension and generates data
-#' @param n number of S-genes
-#' @param e number of maximum edges
-#' @param s number of stimulated S-genes
-#' @param p probability for how many children to sample in the next
-#' hierarchical layer
+#' @param Sgenes number of S-genes
+#' @param maxEdges number of maximum edges in the DAG
+#' @param stimGenes number of stimulated S-genes
+#' @param prob scaling factor for uniform samplign of a probability to sample
+#' children in the next hierarchical layer
 #' @param dag if TRUE graph will be acyclic
 #' @param maxSize maximum number of S-genes in a disjunction or clause
 #' @param maxStim maximum stimulated S-genes in the data samples
 #' @param maxInhibit maximum inhibited S-genes in the data samples
-#' @param m E-genes per S-gene
-#' @param mflip number of inhibited E-genes
-#' @param r numbero f replicates
+#' @param Egenes E-genes per S-gene
+#' @param flip number of inhibited E-genes
+#' @param reps numbero f replicates
 #' @param sd standard deviation for the gaussian noise
 #' @param keepsif if TRUE does not delete sif file, which encodes the network
 #' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
@@ -323,11 +323,18 @@ NA
 #' sim <- simBoolGtn()
 #' plot(sim)
 simBoolGtn <-
-    function(n = 10, e = 25, s = 2, p = NULL, dag = TRUE, maxSize = 2,
-             maxStim = 2, maxInhibit = 1,
-             m = 10, mflip = 0.33, r = 3, sd = 1, keepsif = FALSE,
+    function(Sgenes = 10, maxEdges = 25, stimGenes = 2, prob = 1,
+             dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
+             Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
              maxcount = 10, negation = TRUE, allstim = FALSE,
              verbose = FALSE) {
+        n <- Sgenes
+        m <- Egenes
+        p <- prob
+        s <- stimGenes
+        e <- maxEdges
+        r <- reps
+        mflip <- flip
         if (allstim) {
             dnf <- randomDnf(n, max.edges = e, max.edge.size = 1, dag = dag,
                              negation = negation)
@@ -355,7 +362,7 @@ simBoolGtn <-
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
             pkn <- NULL
             while(length(Sgenes) > 0) {
-                if (is.null(p)) { pp <- runif(1) } else { pp <- p }
+                pp <- rbeta(1, 1, (length(Sgenes)*p)/10)
                 layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
                 Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
                 for (i in seq_len(length(prev))) {
@@ -367,6 +374,18 @@ simBoolGtn <-
                 prev <- layer
             }
             dnf <- pkn
+            if (length(dnf) > e) {
+                pkn2 <- NULL
+                for (i in c(stimuli, inhibitors)) {
+                    pkn2 <- c(pkn2, sample(pkn[grep(i, pkn)], 1))
+                }
+                pkn3 <- pkn[-which(pkn %in% pkn2)]
+                if (length(pkn2) < e) {
+                    pkn2 <- c(pkn2, sample(pkn3, e-length(pkn2)))
+                }
+                pkn <- pkn2
+                dnf <- pkn
+            }
         }
         sifMatrix <- NULL
         for (i in dnf) {
@@ -2068,6 +2087,7 @@ transRed <-
 #' stats
 #' RColorBrewer
 #' epiNEM
+#' matrixStats
 #' @examples
 #' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
@@ -2344,7 +2364,7 @@ validateGraph <-
             MSEIfc <- -cosine.sim
             R <- cbind(MSEAfc, MSEIfc)
             R[is.na(R)] <- max(R[!is.na(R)])
-            MSEE <- rowMins(R)
+            MSEE <- matrixStats::rowMins(R)
         }
 
         ## matrix visualisation for egenes fitted:

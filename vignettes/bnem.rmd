@@ -89,7 +89,7 @@ the function generates data from the ground truth.
 ```{r}
 set.seed(1337)
 
-sim <- simBoolGtn(n = 4, e = 10, keepsif = TRUE)
+sim <- simBoolGtn(Sgenes = 5, maxEdges = 10, keepsif = TRUE, sd = 0.5)
 fc <- sim$fc
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
@@ -233,8 +233,6 @@ After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
 
 ```{r, fig.width = 15, fig.height = 10, fig.cap = fig.cap3}
-source("~/Documents/B-NEM/R/main.r")
-source("~/Documents/B-NEM/R/low.r")
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
                          bString = resString,
                          Sgene = 4, Egenes = 1000, cexRow = 0.8, cexCol = 0.7,
@@ -299,7 +297,8 @@ is inhibited the inhibitor S-gene is set to 0.
 
 ```{r}
 set.seed(1337)
-sim <- simBoolGtn(n = 4, e = 10, dag = FALSE, negation = FALSE, allstim = TRUE)
+sim <- simBoolGtn(Sgenes = 4, maxEdges = 10, dag = FALSE,
+                  negation = FALSE, allstim = TRUE)
 fc <- sim$fc
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
@@ -536,6 +535,10 @@ plotDnf(bcrRes[[1]]$graph, main = "greedy optimum (empty start)",
 plotDnf(bcrRes[[2]]$graph, main = "greedy optimum (PKN start)",
         stimuli = "BCR")
 ```
+
+Four nodes switched places between the two results. However, the 
+PKN start gives a better score at `r min(bcrRes[[1]]$scores[[1]])` 
+to `r min(bcrRes[[1]]$scores[[1]])` for the empty start.
 
 ```{r}
 sessionInfo()

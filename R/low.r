@@ -222,6 +222,7 @@ checkMethod <-
         return(method)
     }
 #' @noRd
+#' @importFrom matrixStats rowMins
 checkNEMlist <-
     function(NEMlist, CNOlist, parameters, approach, method) {
         NEMlistTmp <- NEMlist
@@ -2674,7 +2675,7 @@ getNemFit <-
                         R <- t(t(R)/diag(MSES))
                         R[is.na(R)] <- 0
                     } else {
-                        R <- R/ncol(NEMlist$fc)
+                        R <- R#/ncol(NEMlist$fc)
                     }
                 }
                 if (is.null(NEMlist$egenes)) {
@@ -2859,7 +2860,7 @@ getNemFit <-
                         1 + sum(MSEE[!is.na(MSEE)])/parameters$cutOffs[3]
                 } else {
                     deviationPen <-
-                        1 + sum(MSEE[!is.na(MSEE)])/nrow(NEMlist$fc)
+                        1 + sum(MSEE[!is.na(MSEE)])#/nrow(NEMlist$fc)
                 }
             }
         }

@@ -4,20 +4,20 @@
 \alias{simBoolGtn}
 \title{Sample random network and simulate data}
 \usage{
-simBoolGtn(n = 10, e = 25, s = 2, p = NULL, dag = TRUE,
-  maxSize = 2, maxStim = 2, maxInhibit = 1, m = 10, mflip = 0.33,
-  r = 3, sd = 1, keepsif = FALSE, maxcount = 10, negation = TRUE,
-  allstim = FALSE, verbose = FALSE)
+simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, prob = 1,
+  dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
+  Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
+  maxcount = 10, negation = TRUE, allstim = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{n}{number of S-genes}
+\item{Sgenes}{number of S-genes}
 
-\item{e}{number of maximum edges}
+\item{maxEdges}{number of maximum edges in the DAG}
 
-\item{s}{number of stimulated S-genes}
+\item{stimGenes}{number of stimulated S-genes}
 
-\item{p}{probability for how many children to sample in the next
-hierarchical layer}
+\item{prob}{scaling factor for uniform samplign of a probability to sample
+children in the next hierarchical layer}
 
 \item{dag}{if TRUE graph will be acyclic}
 
@@ -27,11 +27,11 @@ hierarchical layer}
 
 \item{maxInhibit}{maximum inhibited S-genes in the data samples}
 
-\item{m}{E-genes per S-gene}
+\item{Egenes}{E-genes per S-gene}
 
-\item{mflip}{number of inhibited E-genes}
+\item{flip}{number of inhibited E-genes}
 
-\item{r}{numbero f replicates}
+\item{reps}{numbero f replicates}
 
 \item{sd}{standard deviation for the gaussian noise}
 
