@@ -4,6 +4,7 @@
 #' of Pirkl, et al., 2016, Bioinformatics. Raw data is available at
 #' https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE68761
 #' @param path path to the CEL.gz files
+#' @param combsign if TRUE includes all covariates in ComBat analysis
 #' @author Martin Pirkl
 #' @return data matrix with foldchanges
 #' @export
@@ -14,10 +15,10 @@
 #' @importFrom Biobase exprs
 #' @examples
 #'\dontrun{
-#' processData()
+#' processDataBCR()
 #' }
 #' data(bcr)
-processData <- function(path = "") {
+processDataBCR <- function(path = "", combsign = FALSE) {
     wd <- getwd()
     setwd(path)
     fns <- affy::list.celfiles()
@@ -30,26 +31,25 @@ processData <- function(path = "") {
 
     batch <- gsub(".*_", "", colnames(data))
     batch[which(batch == "Batch")] <- "Batch3"
-    dataCB <- sva::ComBat(data, batch)
-    colnames(dataCB) <- gsub("SP600125", "Jnk", colnames(dataCB))
-    colnames(dataCB) <- gsub("SB203580", "p38", colnames(dataCB))
-    colnames(dataCB) <- gsub("10058F4", "Myc", colnames(dataCB))
-    colnames(dataCB) <- gsub("Ko", "KO", colnames(dataCB))
-    colnames(dataCB) <- gsub("Ly294002", "LY294002", colnames(dataCB))
-    colnames(dataCB) <- gsub("LY294002", "Pi3k", colnames(dataCB))
-    colnames(dataCB) <- gsub("U0126", "Erk", colnames(dataCB))
-    colnames(dataCB) <- gsub("DMSO", "Ctrl", colnames(dataCB))
-    colnames(dataCB) <- gsub("IKK2", "Ikk2", colnames(dataCB))
-    colnames(dataCB) <- gsub("TAK1", "Tak1", colnames(dataCB))
-    vars <- unique(unlist(strsplit(gsub("_Batch.*", "", colnames(dataCB)),
+    colnames(data) <- gsub("SP600125", "Jnk", colnames(data))
+    colnames(data) <- gsub("SB203580", "p38", colnames(data))
+    colnames(data) <- gsub("10058F4", "Myc", colnames(data))
+    colnames(data) <- gsub("Ko", "KO", colnames(data))
+    colnames(data) <- gsub("Ly294002", "LY294002", colnames(data))
+    colnames(data) <- gsub("LY294002", "Pi3k", colnames(data))
+    colnames(data) <- gsub("U0126", "Erk", colnames(data))
+    colnames(data) <- gsub("DMSO", "Ctrl", colnames(data))
+    colnames(data) <- gsub("IKK2", "Ikk2", colnames(data))
+    colnames(data) <- gsub("TAK1", "Tak1", colnames(data))
+    vars <- unique(unlist(strsplit(gsub("_Batch.*", "", colnames(data)),
                                    "_")))
     vars <- sort(vars[-grep("\\+", vars)])
     vars <- vars[-which(vars %in% c("KO"))]
-    design <- matrix(0, ncol(dataCB), length(vars))
+    design <- matrix(0, ncol(data), length(vars))
     colnames(design) <- vars
-    rownames(design) <- colnames(dataCB)
+    rownames(design) <- colnames(data)
     for (i in vars) {
-        design[grep(i, colnames(dataCB)), i] <- 1
+        design[grep(i, colnames(data)), i] <- 1
     }
     combos <- NULL
     for (i in which(apply(design, 1, sum) > 1)) {
@@ -58,7 +58,6 @@ processData <- function(path = "") {
                           collapse = "_"))
     }
     combos <- sort(unique(combos))
-    ##combos <- combos[-(14:17)]
     design2 <- design
     design2[which(apply(design, 1, sum) > 1), ] <- 0
     for (i in combos) {
@@ -72,6 +71,12 @@ processData <- function(path = "") {
     design2 <- design2[, -which(colnames(design2) %in% "BCR")]
     colnames(design2)[which(colnames(design2) %in% "BCR_Ctrl")] <- "BCR"
 
+    if (combsign) {
+        dataCB <- sva::ComBat(data, batch,
+                              design2[, -grep("Ctrl", colnames(design2))])
+    } else {
+        dataCB <- sva::ComBat(data, batch)
+    }
 
     fit <- limma::lmFit(dataCB, design2)
 
@@ -120,10 +125,10 @@ processData <- function(path = "") {
     fci <- fc2[, -which(colnames(fc2) %in%
                         "Ctrl_vs_BCR")]*sign(fc2[, "Ctrl_vs_BCR"])
     argl <- apply(fci, 1, min)
-    fc2 <- fc2[-which(argl > 0), ]
+    fc2 <- fc2[which(argl < 0), ]
 
-    bcr <- list(exprs = fit$coefficients%*%t(design2), fc = fc2, full = fc)
-
+    bcr <- list(exprs = fit$coefficients%*%t(design2), fc = fc2, full = fc,
+                design = design2)
     return(bcr)
 }
 #' Plot Bootstrap result
@@ -274,7 +279,7 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
 #' synergistic and non-synergistic interactions in signalling pathways
 #' using Boolean Nested Effect Models, Bioinformatics, Volume 32, Issue 6,
 #' 15 March 2016, Pages 893–900, https://doi.org/10.1093/bioinformatics/btv680.
-#' See also the function processData for details.
+#' Alternatively see also the function processDataBCR for details.
 #' @name bcr
 #' @docType data
 #' @usage bcr

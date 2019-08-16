@@ -232,10 +232,12 @@ print(sum(ERS.res == ERS)/length(ERS))
 After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
 
-```{r, fig.width = 10, fig.height = 10, fig.cap = fig.cap3}
+```{r, fig.width = 15, fig.height = 10, fig.cap = fig.cap3}
+source("~/Documents/B-NEM/R/main.r")
+source("~/Documents/B-NEM/R/low.r")
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
                          bString = resString,
-                         Sgene = 1, Egenes = 1000, cexRow = 0.8, cexCol = 0.7,
+                         Sgene = 4, Egenes = 1000, cexRow = 0.8, cexCol = 0.7,
                          xrot = 45,
                          Colv = TRUE, Rowv = TRUE, dendrogram = "both",
                          bordercol = "lightgrey",
@@ -243,9 +245,9 @@ fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
 ```
 
 The bottom row shows the ERS of S-gene
-```r colnames(CNOlist@signals[[1]])[1]``` and the other rows show the
+`r colnames(CNOlist@signals[[1]])[1]` and the other rows show the
 observed response scheme (ORS) of the
-```r colnames(CNOlist@signals[[1]])[1]```-regulated E-genes. Even
+`r colnames(CNOlist@signals[[1]])[1]`-regulated E-genes. Even
 though the Gaussian noise makes the data look almost random, the
 greedy optimum is equal to the GTN.
 Alternatively to the greedy neighborhood search a genetic algorithm

@@ -205,18 +205,19 @@ checkMethod <-
         methods2 <- method
         methods <- c("llr", "cosine", "euclidean", "maximum", "manhattan",
                      "canberra", "binary", "minkowski", "spearman", "pearson",
-                     "kendall", "mLL", "cp", "none", "align")
+                     "kendall", "mLL", "cp", "none")
         method <- methods[grep(paste(paste("^", method, sep = ""),
                                      collapse = "|"), methods)[1]]
         method  <- unique(c(method, methods2))
         if (!(any(c("llr", "cosine", "euclidean", "maximum", "manhattan",
                     "canberra", "binary", "minkowski", "spearman", "pearson",
-                    "kendall", "mLL", "cp", "none", "align") %in% method))) {
-            stop(paste0("I can't let you do that, Dave. ",
+                    "kendall", "mLL", "cp", "none") %in% method))) {
+            stop(paste0("I'm sorry, Dave. I'm afraid I can't do that. ",
                         "You have to pick a valid method: ",
-                        "align, cosine, euclidean, maximum, manhattan, ",
+                        "llr, cosine, euclidean, maximum, manhattan, ",
                         "canberra, binary, ",
-                        "minkowski, spearman, pearson, kendall, mLL, cp, none"))
+                        "minkowski, spearman, pearson, kendall"))
+            ## , mLL, cp, none"))
         }
         return(method)
     }
@@ -2647,7 +2648,7 @@ getNemFit <-
             } else {
                 if (any(c("cosine", "euclidean", "maximum", "manhattan",
                           "canberra", "binary", "minkowski", "spearman",
-                          "pearson", "kendall", "align") %in% method)) {
+                          "pearson", "kendall") %in% method)) {
                     R <- cbind(MSEAfc, MSEIfc)
                     R[is.na(R)] <- max(R[!is.na(R)])
                     if (relFit) {
@@ -2783,7 +2784,7 @@ getNemFit <-
                         subtopo[negReg] <- -1
                     } else {
                         negReg[2] <- negReg[2] - ncol(CNOlist@signals[[1]])
-                        subtopo[posReg[1], posReg[2]] <- 1
+                        subtopo[negReg[1], negReg[2]] <- -1
                     }
                 }
 
@@ -2954,6 +2955,7 @@ kmeansNorm <-
 #' snowfall
 #' CellNOptR
 #' @importFrom mnem plotDnf
+#' @importFrom Biobase rowMin rowMax
 localSearch <-
     function(CNOlist, NEMlist, model, approach = "fc", initSeed = NULL,
              seeds = 1,

@@ -373,3 +373,9 @@ class(bsfull) <- "bnembs"
 pdf("temp.pdf", width = 8, height = 8)
 plot(bsfull, cut = 0.5, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"))
 dev.off()
+
+## different comparisons:
+
+source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
+
+bcr2 <- processDataBCR(path = "~/Downloads/celfiles/", combsign = 0)
