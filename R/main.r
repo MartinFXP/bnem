@@ -298,8 +298,9 @@ NA
 #' @param Sgenes number of S-genes
 #' @param maxEdges number of maximum edges in the DAG
 #' @param stimGenes number of stimulated S-genes
-#' @param prob scaling factor for uniform samplign of a probability to sample
-#' children in the next hierarchical layer
+#' @param layer scaling factor for the sampling of next Sgene layer; high
+#' means less Sgenes and low more Sgenes
+#' @param frac fraction of hyper-edges in the ground truth
 #' @param dag if TRUE graph will be acyclic
 #' @param maxSize maximum number of S-genes in a disjunction or clause
 #' @param maxStim maximum stimulated S-genes in the data samples
@@ -323,14 +324,15 @@ NA
 #' sim <- simBoolGtn()
 #' plot(sim)
 simBoolGtn <-
-    function(Sgenes = 10, maxEdges = 25, stimGenes = 2, prob = 1,
+    function(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
+             frac = 0.1,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
              Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
              maxcount = 10, negation = TRUE, allstim = FALSE,
              verbose = FALSE) {
         n <- Sgenes
         m <- Egenes
-        p <- prob
+        p <- layer
         s <- stimGenes
         e <- maxEdges
         r <- reps
@@ -414,8 +416,9 @@ simBoolGtn <-
         model <- CellNOptR::preprocessing(CNOlist, PKN,
                                           maxInputsPerGate=maxSize,
                                           verbose = verbose)
-        bString <- reduceGraph(sample(c(0,1), length(model$reacID),
-                                      replace = TRUE), model, CNOlist)
+        bString <- numeric(length(model$reacID))
+        bString[sample(seq_len(length(model$reacID)), frac*length(model$reacID))] <- 1
+        bString <- reduceGraph(bString, model, CNOlist)
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
@@ -425,8 +428,9 @@ simBoolGtn <-
               any(apply(steadyState2, 2, sd) == 0)) {
             if (count >= maxcount) { break() }
             count <- count + 1
-            bString <- absorption(sample(c(0,1), length(model$reacID),
-                                         replace = TRUE), model)
+            bString <- numeric(length(model$reacID))
+            bString[sample(seq_len(length(model$reacID)), frac*length(model$reacID))] <- 1
+            bString <- reduceGraph(bString, model, CNOlist)
             steadyState <- steadyState2 <-
                 simulateStatesRecursive(CNOlist, model, bString)
             ind <- grep(paste(inhibitors, collapse = "|"),

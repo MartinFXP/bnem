@@ -4,10 +4,11 @@
 \alias{simBoolGtn}
 \title{Sample random network and simulate data}
 \usage{
-simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, prob = 1,
-  dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
-  Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
-  maxcount = 10, negation = TRUE, allstim = FALSE, verbose = FALSE)
+simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
+  frac = 0.1, dag = TRUE, maxSize = 2, maxStim = 2,
+  maxInhibit = 1, Egenes = 10, flip = 0.33, reps = 3, sd = 1,
+  keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{Sgenes}{number of S-genes}
@@ -16,8 +17,10 @@ simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, prob = 1,
 
 \item{stimGenes}{number of stimulated S-genes}
 
-\item{prob}{scaling factor for uniform samplign of a probability to sample
-children in the next hierarchical layer}
+\item{layer}{scaling factor for the sampling of next Sgene layer; high
+means less Sgenes and low more Sgenes}
+
+\item{frac}{fraction of hyper-edges in the ground truth}
 
 \item{dag}{if TRUE graph will be acyclic}
 

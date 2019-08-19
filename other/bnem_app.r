@@ -64,6 +64,8 @@
 
 ## load stuff:
 
+print(version)
+
 source("main.r")
 source("low.r")
 library(CellNOptR)
@@ -78,18 +80,22 @@ frac <- as.numeric(commandArgs(TRUE)[2])
 
 part <- as.numeric(commandArgs(TRUE)[3])
 
-sd <- as.numeric(commandArgs(TRUE)[4])
+maxEdges <- as.numeric(commandArgs(TRUE)[4])
 
-n <- as.numeric(commandArgs(TRUE)[5])
+maxSize <- as.numeric(commandArgs(TRUE)[5])
 
-m <- as.numeric(commandArgs(TRUE)[6])
+s <- as.numeric(commandArgs(TRUE)[6])
 
-## maxrun <- 10; frac <- 1; part <- 1; sd <- 1; n <- 10; m <- 2
+sd <- as.numeric(commandArgs(TRUE)[7])
+
+n <- as.numeric(commandArgs(TRUE)[8])
+
+m <- as.numeric(commandArgs(TRUE)[9])
+
+## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 1000; maxSize <- 2; s <- 2; sd <- 1; n <- 10; m <- 10
 
 runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
 
-s <- 2
-maxSize <- 2
 maxStim <- 2
 maxInhibit <- 1
 method <- "llr"
@@ -106,9 +112,11 @@ for (run in runs) {
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
-        sim <- simBoolGtn(Sgenes=n, maxEdges = 25, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1)
+        cat(".")
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0.1)
         bString <- sim$bString
     }
+    ## plotDnf(sim$PKN$reacID)
     ## Rprof("temp.txt", line.profiling=TRUE)
     ## sim <- simBoolGtn(n=n, e=e, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1, maxcount = 1)
     ## Rprof(NULL)
@@ -215,7 +223,7 @@ module load curl/7.53.1
 
 module load gmp/6.1.2
 
-## euler:
+## euler: (use R/bin/R instead of R)
 
 module load bioconductor/3.6
 
@@ -237,9 +245,11 @@ rm .RData
 
 frac=100
 
-for i in {1..100}; do
+## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
+
+for i in {1..1}; do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '100' '${frac}' '${i}' '0' '10' '2' < bnem_app.r"
+	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '1000' '2' '2' '1' '10' '10' < bnem_app.r"
     #fi
 done
 
@@ -262,8 +272,8 @@ done
 path <- "~/Mount/Leo/"
 
 n <- 10
-s <- 2
-sd <- 0
+s <- 5
+sd <- 1
 m <- 2
 maxrun <- 100
 frac <- 100
@@ -286,7 +296,7 @@ par(mfrow=c(1,4))
 boxplot(result[,1:5,1], col = 2:4, ylab = "seconds", main = "Running time")
 boxplot(result[,1:5,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
 boxplot(result[,1:5,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
-boxplot(1-result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score")#, ylim = c(0,1))
+boxplot(result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score")#, ylim = c(0,1))
 dev.off()
 
 ## paper fig:
