@@ -416,8 +416,30 @@ simBoolGtn <-
         model <- CellNOptR::preprocessing(CNOlist, PKN,
                                           maxInputsPerGate=maxSize,
                                           verbose = verbose)
+        base <- NULL
+        for (i in c(stimuli, inhibitors)) {
+            if (length(grep(paste(c(paste0("^", i, "="), paste0("\\+", i, "="),
+                                    paste0("^", i, "\\+"),
+                                    paste0("\\+", i, "\\+"),
+                                    paste0("=", i, "$")),
+                                  collapse = "|"), base)) > 0 &
+                i %in% stimuli) { next() }
+            if (length(grep(paste0("=", i, "$"), pkn)) == 0) {
+                base <- c(base, sample(model$reacID[grep(paste(c(
+                                                 paste0("^", i, "="),
+                                                 paste0("\\+", i, "="),
+                                                 paste0("^", i, "\\+"),
+                                                 paste0("\\+", i, "\\+")),
+                                                 collapse = "|"), pkn)], 1))
+            } else {
+                base <- c(base, sample(model$reacID[grep(paste0("=", i, "$"),
+                                                         pkn)], 1))
+            }
+        }
         bString <- numeric(length(model$reacID))
-        bString[sample(seq_len(length(model$reacID)), frac*length(model$reacID))] <- 1
+        bString[grep(paste(base, collapse = "|"), model$reacID)] <- 1
+        addcount <- max(1, floor(frac*length(model$reacID))-length(base))
+        bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
         bString <- reduceGraph(bString, model, CNOlist)
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
@@ -429,7 +451,8 @@ simBoolGtn <-
             if (count >= maxcount) { break() }
             count <- count + 1
             bString <- numeric(length(model$reacID))
-            bString[sample(seq_len(length(model$reacID)), frac*length(model$reacID))] <- 1
+            bString[grep(paste(base, collapse = "|"), model$reacID)] <- 1
+            bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
             bString <- reduceGraph(bString, model, CNOlist)
             steadyState <- steadyState2 <-
                 simulateStatesRecursive(CNOlist, model, bString)

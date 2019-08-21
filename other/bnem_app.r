@@ -92,7 +92,7 @@ n <- as.numeric(commandArgs(TRUE)[8])
 
 m <- as.numeric(commandArgs(TRUE)[9])
 
-## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 1000; maxSize <- 2; s <- 2; sd <- 1; n <- 10; m <- 10
+## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 4; sd <- 1; n <- 20; m <- 2
 
 runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
 
@@ -109,14 +109,16 @@ for (run in runs) {
 
     ## run <- 1
 
+    ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
         cat(".")
-        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0.1)
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0)
         bString <- sim$bString
     }
     ## plotDnf(sim$PKN$reacID)
+    ## plotDnf(sim$model$reacID[as.logical(sim$bString)])
     ## Rprof("temp.txt", line.profiling=TRUE)
     ## sim <- simBoolGtn(n=n, e=e, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1, maxcount = 1)
     ## Rprof(NULL)
@@ -247,9 +249,11 @@ frac=100
 
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
 
-for i in {1..1}; do
+bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '1' '100' '2' '4' '1' '30' '2' < bnem_app.r"
+
+for i in {2..100}; do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '1000' '2' '2' '1' '10' '10' < bnem_app.r"
+	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '4' '1' '30' '2' < bnem_app.r"
     #fi
 done
 
@@ -269,12 +273,12 @@ done
 
 ## plot sim:
 
-path <- "~/Mount/Leo/"
+path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
 
-n <- 10
-s <- 5
-sd <- 1
+n <- 20
 m <- 2
+s <- 4
+sd <- 1
 maxrun <- 100
 frac <- 100
 for (part in seq_len(frac)) {
@@ -296,7 +300,7 @@ par(mfrow=c(1,4))
 boxplot(result[,1:5,1], col = 2:4, ylab = "seconds", main = "Running time")
 boxplot(result[,1:5,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
 boxplot(result[,1:5,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
-boxplot(result[,1:5,4], col = 2:4, ylab = "score between 0 and 1", main = "Score")#, ylim = c(0,1))
+boxplot(result[,1:5,4], col = 2:4, ylab = "log likelihood + constant", main = "likelihood")#, ylim = c(0,1))
 dev.off()
 
 ## paper fig:
@@ -305,7 +309,7 @@ pdf("temp.pdf", width = 10, height = 5)
 par(mfrow=c(1,2))
 boxplot(result[,2:4,1], col = 2:5, ylab = "seconds", main = "running time", xaxt = "n")
 axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
-boxplot(1-result[,2:4,4], col = 2:5, ylab = "probability", main = "normalized likelihood", xaxt = "n")#, ylim = c(0,0.3))
+boxplot(-result[,2:4,4], col = 2:5, ylab = "log likelihood + constant", main = "likelihood", xaxt = "n")#, ylim = c(0,0.3))
 axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
 dev.off()
 
