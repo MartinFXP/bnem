@@ -26,22 +26,24 @@ means less Sgenes and low more Sgenes}
 
 \item{maxSize}{maximum number of S-genes in a disjunction or clause}
 
-\item{maxStim}{maximum stimulated S-genes in the data samples}
+\item{maxStim}{maximum of stimulated S-genes in the data samples}
 
-\item{maxInhibit}{maximum inhibited S-genes in the data samples}
+\item{maxInhibit}{maximum of inhibited S-genes in the data samples}
 
-\item{Egenes}{E-genes per S-gene}
+\item{Egenes}{number of E-genes per S-gene, e.g. 10 S-genes and 10
+E-genes will return 100 E-genes overall}
 
 \item{flip}{number of inhibited E-genes}
 
-\item{reps}{numbero f replicates}
+\item{reps}{number of replicates}
 
 \item{sd}{standard deviation for the gaussian noise}
 
-\item{keepsif}{if TRUE does not delete sif file, which encodes the network}
+\item{keepsif}{if TRUE does not delete sif file, which encodes
+the prior network}
 
 \item{maxcount}{while loopes ensure a reasonable network, maxcount makes sure
-while loops do not run in infinity}
+while loops do not run to infinity}
 
 \item{negation}{if TRUE negative edges are allowed}
 
@@ -51,10 +53,10 @@ while loops do not run in infinity}
 }
 \value{
 list with the corresponding prior graph, ground truth network and
-data example
+data
 }
 \description{
-Draw a random prior network, samples a ground truth from the full boolean
+Draws a random prior network, samples a ground truth from the full boolean
 extension and generates data
 }
 \examples{

@@ -1,7 +1,7 @@
 ---
 title: "Boolean Nested Effects Models \n
 Inferring the logical signalling of pathways from indirect measurements
-and perturbation biology."
+and biological perturbations."
 author: "Martin Pirkl"
 date: "`r Sys.Date()`"
 graphics: yes
@@ -14,14 +14,14 @@ vignette: >
 
 # Introduction
 
-Boolean Nested effects Models (B-NEM) are used to infer signalling
+Boolean Nested Effects Models (B-NEM) are used to infer signalling
 pathways. In different experiments (conditions) genes of a pathway
-(S-genes) are stimulated or inhibited, alone and in combination. In
+(S-genes) are stimulated or inhibited, alone or in combination. In
 each experiment transcriptional targets (E-genes) of the pathway react 
 differently and are higher or lower expressed depending on the
 condition. From these differential expressions B-NEM infers Boolean
 functions presented as hyper-edges of a hyper-graph connecting parents 
-and children in the pathway. For example, if the signal is transducted 
+and children in the pathway. For example, if the signal is transduced 
 by two parents A and B to a child C and the signal can be blocked with 
 a knock-down of either one, they are connected by a typical
 AND-gate. If the signal is still transduced during a single
@@ -42,26 +42,22 @@ knitr::opts_chunk$set(message=FALSE, out.width="125%", fig.align="center",
                       #out.extra='style="display:block; margin:auto;"',
                       fig.height = 4, fig.width = 8, error=FALSE)
 fig.cap0 <- "PKN and GTN. The prior knowledge network without any logics 
-(PKN, left) and the ground truth (GTN, right)."
+(PKN, left) and the ground truth (GTN, right). Red 'tee' arrows depict
+repression the others activation of 
+the child. The stimulated S-genes are diamond shaped. Blue diamond edges 
+in the PKN depict the existence of activation and repression in one arrow."
 fig.cap1 <- "GTN and greedy optimum. The GTN (left) and the greedy 
 optmimum (right)."
-fig.cap2 <- "Exepcted and observed data. The expected data pattern 
+fig.cap2 <- "Expected and observed data. The expected data pattern 
 (bottom row) of S-gene S1 and the observed data patterns of the 
 E-genes attached to S1."
-fig.cap3 <- "BCR signalling. The PKN (left), the greedy optimum 
-with a empty start network (center) and the greedy optimum with 
-the PKN as a start network."
+fig.cap3 <- "BCR signalling. The PKN (left) and the greedy optimum 
+with an empty start network (right)."
 ```
 
 Install the package with the devtools library or via Bioconductor.
 
 ```{r, eval=FALSE}
-install.packages("devtools")
-
-devtools::github_install(bnem)
-
-## Bioconductor:
-
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
@@ -84,10 +80,10 @@ input. The two main objects are the differential gene expression
 The following function creates a DAG, which
 is then extended to a full Boolean network. From this network we
 sample a subset of edges to define our ground truth. In the last step,
-the function generates data from the ground truth.
+the function generates data given the ground truth.
 
 ```{r}
-set.seed(1337)
+set.seed(8675309)
 
 sim <- simBoolGtn(Sgenes = 5, maxEdges = 10, keepsif = TRUE, sd = 0.5)
 fc <- sim$fc
@@ -102,10 +98,7 @@ stimuli <- unique(gsub("=.*|!", "", PKN$reacID))
 stimuli <- stimuli[which(!(stimuli %in% children))]
 ```
 
-The following figure shows the PKN (left) and the ground truth
-(right). Red "tee" arrows depict repression the others activation of 
-the child. The stimulated S-genes are diamond shaped. Blue diamond edges 
-in the PKN depict the existence of activation and repression in one arrow.
+The following figure shows the PKN and the ground truth network.
 
 ```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap0}
 library(mnem)
@@ -181,8 +174,8 @@ inferred networks. We first look at the respective scores
 specificity of the edges for both results.
 
 ```{r}
-print(greedy$scores)
-print(greedy2$scores)
+print(greedy$scores) # rank correlation = normalized
+print(greedy2$scores) # scaled log foldchanges
 
 resString <- greedy$bString
 
@@ -245,9 +238,7 @@ fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
 The bottom row shows the ERS of S-gene
 `r colnames(CNOlist@signals[[1]])[1]` and the other rows show the
 observed response scheme (ORS) of the
-`r colnames(CNOlist@signals[[1]])[1]`-regulated E-genes. Even
-though the Gaussian noise makes the data look almost random, the
-greedy optimum is equal to the GTN.
+`r colnames(CNOlist@signals[[1]])[1]`-regulated E-genes.
 Alternatively to the greedy neighborhood search a genetic algorithm
 and exhaustive search are available. The exhaustive search is not
 recommended for search spaces with more than 20 hyper-edges.
@@ -296,7 +287,6 @@ if the S-gene is activated, the stimuli is set to 1. If the S-gene
 is inhibited the inhibitor S-gene is set to 0. 
 
 ```{r}
-set.seed(1337)
 sim <- simBoolGtn(Sgenes = 4, maxEdges = 10, dag = FALSE,
                   negation = FALSE, allstim = TRUE)
 fc <- sim$fc
@@ -357,10 +347,6 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
 
-The greedy optimum looks different from the GTN, even though they share a
-lot, but not all edges (reduced sensitivity and specificity). However
-the accuracy of the ERS is still very high.
-
 ## Pre-attach E-genes
 
 One additional challenge for B-NEM compared to methods like
@@ -368,7 +354,7 @@ CellNetOptimizer is the fact, that B-NEM optimizes the signalling
 pathway and simultaneously the attachment of the E-genes. However, it
 is possible to include prior knowledge into the search.
 
-We just have to create a list object, which holds the ERS and prior
+We just have to create a list object, which holds prior
 information about the E-genes.
 
 ```{r}
@@ -414,26 +400,22 @@ ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
 print(sum(ERS.res == ERS)/length(ERS))
 ```
 
-In this case the correct attachments do not improve the accuracy 
-even though the problem itself is much easier.
-
 ## Visualizing network residuals
 We can also quantify how well the attached E-genes fit to the learned
-network. See the references for more details.
+network. See the Pirkl, 2016 for more details.
 
 ```{r, eval = FALSE}
 residuals <- findResiduals(resString3, CNOlist, model, fc, verbose = FALSE)
 ## verbose = TRUE plots the residuals matrices
 ```
 
-Row denote S-genes in the network. Columns denote Contrasts between
+Rows denote S-genes in the network. Columns denote Contrasts between
 two experiments. Green colors in the left matrix show the score
 improves, if no (0) or a negative (-1) response in the network's ERS
 is changed to positive (+1). Red colors show a zero changed to
 positive. The right matrix shows the same for switched +1 and -1. 
-See Pirkl 2016 for more details.
 
-## B-Cell receptor signalling
+# B-Cell receptor signalling
 
 In this section we analyze the B-Cell receptor (BCR) signalling
 data. The data set consists of one stimulated S-gene (BCR), three
@@ -503,20 +485,8 @@ model <- preprocessing(CNOlist, PKN)
 In the final step we learn the network with the greedy search.
 
 ```{r}
-bcrRes <- list()
 initBstring <- rep(0, length(model$reacID))
-bcrRes[[1]] <- bnem(search = "greedy",
-                   fc=fc,
-                   CNOlist=CNOlist,
-                   model=model,
-                   parallel=parallel,
-                   initBstring=initBstring,
-                   draw = FALSE,
-                   verbose = FALSE,
-                   method = "llr"
-                   )
-initBstring <- rep(1, length(model$reacID))
-bcrRes[[2]] <- bnem(search = "greedy",
+bcrRes <- bnem(search = "greedy",
                    fc=fc,
                    CNOlist=CNOlist,
                    model=model,
@@ -530,15 +500,9 @@ bcrRes[[2]] <- bnem(search = "greedy",
 ```{r, fig.width = 10, fig.height = 5, fig.cap = fig.cap3}
 par(mfrow=c(1,3))
 plotDnf(PKN$reacID, main = "PKN", stimuli = "BCR")
-plotDnf(bcrRes[[1]]$graph, main = "greedy optimum (empty start)",
-        stimuli = "BCR")
-plotDnf(bcrRes[[2]]$graph, main = "greedy optimum (PKN start)",
+plotDnf(bcrRes$graph, main = "greedy optimum (empty start)",
         stimuli = "BCR")
 ```
-
-Four nodes switched places between the two results. However, the 
-PKN start gives a better score at `r min(bcrRes[[1]]$scores[[1]])` 
-to `r min(bcrRes[[1]]$scores[[1]])` for the empty start.
 
 ```{r}
 sessionInfo()

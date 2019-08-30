@@ -7,12 +7,11 @@
 validateGraph(CNOlist, fc = NULL, exprs = NULL, approach = "fc",
   model, bString, Egenes = 25, Sgene = 1, parameters = list(cutOffs =
   c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)), plot = TRUE, disc = 0,
-  affyIds = TRUE, sim = 0, relFit = FALSE, complete = FALSE,
-  xrot = 25, Rowv = FALSE, Colv = FALSE, dendrogram = "none",
-  soft = TRUE, colSideColors = NULL, affychip = "hgu133plus2",
-  method = "s", ranks = FALSE, breaks = NULL, col = "RdYlGn",
-  csc = TRUE, sizeFac = 10^-10, verbose = TRUE, order = "rank",
-  colnames = "bio", ...)
+  affyIds = TRUE, relFit = FALSE, xrot = 25, Rowv = FALSE,
+  Colv = FALSE, dendrogram = "none", soft = TRUE,
+  colSideColors = NULL, affychip = "hgu133plus2", method = "s",
+  ranks = FALSE, breaks = NULL, col = "RdYlGn", sizeFac = 10^-10,
+  verbose = TRUE, order = "rank", ...)
 }
 \arguments{
 \item{CNOlist}{CNOlist object.}
@@ -22,7 +21,8 @@ validateGraph(CNOlist, fc = NULL, exprs = NULL, approach = "fc",
 \item{exprs}{optional matrix of normalized expression (observed
 activation scheme).}
 
-\item{approach}{not used}
+\item{approach}{default "fc" for foldchanges or signed effect probabilities,
+"abs" for absolute effects or probabilities}
 
 \item{model}{Model object.}
 
@@ -33,57 +33,48 @@ activation scheme).}
 \item{Sgene}{Integer denoting the S-gene. See
 colnames(CNOlist@signals[[1]]) to match integer with S-gene name.}
 
-\item{parameters}{not used}
+\item{parameters}{see ?bnem}
 
 \item{plot}{Plot the heatmap. If FALSE, only corresponding
-information is outputed.}
+information is printed.}
 
 \item{disc}{Discretize the data.}
 
 \item{affyIds}{Experimental. Turn Affymetrix Ids into HGNC
 gene symbols.}
 
-\item{sim}{not used}
+\item{relFit}{see ?bnem}
 
-\item{relFit}{not used}
+\item{xrot}{See package ?epiNEM::HeatmapOP}
 
-\item{complete}{not used}
+\item{Rowv}{See package ?epiNEM::HeatmapOP}
 
-\item{xrot}{See package epiNEM}
+\item{Colv}{See package ?epiNEM::HeatmapOP}
 
-\item{Rowv}{See package epiNEM}
+\item{dendrogram}{See package ?epiNEM::HeatmapOP}
 
-\item{Colv}{See package epiNEM}
+\item{soft}{weighting the expected pattern, if TRUE}
 
-\item{dendrogram}{See package epiNEM}
-
-\item{soft}{not used}
-
-\item{colSideColors}{See package epiNEM}
+\item{colSideColors}{See package ?epiNEM::HeatmapOP}
 
 \item{affychip}{Define Affymetrix chip used to generate the data
 (optional).}
 
-\item{method}{Scoring method can be a correlation or distance measure.
-See ?cor and ?dist for details.}
+\item{method}{see ?bnem}
 
-\item{ranks}{Turn data into ranks.}
+\item{ranks}{Turns data into ranks, if TRUE}
 
-\item{breaks}{See package epiNEM}
+\item{breaks}{See package ?epiNEM::HeatmapOP}
 
-\item{col}{See package epiNEM}
+\item{col}{See package ?epiNEM::HeatmapOP}
 
-\item{csc}{not used (devel)}
+\item{sizeFac}{size factor penelizing the hyper-graph size.}
 
-\item{sizeFac}{Size factor penelizing the hyper-graph size.}
+\item{verbose}{verbose output, if TRUE}
 
-\item{verbose}{Verbose output.}
+\item{order}{Order by "rank" or "name" or "none"}
 
-\item{order}{Order by "rank" or "name".}
-
-\item{colnames}{not used (devel)}
-
-\item{...}{additional arguments}
+\item{...}{additional arguments for ?epiNEM::HeatmapOP}
 }
 \value{
 lattice object with matrix information
@@ -93,7 +84,6 @@ plotting the observed response scheme of an effect reporter and the
 expected response scheme of the regulating signalling gene
 }
 \examples{
-library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,

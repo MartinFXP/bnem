@@ -20,19 +20,20 @@ findResiduals(bString, CNOlist, model, fc = NULL, exprs = NULL,
 
 \item{model}{Network model object.}
 
-\item{fc}{ORS of the data.}
+\item{fc}{ORS of the data as numeric matrix.}
 
-\item{exprs}{Optional activation scheme of the data.}
+\item{exprs}{Optional activation scheme of the data as numeric matrix.}
 
-\item{egenes}{Atachment of the E-genes (optional).}
+\item{egenes}{Atachment of the E-genes (optional) as
+list named after S-genes.}
 
 \item{NEMlist}{NEMlist object (optional).}
 
-\item{parameters}{not used}
+\item{parameters}{see ?bnem}
 
 \item{method}{Scoring method (optional).}
 
-\item{sizeFac}{Zeta parameter to penelize netowkr size.}
+\item{sizeFac}{Zeta parameter to penelize network size.}
 
 \item{main}{Main title of the figure.}
 
@@ -41,16 +42,16 @@ findResiduals(bString, CNOlist, model, fc = NULL, exprs = NULL,
 \item{cut}{If TRUE does not visualize experiments/S-genes which do
 not have any residuals.}
 
-\item{approach}{not used}
+\item{approach}{see ?bnem}
 
-\item{parallel}{et number of cores/threads.}
+\item{parallel}{the number of threads used for computation.}
 
 \item{verbose}{verbose output}
 
-\item{...}{additional parameters}
+\item{...}{additional parameters for ?epiNEM::HeatmapOP}
 }
 \value{
-matrices indicating experiments and/or genes, where the
+numeric matrices indicating experiments and/or genes, where the
 network and the data disagree
 }
 \description{
@@ -58,7 +59,6 @@ calculates residuals (data and optimized network do not match) and
 visualizes them
 }
 \examples{
-library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,

@@ -71,7 +71,6 @@ source("low.r")
 library(CellNOptR)
 library(matrixStats)
 
-## library(bnem)
 ## source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
 
 maxrun <- as.numeric(commandArgs(TRUE)[1])
@@ -92,13 +91,13 @@ n <- as.numeric(commandArgs(TRUE)[8])
 
 m <- as.numeric(commandArgs(TRUE)[9])
 
-## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 4; sd <- 1; n <- 20; m <- 2
+## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 0.5; n <- 30; m <- 2
 
 runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
 
 maxStim <- 2
 maxInhibit <- 1
-method <- "llr"
+method <- "cosine"
 
 verbose <- FALSE
 draw <- FALSE
@@ -113,14 +112,32 @@ for (run in runs) {
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
-        cat(".")
-        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0)
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0, layer = 3)
         bString <- sim$bString
+        cat(".")
     }
-    ## plotDnf(sim$PKN$reacID)
-    ## plotDnf(sim$model$reacID[as.logical(sim$bString)])
+
+    double <- NULL
+    for (i in colnames(sim$CNOlist@stimuli)) {
+        for (j in colnames(sim$CNOlist@stimuli)) {
+            if (i == j) { next() }
+            double <- c(double, paste(sort(c(i,j)), collapse = "_"))
+        }
+    }
+    double <- unique(double)
+
+    sim$fc <- sim$fc[, grep(paste(c(paste0("^", colnames(sim$CNOlist@stimuli), "_vs"),
+                                    paste0("^", double, "_vs"),
+                                    paste0("Ctrl_vs_", colnames(sim$CNOlist@stimuli), "$"),
+                                    paste0("Ctrl_vs_", double, "$")
+                                    ),
+                                  collapse = "|"), colnames(sim$fc))]
+    sim$ERS <- sim$ERS[, unique(colnames(sim$fc))]
+
+    ## ## runtime:
+    ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     ## Rprof("temp.txt", line.profiling=TRUE)
-    ## sim <- simBoolGtn(n=n, e=e, s=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, m=m, sd=sd, verbose = verbose, r = 1, maxcount = 1)
+    ## res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE, maxSteps = 1)
     ## Rprof(NULL)
     ## summaryRprof("temp.txt", lines = "show")$sampling.time
     ## head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
@@ -245,15 +262,21 @@ rm .RData
 
 ## bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_app.r"
 
+queue=24
+
 frac=100
+Sgenes=30
+Egenes=10
+Stimuli=6
+Noise=1
 
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
 
-bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '1' '100' '2' '4' '1' '30' '2' < bnem_app.r"
+bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '1' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
 
 for i in {2..100}; do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '4' '1' '30' '2' < bnem_app.r"
+	bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
     #fi
 done
 
@@ -275,17 +298,19 @@ done
 
 path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
 
-n <- 20
-m <- 2
-s <- 4
-sd <- 1
+n <- 30
+m <- 10
+s <- 6
+sd <- 0.5
+
+result2 <- NULL
 maxrun <- 100
 frac <- 100
 for (part in seq_len(frac)) {
     runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
     file <- paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")
     if (!file.exists(paste0(path, file))) { cat(part);next() }
-    if (part == 1) {
+    if (is.null(result2)) {
         load(paste0(path, file))
         result2 <- result
     } else {
@@ -295,15 +320,18 @@ for (part in seq_len(frac)) {
 }
 result <- result2
 
+box <- 1
+source("mnem/R/mnems_low.r")
 pdf("temp.pdf", width = 10, height = 10)
 par(mfrow=c(1,4))
-boxplot(result[,1:5,1], col = 2:4, ylab = "seconds", main = "Running time")
-boxplot(result[,1:5,3], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects")
-boxplot(result[,1:5,2], col = 2:4, ylab = "fraction of correct predictions", main = "Accuracy of truth tables")
-boxplot(result[,1:5,4], col = 2:4, ylab = "log likelihood + constant", main = "likelihood")#, ylim = c(0,1))
+cols <- rgb(c(1,0,1,0,1), c(0,1,0,1,0), c(1,1,0,0,0), 0.75)
+myboxplot(result[,1:5,1], col = cols, ylab = "seconds", main = "Running time", box = box)
+myboxplot(result[,1:5,3], col = cols, ylab = "fraction of correct predictions", main = "Accuracy of expected differential effects", box = box)
+myboxplot(result[,1:5,2], col = cols, ylab = "fraction of correct predictions", main = "Accuracy of truth tables", box = box)
+myboxplot(result[,1:5,4], col = cols, ylab = "log likelihood + constant", main = "likelihood", box = box)#, ylim = c(0,1))
 dev.off()
 
-## paper fig:
+## paper fig(s):
 
 pdf("temp.pdf", width = 10, height = 5)
 par(mfrow=c(1,2))
@@ -311,6 +339,55 @@ boxplot(result[,2:4,1], col = 2:5, ylab = "seconds", main = "running time", xaxt
 axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
 boxplot(-result[,2:4,4], col = 2:5, ylab = "log likelihood + constant", main = "likelihood", xaxt = "n")#, ylim = c(0,0.3))
 axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
+dev.off()
+
+## more in one:
+
+path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
+
+ns <- c(30)
+m <- 10
+s <- 6
+sds <- c(0.5, 1)
+sdl <- length(sds)
+
+cols <- rgb(c(1,0,0),c(0,1,0),c(0,0,1), 0.75)
+pdf("temp.pdf", width = 10, height = 5)
+par(mfrow=c(1,2))
+for (n in ns) {
+    for (sd in sds) {
+        result2 <- NULL
+        maxrun <- 100
+        frac <- 100
+        for (part in seq_len(frac)) {
+            runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
+            file <- paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")
+            if (!file.exists(paste0(path, file))) { cat(part); next() }
+            if (is.null(result2)) {
+                load(paste0(path, file))
+                result2 <- result
+            } else {
+                load(paste0(path, file))
+                result2[runs,,] <- result[runs,,]
+            }
+        }
+        if (sd == 0.5) {
+            result0.5 <- result2
+        }
+        if (sd == 1) {
+            result1 <- result2
+        }
+    }
+
+    boxplot(cbind(result0.5[,2:4,1], result1[,2:4,1]), col = cols, ylab = "seconds", main = "running time", xaxt = "n")
+    axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
+    abline(v=3.5, lty = 2, col = rgb(0,0,0,0.75))
+    axis(1, c(2,5), sds, line = 2, tick = 0)
+    boxplot(-cbind(result0.5[,2:4,4], result1[,2:4,4]), col = cols, ylab = "log likelihood + constant", main = "network score", xaxt = "n")
+    axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
+    abline(v=3.5, lty = 2, col = rgb(0,0,0,0.75))
+    axis(1, c(2,5), sds, line = 2, tick = 0)
+}
 dev.off()
 
 ## analyze BCR:
@@ -347,9 +424,9 @@ model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
 
 source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
 
-greedy0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "greedy")
+greedy0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy")
 
-greedy1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", initBstring = rep(1, length(model$reacID)))
+greedy1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", initBstring = rep(1, length(model$reacID)))
 
 ga0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "llr", search = "genetic")
 
@@ -390,3 +467,31 @@ plot(bsfull, cut = 0.5, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"))
 dev.off()
 
 bcr2 <- processDataBCR(path = "~/Downloads/celfiles/", combsign = 0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+combiNames2 <- paste(rownames(CNOlist@stimuli), combiInhibit, sep = "_")[which(rowSums(cbind(CNOlist@stimuli, CNOlist@inhibitors)[grepStimsKds, ]) != 0)]
+
+combiNames <- NULL
+for (i in grepStimsKds) {
+    combiNames <- c(combiNames, paste(names(which(stimsKdsCbind[i, ] >= 1)), collapse = "_"))
+}
+
+combiNames2 <- combiNames0[grepStimsKds]
+
+cbind(combiNames, combiNames2)
+
+all(combiNames == combiNames2)

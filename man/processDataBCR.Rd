@@ -12,7 +12,8 @@ processDataBCR(path = "", combsign = FALSE)
 \item{combsign}{if TRUE includes all covariates in ComBat analysis}
 }
 \value{
-data matrix with foldchanges
+list with the full foldchanges and epxression matrix,
+a reduced foldchange matrix and the design matrix for the computations
 }
 \description{
 Produce the application data from the BCR paper

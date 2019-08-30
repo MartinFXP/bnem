@@ -196,6 +196,16 @@ checkCNOlist <-
                                          order(colnames(CNOlist@signals[[i]]))]
             }
         }
+        rownames(CNOlist@cues) <- rownames(CNOlist@stimuli) <-
+            rownames(CNOlist@inhibitors) <-
+            unlist(lapply(rownames(CNOlist@cues), function(x) {
+                y <- unlist(strsplit(x, "_"))
+                y <- paste(c(sort(y[which(y %in% colnames(CNOlist@stimuli))]),
+                             sort(y[which(!(y %in%
+                                            colnames(CNOlist@stimuli)))])),
+                           collapse = "_")
+                return(y)
+            }))
         CNOlist@variances <- list()
         return(CNOlist)
     }
@@ -582,7 +592,6 @@ computeScoreNemT1 <-
             return(newmodel)
         }
 
-        CNOlist <- checkCNOlist(CNOlist)
         method <- checkMethod(method)
         ## if (is.null(simList) == TRUE) {
         ##   simList = prep4sim(model)
@@ -1478,8 +1487,6 @@ exSearch <-
              parallel = NULL, method = "s", relFit = FALSE, verbose = TRUE,
              reduce = TRUE, approach = "fc", ...) {
 
-        CNOlist <- checkCNOlist(CNOlist)
-
         cutModel2 <- function (model, bString) {
             if (sum(bString == 1) > 0) {
                 bs = as.logical(bString)
@@ -1706,7 +1713,6 @@ sep = ""))
             CNOlist = CNOlist(CNOlist)
         }
         ## create foldchanges if not already included in nemlist
-        CNOlist <- checkCNOlist(CNOlist)
         NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist,
                                 parameters = parameters, approach = approach,
                                 method)
@@ -2426,7 +2432,6 @@ getNemFit <-
         MSEIabs <- NULL
         MSEAfc <- NULL
         MSEIfc <- NULL
-        CNOlist <- checkCNOlist(CNOlist)
         NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist,
                                 parameters = parameters, approach = approach,
                                 method = method)
@@ -2464,15 +2469,16 @@ getNemFit <-
         if ("fc" %in% approach) {
             MSEE <- rep(Inf, nrow(NEMlist$fc))
             SCompMat <- computeFc(CNOlist, t(simResults))
-            SCompMat[SCompMat > 0] <- 1
-            SCompMat[SCompMat < 0] <- -1
+            signtmp <- sign(SCompMat)
+            SCompMat <- SCompMat/SCompMat
+            SCompMat[is.na(SCompMat)] <- 0
+            SCompMat <- SCompMat*signtmp
             SCompMat <- t(SCompMat)
-            if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
-                print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in%
-                                                   rownames(SCompMat)))]);
-                ## print(rownames(SCompMat)[which(!(rownames(SCompMat) %in%
-                ## colnames(NEMlist$fc)))]) # for debugging
-            }
+            ## for debugging:
+            ## if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
+            ##     print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in%
+            ##                                        rownames(SCompMat)))]);
+            ## }
             if (is.null(rownames(SCompMat))) {
                 SCompMat <- SCompMat[, colnames(NEMlist$fc)]
             } else {
@@ -2985,7 +2991,6 @@ localSearch <-
         if (!is(CNOlist, "CNOlist")) {
             CNOlist = CNOlist(CNOlist)
         }
-        CNOlist <- checkCNOlist(CNOlist)
         NEMlist <- checkNEMlist(NEMlist, CNOlist, parameters, approach, method)
         bLength <- length(model$reacID)
         ##simList = prep4sim(model)
@@ -3028,7 +3033,7 @@ localSearch <-
                                 indexList, sizeFac, NAFac, approach = approach,
                                 NEMlist = NEMlist, parameters, tellme = 0,
                                 relFit = relFit, method = method,
-                                max.steps = max.steps, node = node) {
+                                max.steps = max.steps, node = node, ...) {
             stimuli <- colnames(CNOlist@stimuli)
             inhibitors <- colnames(CNOlist@inhibitors)
             signals <- colnames(CNOlist@signals[[1]])
@@ -3054,11 +3059,13 @@ localSearch <-
                 }
                 print(safeNumber)
             }
-            fullScore <- computeScoreNemT1(CNOlist, model = model, bitString,
-                                           sizeFac = sizeFac, NAFac = 1,
-                                           NEMlist = NEMlist, tellme = 0,
-                                           parameters = parameters,
-                                           method = method)
+            fullScore <- computeScoreNemT1(CNOlist=CNOlist, model=model,
+                                           bString=bitString, sizeFac=sizeFac,
+                                           NAFac=NAFac, approach = approach,
+                                           NEMlist = NEMlist,
+                                           parameters=parameters, tellme = 0,
+                                           relFit = relFit, method = method,
+                                           ...)
             if (verbose) {
                 print(paste("Seed Network ", row, "/", n, sep = ""))
                 if (!(verbose2 %in% "part")) {
@@ -3077,11 +3084,13 @@ localSearch <-
             edge.history <- character()
             counter <- 0
             while(!stop) {
-                score <- computeScoreNemT1(CNOlist, model = model, bitString,
-                                           sizeFac = sizeFac, NAFac = 1,
-                                           NEMlist = NEMlist, tellme = 0,
-                                           parameters = parameters,
-                                           method = method)
+                score <- computeScoreNemT1(CNOlist=CNOlist, model=model,
+                                           bString=bitString, sizeFac=sizeFac,
+                                           NAFac=NAFac, approach = approach,
+                                           NEMlist = NEMlist,
+                                           parameters=parameters, tellme = 0,
+                                           relFit = relFit, method = method,
+                                           ...)
                 save.scores <-c(save.scores, score)
                 scores <- numeric(bLength)
                 sizes <- numeric(bLength)
@@ -3091,7 +3100,7 @@ localSearch <-
                                       indexList, sizeFac, NAFac,
                                       approach = approach, NEMlist = NEMlist,
                                       parameters, tellme = 0, relFit = relFit,
-                                      method = method) {
+                                      method = method, ...) {
                     if (!is.null(node)) {
                         if (length(grep(paste(node, collapse = "|"),
                                         model$reacID[i])) == 0) {
@@ -3107,14 +3116,18 @@ localSearch <-
                             } else {
                                 bitStringTmp <- redBstring
                             }
-                            return(computeScoreNemT1(CNOlist, model = model,
-                                                     bitStringTmp,
-                                                     sizeFac = sizeFac,
-                                                     NAFac = 1,
+                            return(computeScoreNemT1(CNOlist=CNOlist,
+                                                     model=model,
+                                                     bString=bitStringTmp,
+                                                     sizeFac=sizeFac,
+                                                     NAFac=NAFac,
+                                                     approach = approach,
                                                      NEMlist = NEMlist,
+                                                     parameters=parameters,
                                                      tellme = 0,
-                                                     parameters = parameters,
-                                                     method = method))
+                                                     relFit = relFit,
+                                                     method = method,
+                                                     ...))
                         }
                     } else {
                         bitStringTmp <- bitString
@@ -3133,23 +3146,31 @@ localSearch <-
                                             model$reacID[
                                                       which(bitStringTmp == 1)],
                                             "\\+")))
-                            return(c(computeScoreNemT1(CNOlist, model = model,
-                                                       bitStringTmp,
-                                                       sizeFac = sizeFac,
-                                                       NAFac = 1,
+                            return(c(computeScoreNemT1(CNOlist=CNOlist,
+                                                       model=model,
+                                                       bString=bitStringTmp,
+                                                       sizeFac=sizeFac,
+                                                       NAFac=NAFac,
+                                                       approach = approach,
                                                        NEMlist = NEMlist,
+                                                       parameters=parameters,
                                                        tellme = 0,
-                                                       parameters = parameters,
-                                                       method = method), size))
+                                                       relFit = relFit,
+                                                       method = method,
+                                                       ...), size))
                         } else {
-                            return(computeScoreNemT1(CNOlist, model = model,
-                                                     bitStringTmp,
-                                                     sizeFac = sizeFac,
-                                                     NAFac = 1,
+                            return(computeScoreNemT1(CNOlist=CNOlist,
+                                                     model=model,
+                                                     bString=bitStringTmp,
+                                                     sizeFac=sizeFac,
+                                                     NAFac=NAFac,
+                                                     approach = approach,
                                                      NEMlist = NEMlist,
+                                                     parameters=parameters,
                                                      tellme = 0,
-                                                     parameters = parameters,
-                                                     method = method))
+                                                     relFit = relFit,
+                                                     method = method,
+                                                     ...))
                         }
                     }
                 }

@@ -20,16 +20,16 @@
 
 \item{ci}{if TRUE shows confidence intervals}
 
-\item{cip}{range for the confidence interval}
+\item{cip}{range for the confidence interval, e.g. 0.95}
 
 \item{method}{method to use for conidence itneral
 computation (see function binom.confint from package binom)}
 
-\item{...}{additional parameters for the function plotDnf
+\item{...}{additional parameters for the function mnem::plotDnf
 from package mnem}
 }
 \value{
-plots the network from the bootstrap
+plot of the network from the bootstrap
 }
 \description{
 Shows the result of a Boostrap with either edge frequencies

@@ -15,7 +15,8 @@
 plot of boolean network
 }
 \description{
-plots the boolen network as disjunctive normal form
+plots the boolen network from a simulation
+as disjunctive normal form
 }
 \examples{
 sim <- simBoolGtn()

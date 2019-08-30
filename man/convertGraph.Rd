@@ -14,7 +14,10 @@ converted graph normal form
 }
 \description{
 converts a disjunctive normal form into a conjunctive normal form and
-vice versa
+vice versa;
+input graph as disjunctive normal form like that:
+c("A+B=D", "C=D", "G+F=U", ...); output is the dual element
+also in disjunctive normal form;
 }
 \examples{
 g <- "A+B=C"

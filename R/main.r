@@ -6,7 +6,8 @@
 #' @param path path to the CEL.gz files
 #' @param combsign if TRUE includes all covariates in ComBat analysis
 #' @author Martin Pirkl
-#' @return data matrix with foldchanges
+#' @return list with the full foldchanges and epxression matrix,
+#' a reduced foldchange matrix and the design matrix for the computations
 #' @export
 #' @importFrom vsn justvsn
 #' @importFrom limma lmFit eBayes makeContrasts contrasts.fit
@@ -141,13 +142,13 @@ processDataBCR <- function(path = "", combsign = FALSE) {
 #' @param cut shows only edges with a fraction larger than cut
 #' @param dec integer for function round
 #' @param ci if TRUE shows confidence intervals
-#' @param cip range for the confidence interval
+#' @param cip range for the confidence interval, e.g. 0.95
 #' @param method method to use for conidence itneral
 #' computation (see function binom.confint from package binom)
-#' @param ... additional parameters for the function plotDnf
+#' @param ... additional parameters for the function mnem::plotDnf
 #' from package mnem
 #' @author Martin Pirkl
-#' @return plots the network from the bootstrap
+#' @return plot of the network from the bootstrap
 #' @method plot bnembs
 #' @export
 #' @importFrom mnem plotDnf
@@ -293,31 +294,33 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
 NA
 #' Sample random network and simulate data
 #'
-#' Draw a random prior network, samples a ground truth from the full boolean
+#' Draws a random prior network, samples a ground truth from the full boolean
 #' extension and generates data
 #' @param Sgenes number of S-genes
 #' @param maxEdges number of maximum edges in the DAG
 #' @param stimGenes number of stimulated S-genes
 #' @param layer scaling factor for the sampling of next Sgene layer; high
-#' means less Sgenes and low more Sgenes
+#' means a higher probability for less Sgenes and low more Sgenes
 #' @param frac fraction of hyper-edges in the ground truth
 #' @param dag if TRUE graph will be acyclic
 #' @param maxSize maximum number of S-genes in a disjunction or clause
-#' @param maxStim maximum stimulated S-genes in the data samples
-#' @param maxInhibit maximum inhibited S-genes in the data samples
-#' @param Egenes E-genes per S-gene
+#' @param maxStim maximum of stimulated S-genes in the data samples
+#' @param maxInhibit maximum of inhibited S-genes in the data samples
+#' @param Egenes number of E-genes per S-gene, e.g. 10 S-genes and 10
+#' E-genes will return 100 E-genes overall
 #' @param flip number of inhibited E-genes
-#' @param reps numbero f replicates
+#' @param reps number of replicates
 #' @param sd standard deviation for the gaussian noise
-#' @param keepsif if TRUE does not delete sif file, which encodes the network
+#' @param keepsif if TRUE does not delete sif file, which encodes
+#' the prior network
 #' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
-#' while loops do not run in infinity
+#' while loops do not run to infinity
 #' @param negation if TRUE negative edges are allowed
 #' @param allstim full network in which all S-genes are possibly stimulated
 #' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return list with the corresponding prior graph, ground truth network and
-#' data example
+#' data
 #' @export
 #' @importFrom mnem plotDnf
 #' @examples
@@ -357,15 +360,18 @@ simBoolGtn <-
                 inhibitors  <- gsub(i, paste(i, "inhibit", sep = ""),
                                     inhibitors)
             }
+            pkn <- dnf
         } else {
             Sgenes <- paste0("S", seq_len(n))
             if (length(Sgenes) > 9) { Sgenes <- paste0(Sgenes, "g") }
             stimuli <- prev <- sample(Sgenes, s)
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
             pkn <- NULL
+            enew <- 0
             while(length(Sgenes) > 0) {
                 pp <- rbeta(1, 1, (length(Sgenes)*p)/10)
                 layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
+                enew <- enew + length(prev)*length(layer)
                 Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
                 for (i in seq_len(length(prev))) {
                     pkn <- c(pkn, paste0(prev[i], "=", layer))
@@ -376,15 +382,11 @@ simBoolGtn <-
                 prev <- layer
             }
             dnf <- pkn
+            if (enew > e) { e <- enew }
             if (length(dnf) > e) {
-                pkn2 <- NULL
-                for (i in c(stimuli, inhibitors)) {
-                    pkn2 <- c(pkn2, sample(pkn[grep(i, pkn)], 1))
-                }
-                pkn3 <- pkn[-which(pkn %in% pkn2)]
-                if (length(pkn2) < e) {
-                    pkn2 <- c(pkn2, sample(pkn3, e-length(pkn2)))
-                }
+                pkn2 <- gsub("!", "", dnf)
+                getrid <- sample(which(duplicated(pkn2) == TRUE), length(dnf)-e)
+                pkn2 <- dnf[-getrid]
                 pkn <- pkn2
                 dnf <- pkn
             }
@@ -429,7 +431,11 @@ simBoolGtn <-
                                                  paste0("^", i, "="),
                                                  paste0("\\+", i, "="),
                                                  paste0("^", i, "\\+"),
-                                                 paste0("\\+", i, "\\+")),
+                                                 paste0("\\+", i, "\\+"),
+                                                 paste0("^!", i, "="),
+                                                 paste0("\\+!", i, "="),
+                                                 paste0("^!", i, "\\+"),
+                                                 paste0("\\+!", i, "\\+")),
                                                  collapse = "|"), pkn)], 1))
             } else {
                 base <- c(base, sample(model$reacID[grep(paste0("=", i, "$"),
@@ -441,6 +447,14 @@ simBoolGtn <-
         addcount <- max(1, floor(frac*length(model$reacID))-length(base))
         bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
         bString <- reduceGraph(bString, model, CNOlist)
+        graph <- model$reacID[which(bString == 1)]
+        if (length(grep("\\+", graph)) > 0) {
+            graph[-grep("\\+", graph)] <- gsub("!", "",
+                                               graph[-grep("\\+", graph)])
+        } else {
+            graph <- gsub("!", "", graph)
+        }
+        bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
@@ -454,15 +468,20 @@ simBoolGtn <-
             bString[grep(paste(base, collapse = "|"), model$reacID)] <- 1
             bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
             bString <- reduceGraph(bString, model, CNOlist)
+            graph <- model$reacID[which(bString == 1)]
+            if (length(grep("\\+", graph)) > 0) {
+                graph[-grep("\\+", graph)] <- gsub("!", "",
+                                                   graph[-grep("\\+", graph)])
+            } else {
+                graph <- gsub("!", "", graph)
+            }
+            bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
             steadyState <- steadyState2 <-
                 simulateStatesRecursive(CNOlist, model, bString)
             ind <- grep(paste(inhibitors, collapse = "|"),
                         colnames(steadyState2))
             steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
         }
-        graph <- model$reacID[as.logical(bString)]
-        graph[-grep("\\+", graph)] <- gsub("!", "", graph[-grep("\\+", graph)])
-        bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
         exprs <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
                                 rep(seq_len(nrow(steadyState)), r)]
         ERS <- computeFc(CNOlist, t(steadyState))
@@ -599,8 +618,8 @@ absorption <-
     }
 #' Boolean Nested Effects Model main function
 #'
-#' This function takes a prior network and normalized perturbations as input and
-#' trains logical function on that prior network
+#' This function takes a prior network and normalized perturbation data
+#' as input and trains logical functions on that prior network
 #' @param search Type of search heuristic. Either "greedy", "genetic" or
 #' "exhaustive". "greedy" uses a greedy algorithm to move through the local
 #' neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
@@ -610,7 +629,7 @@ absorption <-
 #' (normalized pvalues, logodds, ...). If left NULL, the gene expression
 #' data is used to calculate naive foldchanges.
 #' @param exprs Optional normalized gene expression data.
-#' @param egenes list object. each list entry is named after an S-gene and
+#' @param egenes list object; each list entry is named after an S-gene and
 #' contains the egenes which are potential children
 #' @param pkn Prior knowledge network.
 #' @param design Optional design matrix for the gene expression values, if
@@ -625,53 +644,67 @@ absorption <-
 #' @param model Model object including the search space, if available.
 #' @param sizeFac Size factor penelizing the hyper-graph size.
 #' @param NAFac factor penelizing NAs in the data.
-#' @param parameters atm not used
+#' @param parameters parameters for discrete case (not recommended);
+#' has to ba list with entries cutOffs and scoring:
+#' cutOffs = c(a,b,c) with a (cutoff for real zeros),
+#' b (cutoff for real effects),
+#' c = -1 for normal scoring, c between 0 and
+#' 1 for keeping only relevant % of E-genes,
+#' between -1 and 0 for keeping only a specific quantile of E-genes,
+#' and c > 1 for keeping the top c E-genes;
+#' scoring = c(a,b,c) with a (weight for real effects),
+#' c (weight for real zeros),
+#' b (multiplicator for effects/zeros between a and c);
 #' @param parallel Parallelize the search. An integer value specifies the
 #' number of threads on the local machine. A list object as in list(c(1,2,3),
 #' c("machine1", "machine2", "machine3")) specifies the threads distributed
 #' on different machines (local or others).
-#' @param method Scoring method can be a correlation, distance measure or a
+#' @param method Scoring method can be "cosine" a correlation,
+#' distance measure or a
 #' probability based score "llr". See ?cor and ?dist for details.
-#' @param relFit atm not used
+#' @param relFit if TRUE a relative fit for each
+#' E-gene is computed (not recommended)
 #' @param verbose TRUE gives additional information during the search.
-#' @param reduce atm not used
+#' @param reduce if TRUE reduces the search space for exhaustive search
 #' @param initBstring Binary string of the initial hyper-graph.
-#' @param popSize Popultaion size (only "genetic").
+#' @param popSize Population size (only "genetic").
 #' @param pMutation Probability for mutation (only "genetic").
-#' @param maxTime Define a maximal time for the search.
+#' @param maxTime Define a maximal time (seconds) for the search.
 #' @param maxGens Maximal number of generations (only "genetic").
 #' @param stallGenMax Maximum number of stall generations (only "genetic").
 #' @param relTol Score tolerance for networks defined as optimal but with a
 #' lower score as the real optimum (only "genetic").
 #' @param priorBitString Binary string defining hyper-edges which are added
 #' to every hyper-graph. E.g. if you know hyper-edge 55 is definitly there and
-#' want to fix that set priorBitString[55] <- 1 (only "genetic").
+#' to fix that, set priorBitString[55] <- 1 (only "genetic").
 #' @param selPress Selection pressure for the stochastic universal sampling
 #' (only "genetic").
-#' @param approach atm not used
-#' @param fit atm not used
-#' @param targetBstring atmnot used
-#' @param elitism Number of best hyper-graph transferred to the next generation
+#' @param approach default "fc" for foldchanges or signed effect probabilities,
+#' "abs" for absolute effects or probabilities
+#' @param fit "linear" or "nonlinear fit for stochastic universal sampling
+#' @param targetBstring define a binary string representing a network;
+#' if this network is found, the computation stops
+#' @param elitism Number of best hyper-graphs transferred to the next generation
 #' (only "genetic").
 #' @param inversion Number of worst hyper-graphs for which their binary strings
 #' are inversed  (only "genetic").
-#' @param parallel2 atm not used
+#' @param parallel2 if TRUE parallelises the starts and not the search itself
 #' @param selection "t" for tournament selection and "s" for stochastic
 #' universal sampling (only "genetic").
-#' @param type atm not used
+#' @param type type of the paralellisation on multpile machines (default: SOCK)
 #' @param exhaustive If TRUE an exhaustive search is conducted if the genetic
 #' algorithm would take longer (only "genetic").
-#' @param delcyc If TRUE deleted cycles in all hyper-graphs (recommended).
-#' @param seeds atm not used
+#' @param delcyc If TRUE deletes cycles in all hyper-graphs (not recommended).
+#' @param seeds how many starts for the greedy search? (default: 1)
 #' @param maxSteps Maximal number of steps (only "greedy").
-#' @param node atm not used
-#' @param absorpII Use a thrid absorption law.
+#' @param node vector of S-gene names, which are used in the greedy
+#' search; if node = NULL all nodes are considered
+#' @param absorpII Use inverse absorption.
 #' @param draw If TRUE draws the network evolution.
 #' @param prior Binary vector. A 1 specifies hyper-edges which should not be
 #' optimized (only "greedy").
 #' @param maxInputsPerGate If no model is supplied, one is created with
 #' maxInputsPerGate as maximum number of parents for each hyper-edge.
-#' @param ... additional low level parameters
 #' @author Martin Pirkl
 #' @seealso nem
 #' @export
@@ -750,9 +783,7 @@ bnem <-
              absorpII = TRUE,
              draw = TRUE,
              prior = NULL,
-             maxInputsPerGate = 2,
-
-             ...
+             maxInputsPerGate = 2
              ) {
         if (is.null(model) | is.null(CNOlist)) {
             tmp <- preprocessInput(stimuli=stimuli,inhibitors=inhibitors,
@@ -769,6 +800,7 @@ bnem <-
             NEMlist$exprs <- exprs
             NEMlist$egenes <- egenes
         }
+        CNOlist <- checkCNOlist(CNOlist)
 
         if (search %in% c("greedy", "genetic", "exhaustive")) {
 
@@ -784,7 +816,7 @@ bnem <-
                                    max.steps = maxSteps, max.time = maxTime,
                                    node = node, absorpII = absorpII,
                                    draw = draw,
-                                   prior = prior, ...)
+                                   prior = prior)
                 minSeed <- 1
                 if (length(res$scores) > 1) {
                     for (i in seq_len(length(res$scores))) {
@@ -816,8 +848,8 @@ bnem <-
                                      parallel = parallel,parallel2 = parallel2,
                                      selection = selection,relFit = relFit,
                                      method = method,type = type,
-                                     exhaustive = exhaustive,delcyc = delcyc,
-                                     ...)
+                                     exhaustive = exhaustive,delcyc = delcyc
+                                     )
                 result <- list(graph = model$reacID[as.logical(res$bString)],
                                bString = res$bString, bStrings = res$stringsTol,
                                scores = res$stringsTolScores)
@@ -828,7 +860,7 @@ bnem <-
                                 parameters=parameters, parallel = parallel,
                                 method = method, relFit = relFit,
                                 verbose = verbose, reduce = reduce,
-                                approach = approach, ...)
+                                approach = approach)
                 result <- list(graph = model$reacID[as.logical(res$bString)],
                                bString = res$bString, bStrings = res$bStrings,
                                scores = res$scores)
@@ -844,13 +876,11 @@ bnem <-
 #' (absolute gene expression, truth table)
 #' @param CNOlist a CNOlist object with correct annotation
 #' @param y activation pattern according to the annotation in CNOlist
-#' @param test for debugging
 #' @author Martin Pirkl
-#' @return response scheme
+#' @return numeric matrix with annotated response scheme
 #' @export
 #' @import CellNOptR
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -865,7 +895,8 @@ bnem <-
 #' nrow(slot(CNOlist, "cues")))
 #' fc <- computeFc(CNOlist, exprs)
 computeFc <-
-    function (CNOlist, y, test = 1) {
+    function (CNOlist, y) {
+        test <- 0 # for debugging
         CompMat <- numeric()
         CompMatNames <- character()
         cnolistStimuli <- apply(CNOlist@stimuli, 1, sum)
@@ -880,41 +911,69 @@ computeFc <-
                              which(cnolistInhibitors != 0))
         grepStimsKds <- intersect(which(cnolistStimuli != 0),
                                   which(cnolistInhibitors != 0))
-        if (test == 1) {
-            ## get ctrl_vs_kd:
-            inhibitorsNames <- NULL
-            for (i in grepKds) {
-                inhibitorsNames <-
-                    c(inhibitorsNames,
-                      paste(names(which(CNOlist@inhibitors[i, ] >= 1)),
+        stimsKdsCbind <- cbind(CNOlist@stimuli, CNOlist@inhibitors)
+        ## get ctrl_vs_kd:
+        inhibitorsNames <- NULL
+        for (i in grepKds) {
+            inhibitorsNames <-
+                c(inhibitorsNames,
+                  paste(names(which(CNOlist@inhibitors[i, ] >= 1)),
+                        collapse = "_"))
+        }
+        if (length(grepKds) > 0) {
+            CompMat <- cbind(CompMat, y[, grepKds] - y[, grepCtrl])
+            CompMatNames <-
+                c(CompMatNames, paste("Ctrl_vs_", inhibitorsNames,
+                                      sep = ""))
+        }
+        ## get ctrl_vs_stim:
+        stimuliNames <- NULL
+        for (i in grepStims) {
+            if (sum(CNOlist@stimuli[i, ] >= 1) > 1) {
+                stimuliNames <-
+                    c(stimuliNames,
+                      paste(names(which(CNOlist@stimuli[i, ] >= 1)),
                             collapse = "_"))
+            } else {
+                stimuliNames <-
+                    c(stimuliNames,
+                      colnames(CNOlist@stimuli)[
+                          which(CNOlist@stimuli[i, ] >= 1)])
             }
-            if (length(grepKds) > 0) {
-                CompMat <- cbind(CompMat, y[, grepKds] - y[, grepCtrl])
-                CompMatNames <-
-                    c(CompMatNames, paste("Ctrl_vs_", inhibitorsNames,
-                                          sep = ""))
-            }
-            ## get ctrl_vs_stim:
-            stimuliNames <- NULL
-            for (i in grepStims) {
-                if (sum(CNOlist@stimuli[i, ] >= 1) > 1) {
-                    stimuliNames <-
-                        c(stimuliNames,
-                          paste(names(which(CNOlist@stimuli[i, ] >= 1)),
-                                collapse = "_"))
-                } else {
-                    stimuliNames <-
-                        c(stimuliNames,
-                          colnames(CNOlist@stimuli)[
-                              which(CNOlist@stimuli[i, ] >= 1)])
-                }
-            }
-            if (length(grepStims) > 0) {
-                CompMat <- cbind(CompMat, y[, grepStims] - y[, grepCtrl])
-                CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", stimuliNames,
-                                                      sep = ""))
-            }
+        }
+        if (length(grepStims) > 0) {
+            CompMat <- cbind(CompMat, y[, grepStims] - y[, grepCtrl])
+            CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", stimuliNames,
+                                                  sep = ""))
+        }
+        ## get stim_vs_stim_kd:
+        ## combiNames <- NULL
+        ## for (i in grepStimsKds) {
+        ##     combiNames <-
+        ##         c(combiNames,
+        ##           paste(names(which(stimsKdsCbind[i, ] >= 1)),
+        ##                 collapse = "_"))
+        ## }
+        combiNames <- rownames(CNOlist@cues)[grepStimsKds]
+        if (length(grepStimsKds) > 0 & length(grepStims) > 0) {
+            CompMat <-
+                cbind(CompMat,
+                      y[, rep(grepStimsKds, length(grepStims))] -
+                      y[, sort(rep(grepStims, length(grepStimsKds)))])
+            orderStims <- order(rep(grepStims, length(grepStimsKds)))
+            CompMatNames <-
+                c(CompMatNames,
+                  paste(rep(stimuliNames, length(combiNames))[orderStims],
+                        "_vs_", rep(combiNames, length(stimuliNames)),
+                        sep = ""))
+        }
+        ## combine:
+        colnames(CompMat) <- CompMatNames
+        if (sum(duplicated(colnames(CompMat)) == TRUE)) {
+            CompMat <-
+                CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]
+        }
+        if (test == 1) {
             ## get stim_vs_stim:
             combiNames2 <- NULL
             for (i in grepStims) {
@@ -934,34 +993,12 @@ computeFc <-
                                 length(combiNames2))[orderStims2], "_vs_",
                             rep(combiNames2, length(stimuliNames)), sep = ""))
             }
-            ## get stim_vs_stim_kd:
-            combiNames <- NULL
-            for (i in grepStimsKds) {
-                combiNames <-
-                    c(combiNames,
-                      paste(names(which(cbind(CNOlist@stimuli,
-                                              CNOlist@inhibitors)[i, ] >= 1)),
-                            collapse = "_"))
-            }
-            if (length(grepStimsKds) > 0 & length(grepStims) > 0) {
-                CompMat <-
-                    cbind(CompMat,
-                          y[, rep(grepStimsKds, length(grepStims))] -
-                          y[, sort(rep(grepStims, length(grepStimsKds)))])
-                orderStims <- order(rep(grepStims, length(grepStimsKds)))
-                CompMatNames <-
-                    c(CompMatNames,
-                      paste(rep(stimuliNames, length(combiNames))[orderStims],
-                            "_vs_", rep(combiNames, length(stimuliNames)),
-                            sep = ""))
-            }
             ## get kd_vs_stim_kd:
             combiNames <- NULL
             for (i in grepStimsKds) {
                 combiNames <-
                     c(combiNames,
-                      paste(names(which(cbind(CNOlist@inhibitors,
-                                              CNOlist@stimuli)[i, ] >= 1)),
+                      paste(names(which(stimsKdsCbind[i, ] >= 1)),
                             collapse = "_"))
             }
             if (length(grepStimsKds) > 0 & length(grepKds) > 0) {
@@ -981,8 +1018,7 @@ computeFc <-
             for (i in grepStimsKds) {
                 combiNames <-
                     c(combiNames,
-                      paste(names(which(cbind(CNOlist@stimuli,
-                                              CNOlist@inhibitors)[i, ] >= 1)),
+                      paste(names(which(stimsKdsCbind[i, ] >= 1)),
                             collapse = "_"))
             }
             if (length(grepStimsKds) > 0) {
@@ -990,114 +1026,22 @@ computeFc <-
                 CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", combiNames,
                                                       sep = ""))
             }
-            ## combine:
-            colnames(CompMat) <- CompMatNames
-            if (sum(duplicated(colnames(CompMat)) == TRUE)) {
-                CompMat <-
-                    CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]
-            }
-        } else {
-            CompMat <- numeric()
-            CompMatNames <- character()
-            cnolistStimuli <- apply(CNOlist@stimuli, 1, sum)
-            cnolistInhibitors <- apply(CNOlist@inhibitors, 1, sum)
-            cnolistCues <- apply(CNOlist@cues, 1, sum)
-            maxStim <- max(cnolistStimuli)
-            maxKd <- max(cnolistInhibitors)
-            grepCtrl <- which(cnolistCues == 0)[1]
-            grepStims <- intersect(which(cnolistStimuli != 0),
-                                   which(cnolistInhibitors == 0))
-            grepKds <- intersect(which(cnolistStimuli == 0),
-                                 which(cnolistInhibitors != 0))
-            grepStimsKds <- intersect(which(cnolistStimuli != 0),
-                                      which(cnolistInhibitors != 0))
-            ## get ctrl_vs_stim:
-            for (i in grepStims) {
-                stimNames <-
-                    paste(c("Ctrl", "vs",
-                            sort(names(which(CNOlist@stimuli[i, ] >= 1)))),
-                          collapse = "_")
-                if (stimNames %in% CompMatNames) {
-                    next()
-                } else {
-                    CompMatNames <- c(CompMatNames, stimNames)
-                    CompMat <- cbind(CompMat, (y[, i] - y[, grepCtrl]))
-                }
-            }
-            ## get ctrl_vs_kd:
-            for (i in grepKds) {
-                kdNames <-
-                    paste(c("Ctrl", "vs",
-                            sort(colnames(CNOlist@inhibitors)[
-                                which(CNOlist@inhibitors[i, ] >= 1)])),
-                          collapse = "_")
-                if (kdNames %in% CompMatNames) {
-                    next()
-                } else {
-                    CompMatNames <- c(CompMatNames, kdNames)
-                    CompMat <- cbind(CompMat, (y[, i] - y[, grepCtrl]))
-                }
-            }
-            ## get kd_vs_kd_stim:
-            for (i in grepKds) {
-                kdNames <-
-                    paste(sort(colnames(CNOlist@inhibitors)[
-                        which(CNOlist@inhibitors[i, ] >= 1)]),
-                        collapse = "_")
-                for (j in grepStimsKds) {
-                    if (paste(sort(colnames(CNOlist@inhibitors)[
-                        which(CNOlist@inhibitors[j, ] >= 1)]),
-                        collapse = "_") %in% kdNames) {
-                        stimNames <-
-                            paste(c(kdNames, "vs", kdNames,
-                                    sort(names(which(CNOlist@stimuli[j, ] >=
-                                                     1)))),
-                                  collapse = "_")
-                        if (stimNames %in% CompMatNames) {
-                            next()
-                        } else {
-                            CompMatNames <- c(CompMatNames, stimNames)
-                            CompMat <- cbind(CompMat, (y[, j] - y[, i]))
-                        }
-                    } else {
-                        next()
-                    }
-                }
-            }
-            ##if (type == "model") {
-            ## get stim_vs_stim_kd:
-            for (i in grepStims) {
-                stimNames <-
-                    paste(sort(names(which(CNOlist@stimuli[i, ] >= 1))),
-                          collapse = "_")
-                for (j in grepStimsKds) {
-                    if (paste(sort(names(which(CNOlist@stimuli[j, ] >= 1))),
-                              collapse = "_") %in% stimNames) {
-                        kdNames <-
-                            paste(c(stimNames, "vs", stimNames,
-                                    sort(colnames(CNOlist@inhibitors)[
-                                        which(CNOlist@inhibitors[j, ] >= 1)])),
-                                  collapse = "_")
-                        if (kdNames %in% CompMatNames) {
-                            next()
-                        } else {
-                            CompMatNames <- c(CompMatNames, kdNames)
-                            CompMat <- cbind(CompMat, (y[, j] - y[, i]))
-                        }
-                    } else {
-                        next()
-                    }
-                }
-            }
-            colnames(CompMat) <- CompMatNames
-            CompMat <- CompMat[, sort(colnames(CompMat))]
+        }
+        ## combine:
+        colnames(CompMat) <- CompMatNames
+        if (sum(duplicated(colnames(CompMat)) == TRUE)) {
+            CompMat <-
+                CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]
         }
         return(CompMat)
     }
 #' Convert normal form
 #'
 #' converts a disjunctive normal form into a conjunctive normal form and
-#' vice versa
+#' vice versa;
+#' input graph as disjunctive normal form like that:
+#' c("A+B=D", "C=D", "G+F=U", ...); output is the dual element
+#' also in disjunctive normal form;
 #' @param g graph in normal form
 #' @author Martin Pirkl
 #' @return converted graph normal form
@@ -1106,9 +1050,7 @@ computeFc <-
 #' g <- "A+B=C"
 #' g2 <- convertGraph(g)
 convertGraph <-
-    function(g) { ## input graph as disjunctive normal form like that:
-        ## c("A+B=D", "C=D", "G+F=U", ...); output is the dual element
-        ## also in disjunctive normal form;
+    function(g) {
         g <- sort(g)
         targets <- gsub(".*=", "", g)
         g.new <- NULL
@@ -1148,11 +1090,10 @@ convertGraph <-
 #' @param signals character vector of genes which can directly regulate effect
 #' reporters
 #' @author Martin Pirkl
-#' @return general CNOlist object
+#' @return CNOlist object
 #' @export
 #' @import CellNOptR
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -1437,30 +1378,30 @@ epiNEM2Bg <- function(t) {
 #' @param bString Binary vector denoting the network given a model
 #' @param CNOlist CNOlist object
 #' @param model Network model object.
-#' @param fc ORS of the data.
-#' @param exprs Optional activation scheme of the data.
-#' @param egenes Atachment of the E-genes (optional).
+#' @param fc ORS of the data as numeric matrix.
+#' @param exprs Optional activation scheme of the data as numeric matrix.
+#' @param egenes Atachment of the E-genes (optional) as
+#' list named after S-genes.
 #' @param NEMlist NEMlist object (optional).
-#' @param parameters not used
+#' @param parameters see ?bnem
 #' @param method Scoring method (optional).
-#' @param sizeFac Zeta parameter to penelize netowkr size.
+#' @param sizeFac Zeta parameter to penelize network size.
 #' @param main Main title of the figure.
 #' @param sub Subtitle of the figure.
 #' @param cut If TRUE does not visualize experiments/S-genes which do
 #' not have any residuals.
-#' @param approach not used
-#' @param parallel et number of cores/threads.
+#' @param approach see ?bnem
+#' @param parallel the number of threads used for computation.
 #' @param verbose verbose output
-#' @param ... additional parameters
+#' @param ... additional parameters for ?epiNEM::HeatmapOP
 #' @author Martin Pirkl
-#' @return matrices indicating experiments and/or genes, where the
+#' @return numeric matrices indicating experiments and/or genes, where the
 #' network and the data disagree
 #' @export
 #' @import
 #' CellNOptR
 #' snowfall
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -1720,10 +1661,9 @@ same.") }
 #' @param model model object for the whole graph space
 #' @param CNOlist CNOlist object
 #' @author Martin Pirkl
-#' @return equivalent sub-graph denoted by bString
+#' @return equivalent sub-graph denoted by a bString
 #' @export
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -1762,18 +1702,18 @@ reduceGraph <-
 #'
 #' simulates the activation pattern (truth table) of a hyper-graph and
 #' annotated perturbation experiments
-#' @param CNOlist, CNOlist object
+#' @param CNOlist CNOlist object
 #' @param model model object
 #' @param bString binary vector denoting the sub-graph given model
 #' @param NEMlist NEMlist object only for devel
 #' @author Martin Pirkl
 #' @return return the truth tables for certain perturbation experiments
+#' as a numeric matrix
 #' @export
 #' @import
 #' CellNOptR
 #' matrixStats
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -2072,40 +2012,36 @@ transRed <-
 #' @param fc matrix of foldchanges (observed response scheme, ORS).
 #' @param exprs optional matrix of normalized expression (observed
 #' activation scheme).
-#' @param approach not used
+#' @param approach default "fc" for foldchanges or signed effect probabilities,
+#' "abs" for absolute effects or probabilities
 #' @param model Model object.
 #' @param bString Binary string denoting the hyper-graph.
 #' @param Egenes Maximal number of visualized E-genes.
 #' @param Sgene Integer denoting the S-gene. See
 #' colnames(CNOlist@signals[[1]]) to match integer with S-gene name.
-#' @param parameters not used
+#' @param parameters see ?bnem
 #' @param plot Plot the heatmap. If FALSE, only corresponding
-#' information is outputed.
+#' information is printed.
 #' @param disc Discretize the data.
 #' @param affyIds Experimental. Turn Affymetrix Ids into HGNC
 #' gene symbols.
-#' @param sim not used
-#' @param relFit not used
-#' @param complete not used
-#' @param xrot See package epiNEM
-#' @param Rowv See package epiNEM
-#' @param Colv See package epiNEM
-#' @param dendrogram See package epiNEM
-#' @param soft not used
-#' @param colSideColors See package epiNEM
+#' @param relFit see ?bnem
+#' @param xrot See package ?epiNEM::HeatmapOP
+#' @param Rowv See package ?epiNEM::HeatmapOP
+#' @param Colv See package ?epiNEM::HeatmapOP
+#' @param dendrogram See package ?epiNEM::HeatmapOP
+#' @param soft weighting the expected pattern, if TRUE
+#' @param colSideColors See package ?epiNEM::HeatmapOP
 #' @param affychip Define Affymetrix chip used to generate the data
 #' (optional).
-#' @param method Scoring method can be a correlation or distance measure.
-#' See ?cor and ?dist for details.
-#' @param ranks Turn data into ranks.
-#' @param breaks See package epiNEM
-#' @param col See package epiNEM
-#' @param csc not used (devel)
-#' @param sizeFac Size factor penelizing the hyper-graph size.
-#' @param verbose Verbose output.
-#' @param order Order by "rank" or "name".
-#' @param colnames not used (devel)
-#' @param ... additional arguments
+#' @param method see ?bnem
+#' @param ranks Turns data into ranks, if TRUE
+#' @param breaks See package ?epiNEM::HeatmapOP
+#' @param col See package ?epiNEM::HeatmapOP
+#' @param sizeFac size factor penelizing the hyper-graph size.
+#' @param verbose verbose output, if TRUE
+#' @param order Order by "rank" or "name" or "none"
+#' @param ... additional arguments for ?epiNEM::HeatmapOP
 #' @author Martin Pirkl
 #' @return lattice object with matrix information
 #' @export
@@ -2116,7 +2052,6 @@ transRed <-
 #' epiNEM
 #' matrixStats
 #' @examples
-#' library(CellNOptR)
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
 #' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
@@ -2142,13 +2077,16 @@ validateGraph <-
              Egenes = 25, Sgene = 1,
              parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)),
              plot = TRUE,
-             disc = 0, affyIds = TRUE, sim = 0, relFit = FALSE,
-             complete = FALSE, xrot = 25, Rowv = FALSE, Colv = FALSE,
+             disc = 0, affyIds = TRUE, relFit = FALSE,
+             xrot = 25, Rowv = FALSE, Colv = FALSE,
              dendrogram = "none", soft = TRUE, colSideColors = NULL,
              affychip = "hgu133plus2", method = "s", ranks = FALSE,
-             breaks = NULL, col = "RdYlGn", csc = TRUE, sizeFac = 10^-10,
-             verbose = TRUE, order = "rank", colnames = "bio", ...) {
-        ## order can be none, rank or names; names, rank superceed Rowv = TRUE
+             breaks = NULL, col = "RdYlGn", sizeFac = 10^-10,
+             verbose = TRUE, order = "rank", ...) {
+        csc <- TRUE
+        colnames <- "bio"
+        complete <- FALSE
+        sim <- 0
 
         NEMlist <- list()
         NEMlist$fc <- fc
@@ -3087,10 +3025,10 @@ validateGraph <-
 #'
 #' creates a random normal form or hyper-graph
 #' @param vertices number of vertices
-#' @param negation allowed?
+#' @param negation negation is allowed, if TRUE
 #' @param max.edge.size maximal number of inputs per edge
 #' @param max.edges maximal number of hyper-edges
-#' @param dag is the graph to ba a dag?
+#' @param dag acyclic graph, if TRUE
 #' @author Martin Pirkl
 #' @return random hyper-graph in normal form
 #' @export
@@ -3143,11 +3081,11 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' computes the score of a boolean network given the model and data
 #' @param bString binary string denoting the boolean network
 #' @param CNOlist CNOlist object
-#' @param fc data
+#' @param fc data (see ?bnem)
 #' @param model network model
-#' @param method scoring method
+#' @param method see ?bnem
 #' @author Martin Pirkl
-#' @return random hyper-graph in normal form
+#' @return numeric value (score)
 #' @export
 #' @examples
 #' sim <- simBoolGtn()
@@ -3160,7 +3098,8 @@ scoreDnf <- function(bString, CNOlist, fc, model, method = "llr") {
 }
 #' plot simulation object
 #'
-#' plots the boolen network as disjunctive normal form
+#' plots the boolen network from a simulation
+#' as disjunctive normal form
 #' @param x bnemsim object
 #' @param ... further arguments; see function mnem::plotDnf
 #' @author Martin Pirkl

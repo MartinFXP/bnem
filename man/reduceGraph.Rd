@@ -14,13 +14,12 @@ reduceGraph(bString, model, CNOlist)
 \item{CNOlist}{CNOlist object}
 }
 \value{
-equivalent sub-graph denoted by bString
+equivalent sub-graph denoted by a bString
 }
 \description{
 reduces the size of a graph if possible to an equivalent sub-graph
 }
 \examples{
-library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,

@@ -7,7 +7,7 @@
 simulateStatesRecursive(CNOlist, model, bString, NEMlist = NULL)
 }
 \arguments{
-\item{CNOlist, }{CNOlist object}
+\item{CNOlist}{CNOlist object}
 
 \item{model}{model object}
 
@@ -17,13 +17,13 @@ simulateStatesRecursive(CNOlist, model, bString, NEMlist = NULL)
 }
 \value{
 return the truth tables for certain perturbation experiments
+as a numeric matrix
 }
 \description{
 simulates the activation pattern (truth table) of a hyper-graph and
 annotated perturbation experiments
 }
 \examples{
-library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,

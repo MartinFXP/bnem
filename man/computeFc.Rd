@@ -4,24 +4,21 @@
 \alias{computeFc}
 \title{Compute repsonse scheme}
 \usage{
-computeFc(CNOlist, y, test = 1)
+computeFc(CNOlist, y)
 }
 \arguments{
 \item{CNOlist}{a CNOlist object with correct annotation}
 
 \item{y}{activation pattern according to the annotation in CNOlist}
-
-\item{test}{for debugging}
 }
 \value{
-response scheme
+numeric matrix with annotated response scheme
 }
 \description{
 computes response scheme given an activation pattern
 (absolute gene expression, truth table)
 }
 \examples{
-library(CellNOptR)
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
 write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,

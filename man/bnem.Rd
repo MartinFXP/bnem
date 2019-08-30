@@ -16,8 +16,7 @@ bnem(search = "greedy", fc = NULL, exprs = NULL, egenes = NULL,
   targetBstring = "none", elitism = NULL, inversion = NULL,
   selection = c("t"), type = "SOCK", exhaustive = FALSE,
   delcyc = FALSE, seeds = 1, maxSteps = Inf, node = NULL,
-  absorpII = TRUE, draw = TRUE, prior = NULL, maxInputsPerGate = 2,
-  ...)
+  absorpII = TRUE, draw = TRUE, prior = NULL, maxInputsPerGate = 2)
 }
 \arguments{
 \item{search}{Type of search heuristic. Either "greedy", "genetic" or
@@ -32,7 +31,7 @@ data is used to calculate naive foldchanges.}
 
 \item{exprs}{Optional normalized gene expression data.}
 
-\item{egenes}{list object. each list entry is named after an S-gene and
+\item{egenes}{list object; each list entry is named after an S-gene and
 contains the egenes which are potential children}
 
 \item{pkn}{Prior knowledge network.}
@@ -57,33 +56,46 @@ inhibitors are defined as signals.}
 
 \item{NAFac}{factor penelizing NAs in the data.}
 
-\item{parameters}{atm not used}
+\item{parameters}{parameters for discrete case (not recommended);
+has to ba list with entries cutOffs and scoring:
+cutOffs = c(a,b,c) with a (cutoff for real zeros),
+b (cutoff for real effects),
+c = -1 for normal scoring, c between 0 and
+1 for keeping only relevant % of E-genes,
+between -1 and 0 for keeping only a specific quantile of E-genes,
+and c > 1 for keeping the top c E-genes;
+scoring = c(a,b,c) with a (weight for real effects),
+c (weight for real zeros),
+b (multiplicator for effects/zeros between a and c);}
 
 \item{parallel}{Parallelize the search. An integer value specifies the
 number of threads on the local machine. A list object as in list(c(1,2,3),
 c("machine1", "machine2", "machine3")) specifies the threads distributed
 on different machines (local or others).}
 
-\item{method}{Scoring method can be a correlation, distance measure or a
+\item{method}{Scoring method can be "cosine" a correlation,
+distance measure or a
 probability based score "llr". See ?cor and ?dist for details.}
 
-\item{approach}{atm not used}
+\item{approach}{default "fc" for foldchanges or signed effect probabilities,
+"abs" for absolute effects or probabilities}
 
-\item{relFit}{atm not used}
+\item{relFit}{if TRUE a relative fit for each
+E-gene is computed (not recommended)}
 
 \item{verbose}{TRUE gives additional information during the search.}
 
-\item{reduce}{atm not used}
+\item{reduce}{if TRUE reduces the search space for exhaustive search}
 
-\item{parallel2}{atm not used}
+\item{parallel2}{if TRUE parallelises the starts and not the search itself}
 
 \item{initBstring}{Binary string of the initial hyper-graph.}
 
-\item{popSize}{Popultaion size (only "genetic").}
+\item{popSize}{Population size (only "genetic").}
 
 \item{pMutation}{Probability for mutation (only "genetic").}
 
-\item{maxTime}{Define a maximal time for the search.}
+\item{maxTime}{Define a maximal time (seconds) for the search.}
 
 \item{maxGens}{Maximal number of generations (only "genetic").}
 
@@ -94,16 +106,17 @@ lower score as the real optimum (only "genetic").}
 
 \item{priorBitString}{Binary string defining hyper-edges which are added
 to every hyper-graph. E.g. if you know hyper-edge 55 is definitly there and
-want to fix that set priorBitString[55] <- 1 (only "genetic").}
+to fix that, set priorBitString[55] <- 1 (only "genetic").}
 
 \item{selPress}{Selection pressure for the stochastic universal sampling
 (only "genetic").}
 
-\item{fit}{atm not used}
+\item{fit}{"linear" or "nonlinear fit for stochastic universal sampling}
 
-\item{targetBstring}{atmnot used}
+\item{targetBstring}{define a binary string representing a network;
+if this network is found, the computation stops}
 
-\item{elitism}{Number of best hyper-graph transferred to the next generation
+\item{elitism}{Number of best hyper-graphs transferred to the next generation
 (only "genetic").}
 
 \item{inversion}{Number of worst hyper-graphs for which their binary strings
@@ -112,20 +125,21 @@ are inversed  (only "genetic").}
 \item{selection}{"t" for tournament selection and "s" for stochastic
 universal sampling (only "genetic").}
 
-\item{type}{atm not used}
+\item{type}{type of the paralellisation on multpile machines (default: SOCK)}
 
 \item{exhaustive}{If TRUE an exhaustive search is conducted if the genetic
 algorithm would take longer (only "genetic").}
 
-\item{delcyc}{If TRUE deleted cycles in all hyper-graphs (recommended).}
+\item{delcyc}{If TRUE deletes cycles in all hyper-graphs (not recommended).}
 
-\item{seeds}{atm not used}
+\item{seeds}{how many starts for the greedy search? (default: 1)}
 
 \item{maxSteps}{Maximal number of steps (only "greedy").}
 
-\item{node}{atm not used}
+\item{node}{vector of S-gene names, which are used in the greedy
+search; if node = NULL all nodes are considered}
 
-\item{absorpII}{Use a thrid absorption law.}
+\item{absorpII}{Use inverse absorption.}
 
 \item{draw}{If TRUE draws the network evolution.}
 
@@ -134,16 +148,14 @@ optimized (only "greedy").}
 
 \item{maxInputsPerGate}{If no model is supplied, one is created with
 maxInputsPerGate as maximum number of parents for each hyper-edge.}
-
-\item{...}{additional low level parameters}
 }
 \value{
 List object including the optimized hyper-graph and its
 corresponding binary string.
 }
 \description{
-This function takes a prior network and normalized perturbations as input and
-trains logical function on that prior network
+This function takes a prior network and normalized perturbation data
+as input and trains logical functions on that prior network
 }
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),

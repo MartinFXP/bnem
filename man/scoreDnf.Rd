@@ -11,14 +11,14 @@ scoreDnf(bString, CNOlist, fc, model, method = "llr")
 
 \item{CNOlist}{CNOlist object}
 
-\item{fc}{data}
+\item{fc}{data (see ?bnem)}
 
 \item{model}{network model}
 
-\item{method}{scoring method}
+\item{method}{see ?bnem}
 }
 \value{
-random hyper-graph in normal form
+numeric value (score)
 }
 \description{
 computes the score of a boolean network given the model and data
