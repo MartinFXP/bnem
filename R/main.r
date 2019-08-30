@@ -315,8 +315,10 @@ NA
 #' the prior network
 #' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
 #' while loops do not run to infinity
-#' @param negation if TRUE negative edges are allowed
+#' @param negation has to bee greater or equal to 0 and less than 1; if
+#' greater than 0, negation is the sample probability for negative edges
 #' @param allstim full network in which all S-genes are possibly stimulated
+#' @param and probability for and gates in the GTN
 #' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return list with the corresponding prior graph, ground truth network and
@@ -331,7 +333,7 @@ simBoolGtn <-
              frac = 0.1,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
              Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
-             maxcount = 10, negation = TRUE, allstim = FALSE,
+             maxcount = 10, negation = TRUE, allstim = FALSE, and = 0.25,
              verbose = FALSE) {
         n <- Sgenes
         m <- Egenes
@@ -364,18 +366,27 @@ simBoolGtn <-
         } else {
             Sgenes <- paste0("S", seq_len(n))
             if (length(Sgenes) > 9) { Sgenes <- paste0(Sgenes, "g") }
-            stimuli <- prev <- sample(Sgenes, s)
+            layers <- list()
+            layers[[1]] <- stimuli <- prev <- sample(Sgenes, s)
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
             pkn <- NULL
             enew <- 0
+            count <- 1
             while(length(Sgenes) > 0) {
+                count <- count + 1
                 pp <- rbeta(1, 1, (length(Sgenes)*p)/10)
-                layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
+                layers[[count]] <- layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
                 enew <- enew + length(prev)*length(layer)
                 Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
                 for (i in seq_len(length(prev))) {
-                    pkn <- c(pkn, paste0(prev[i], "=", layer))
-                    if (negation) {
+                    if (negation > 0) {
+                        die <- sample(c(0,1), 1, prob = c(negation, 1-negation))
+                    } else {
+                        die <- 1
+                    }
+                    if (die) {
+                        pkn <- c(pkn, paste0(prev[i], "=", layer))
+                    } else {
                         pkn <- c(pkn, paste0("!", prev[i], "=", layer))
                     }
                 }
@@ -418,70 +429,37 @@ simBoolGtn <-
         model <- CellNOptR::preprocessing(CNOlist, PKN,
                                           maxInputsPerGate=maxSize,
                                           verbose = verbose)
-        base <- NULL
-        for (i in c(stimuli, inhibitors)) {
-            if (length(grep(paste(c(paste0("^", i, "="), paste0("\\+", i, "="),
-                                    paste0("^", i, "\\+"),
-                                    paste0("\\+", i, "\\+"),
-                                    paste0("=", i, "$")),
-                                  collapse = "|"), base)) > 0 &
-                i %in% stimuli) { next() }
-            if (length(grep(paste0("=", i, "$"), pkn)) == 0) {
-                base <- c(base, sample(model$reacID[grep(paste(c(
-                                                 paste0("^", i, "="),
-                                                 paste0("\\+", i, "="),
-                                                 paste0("^", i, "\\+"),
-                                                 paste0("\\+", i, "\\+"),
-                                                 paste0("^!", i, "="),
-                                                 paste0("\\+!", i, "="),
-                                                 paste0("^!", i, "\\+"),
-                                                 paste0("\\+!", i, "\\+")),
-                                                 collapse = "|"), pkn)], 1))
-            } else {
-                base <- c(base, sample(model$reacID[grep(paste0("=", i, "$"),
-                                                         pkn)], 1))
+        bString <- numeric(length(model$reacID))
+        if (allstim) {
+            bString[sample(seq_len(length(model$reacID)),
+                           ceiling(length(model$reacID)*frac))] <- 1
+        } else {
+            for (i in seq_len(length(layers))) {
+                for (j in seq_len(length(layers[[i]]))) {
+                    if (i == 1) {
+                        gates <- grep(paste0(layers[[i]][j]),
+                                      model$reacID)
+                    } else {
+                        gates <- grep(paste0("=", layers[[i]][j], "$"),
+                                      model$reacID)
+                    }
+                    if (length(gates) == 1) {
+                        bString[gates] <- 1
+                    } else {
+                        prob <- rep(1-and, length(gates))
+                        prob[grep("\\+", model$reacID[gates])] <- and
+                        bString[sample(gates,
+                                       max(c(floor(length(gates)*frac), 1)),
+                                       prob = prob)] <- 1
+                    }
+                }
             }
         }
-        bString <- numeric(length(model$reacID))
-        bString[grep(paste(base, collapse = "|"), model$reacID)] <- 1
-        addcount <- max(1, floor(frac*length(model$reacID))-length(base))
-        bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
         bString <- reduceGraph(bString, model, CNOlist)
-        graph <- model$reacID[which(bString == 1)]
-        if (length(grep("\\+", graph)) > 0) {
-            graph[-grep("\\+", graph)] <- gsub("!", "",
-                                               graph[-grep("\\+", graph)])
-        } else {
-            graph <- gsub("!", "", graph)
-        }
-        bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
         steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-        count <- 0
-        while(any(apply(steadyState, 2, sd) == 0) |
-              any(apply(steadyState2, 2, sd) == 0)) {
-            if (count >= maxcount) { break() }
-            count <- count + 1
-            bString <- numeric(length(model$reacID))
-            bString[grep(paste(base, collapse = "|"), model$reacID)] <- 1
-            bString[sample(seq_len(length(model$reacID)), addcount)] <- 1
-            bString <- reduceGraph(bString, model, CNOlist)
-            graph <- model$reacID[which(bString == 1)]
-            if (length(grep("\\+", graph)) > 0) {
-                graph[-grep("\\+", graph)] <- gsub("!", "",
-                                                   graph[-grep("\\+", graph)])
-            } else {
-                graph <- gsub("!", "", graph)
-            }
-            bString[which(bString == 1)[which(duplicated(graph) == TRUE)]] <- 0
-            steadyState <- steadyState2 <-
-                simulateStatesRecursive(CNOlist, model, bString)
-            ind <- grep(paste(inhibitors, collapse = "|"),
-                        colnames(steadyState2))
-            steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-        }
         exprs <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
                                 rep(seq_len(nrow(steadyState)), r)]
         ERS <- computeFc(CNOlist, t(steadyState))

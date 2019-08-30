@@ -91,7 +91,7 @@ n <- as.numeric(commandArgs(TRUE)[8])
 
 m <- as.numeric(commandArgs(TRUE)[9])
 
-## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 0.5; n <- 30; m <- 2
+## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 0.5; n <- 30; m <- 10
 
 runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
 
@@ -112,7 +112,7 @@ for (run in runs) {
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
-        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 1, frac = 0, layer = 3)
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 3, frac = 0.1, layer = 3, negation = 0.1, and = 0.25)
         bString <- sim$bString
         cat(".")
     }
@@ -134,6 +134,10 @@ for (run in runs) {
                                   collapse = "|"), colnames(sim$fc))]
     sim$ERS <- sim$ERS[, unique(colnames(sim$fc))]
 
+    ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
+
+    ## par(mfrow=c(1,2)); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$PKN$reacID)
+
     ## ## runtime:
     ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     ## Rprof("temp.txt", line.profiling=TRUE)
@@ -141,8 +145,6 @@ for (run in runs) {
     ## Rprof(NULL)
     ## summaryRprof("temp.txt", lines = "show")$sampling.time
     ## head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
-
-    ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
 
     ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     start <- as.numeric(Sys.time())
@@ -262,19 +264,21 @@ rm .RData
 
 ## bsub -M ${ram} -q normal.24h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R --silent --no-save --args '2' < bnem_app.r"
 
-queue=24
+queue=4
 
-frac=100
-Sgenes=30
+frac=10
+
+Sgenes=10
 Egenes=10
-Stimuli=6
-Noise=1
+Stimuli=2
+Noise=2
 
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
 
 bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '1' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
 
-for i in {2..100}; do
+for i in $( eval echo {0..$frac} ) ## {2..100}; do
+do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
 	bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
     #fi
@@ -298,14 +302,14 @@ done
 
 path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
 
-n <- 30
+n <- 10
 m <- 10
-s <- 6
-sd <- 0.5
+s <- 2
+sd <- 2
+frac <- 10
 
 result2 <- NULL
 maxrun <- 100
-frac <- 100
 for (part in seq_len(frac)) {
     runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
     file <- paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")
@@ -345,20 +349,19 @@ dev.off()
 
 path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
 
-ns <- c(30)
+ns <- 10
 m <- 10
-s <- 6
-sds <- c(0.5, 1)
+s <- 2
+sds <- c(0.5, 1, 2)
 sdl <- length(sds)
+fracs <- c(100,10,10)
 
-cols <- rgb(c(1,0,0),c(0,1,0),c(0,0,1), 0.75)
-pdf("temp.pdf", width = 10, height = 5)
-par(mfrow=c(1,2))
+results <- list()
 for (n in ns) {
     for (sd in sds) {
         result2 <- NULL
         maxrun <- 100
-        frac <- 100
+        frac <- fracs[which(sds == sd)]
         for (part in seq_len(frac)) {
             runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
             file <- paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")
@@ -371,23 +374,27 @@ for (n in ns) {
                 result2[runs,,] <- result[runs,,]
             }
         }
-        if (sd == 0.5) {
-            result0.5 <- result2
-        }
-        if (sd == 1) {
-            result1 <- result2
-        }
+        results[[which(sds == sd)]] <- result2
     }
 
-    boxplot(cbind(result0.5[,2:4,1], result1[,2:4,1]), col = cols, ylab = "seconds", main = "running time", xaxt = "n")
-    axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
-    abline(v=3.5, lty = 2, col = rgb(0,0,0,0.75))
-    axis(1, c(2,5), sds, line = 2, tick = 0)
-    boxplot(-cbind(result0.5[,2:4,4], result1[,2:4,4]), col = cols, ylab = "log likelihood + constant", main = "network score", xaxt = "n")
-    axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
-    abline(v=3.5, lty = 2, col = rgb(0,0,0,0.75))
-    axis(1, c(2,5), sds, line = 2, tick = 0)
+    tmp0 <- tmp1 <- NULL
+    for (i in 1:length(results)) {
+        tmp0 <- cbind(tmp0, results[[i]][,2:4,1])
+        tmp1 <- cbind(tmp1, results[[i]][,2:4,4])
+    }
 }
+
+cols <- rgb(c(1,0,0),c(0,1,0),c(0,0,1), 0.75)
+pdf("temp.pdf", width = 10, height = 5)
+par(mfrow=c(1,2))
+boxplot(tmp0, col = cols, ylab = "seconds", main = "running time", xaxt = "n")
+axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
+abline(v=c(3.5, 6.5)[1:(length(sds)-1)], lty = 2, col = rgb(0,0,0,0.75))
+axis(1, c(2,5,8)[1:length(sds)], sds, line = 2, tick = 0)
+boxplot(-tmp1, col = cols, ylab = "log likelihood + constant", main = "network score", xaxt = "n")
+axis(1, 1:(sdl*3), rep(c("Greedy", "Gen_S", "Gen_L"), sdl))
+abline(v=c(3.5, 6.5)[1:(length(sds)-1)], lty = 2, col = rgb(0,0,0,0.75))
+axis(1, c(2,5,8)[1:length(sds)], sds, line = 2, tick = 0)
 dev.off()
 
 ## analyze BCR:
