@@ -56,7 +56,7 @@
 ## nemfc[which(nemfc != 1)] <- 0
 ## nemres <- mnem:::mynem(nemfc, method = "disc")
 
-## bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
+## bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", startString = initBstring, verbose = 0)
 
 ## save(bsres, file = paste0("bnem/bcr_boot_", run, ".rda"))
 
@@ -112,7 +112,7 @@ for (run in runs) {
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
-        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 3, frac = 0.1, layer = 3, negation = 0.1, and = 0.25)
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 3, frac = 0.1, layer = 3, negation = 0, and = 0.25)
         bString <- sim$bString
         cat(".")
     }
@@ -266,18 +266,18 @@ rm .RData
 
 queue=4
 
-frac=10
+frac=100
 
-Sgenes=10
+Sgenes=30
 Egenes=10
-Stimuli=2
-Noise=2
+Stimuli=6
+Noise=1
 
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
 
 bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '1' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
 
-for i in $( eval echo {0..$frac} ) ## {2..100}; do
+for i in $( eval echo {2..$frac} ) ## {2..100}; do
 do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
 	bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
@@ -302,11 +302,11 @@ done
 
 path <- "~/Mount/Leo/" # path <- "~/Mount/Euler/"
 
-n <- 10
+n <- 30
 m <- 10
-s <- 2
-sd <- 2
-frac <- 10
+s <- 6
+sd <- 1
+frac <- 100
 
 result2 <- NULL
 maxrun <- 100
@@ -339,10 +339,10 @@ dev.off()
 
 pdf("temp.pdf", width = 10, height = 5)
 par(mfrow=c(1,2))
-boxplot(result[,2:4,1], col = 2:5, ylab = "seconds", main = "running time", xaxt = "n")
-axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
-boxplot(-result[,2:4,4], col = 2:5, ylab = "log likelihood + constant", main = "likelihood", xaxt = "n")#, ylim = c(0,0.3))
-axis(1, 1:4, c("Greedy", "Gen_s", "Gen_l", "rand"))
+boxplot(result[,1:5,1], col = 2:5, ylab = "seconds", main = "running time", xaxt = "n")
+axis(1, 1:5, dimnames(result)[[2]])
+boxplot(-result[,1:5,4], col = 2:5, ylab = "log likelihood + constant", main = "likelihood", xaxt = "n")#, ylim = c(0,0.3))
+axis(1, 1:5, dimnames(result)[[2]])
 dev.off()
 
 ## more in one:
