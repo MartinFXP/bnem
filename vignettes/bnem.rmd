@@ -5,7 +5,7 @@ and biological perturbations."
 author: "Martin Pirkl"
 date: "`r Sys.Date()`"
 graphics: yes
-output: BiocStyle::pdf_document
+output: BiocStyle::html_document
 vignette: >
     %\VignetteIndexEntry{bnem}
     %\VignetteEngine{knitr::rmarkdown}
@@ -38,7 +38,7 @@ CellNOptR package of Terfve et al., 2012.
 
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(message=FALSE, out.width="125%", fig.align="center",
-                      strip.white=TRUE, warning=FALSE, tidy=TRUE,
+                      strip.white=TRUE, warning=FALSE, #tidy=TRUE,
                       #out.extra='style="display:block; margin:auto;"',
                       fig.height = 4, fig.width = 8, error=FALSE)
 fig.cap0 <- "PKN and GTN. The prior knowledge network without any logics 
@@ -61,7 +61,7 @@ Install the package with the devtools library or via Bioconductor.
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
-BiocManager::install("mnem")
+BiocManager::install("bnem")
 ```
 
 Load the Boolean Nested Effects model package.
@@ -85,7 +85,7 @@ the function generates data given the ground truth.
 ```{r}
 set.seed(8675309)
 
-sim <- simBoolGtn(Sgenes = 5, maxEdges = 10, keepsif = TRUE, sd = 0.5)
+sim <- simBoolGtn(Sgenes = 10, maxEdges = 10, keepsif = TRUE, sd = 0.5)
 fc <- sim$fc
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
@@ -124,7 +124,7 @@ a sub-graph of the full hyper-graph sim\$model\$reacID. We initialize
 the search with a starting network and greedily search the neighborhood.
 
 We use two different network scores. "s" is the rank correlation and
-"llr" is just the euclidean dot product (hence no shift and scale invariance).
+"cosine" is the cosine similarity (hence no shift invariance).
 
 ```{r}
 ## we start with the empty graph:
@@ -164,7 +164,7 @@ greedy2 <- bnem(search = "greedy",
                 draw = FALSE,
                 verbose = FALSE,
                 maxSteps = Inf,
-                method = "llr"
+                method = "cosine"
                 )
 ```
 
@@ -228,7 +228,8 @@ explains the E-genes. The lower the score the better the fit.
 ```{r, fig.width = 15, fig.height = 10, fig.cap = fig.cap3}
 fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
                          bString = resString,
-                         Sgene = 4, Egenes = 1000, cexRow = 0.8, cexCol = 0.7,
+                         Sgene = 4, Egenes = 1000, cexRow = 0.8,
+                         cexCol = 0.7,
                          xrot = 45,
                          Colv = TRUE, Rowv = TRUE, dendrogram = "both",
                          bordercol = "lightgrey",
@@ -287,8 +288,9 @@ if the S-gene is activated, the stimuli is set to 1. If the S-gene
 is inhibited the inhibitor S-gene is set to 0. 
 
 ```{r}
+set.seed(12345)
 sim <- simBoolGtn(Sgenes = 4, maxEdges = 10, dag = FALSE,
-                  negation = FALSE, allstim = TRUE)
+                  negation = 0, allstim = TRUE)
 fc <- sim$fc
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
@@ -322,7 +324,7 @@ greedy3 <- bnem(search = "greedy",
                 draw = FALSE,
                 verbose = FALSE,
                 maxSteps = Inf,
-                method = "llr"
+                method = "cosine"
                 )
 resString2 <- greedy3$bString
 ```
@@ -375,7 +377,7 @@ greedy2b <- bnem(search = "greedy",
                  draw = FALSE,
                  verbose = FALSE,
                  maxSteps = Inf,
-                 method = "llr"
+                 method = "cosine"
                  )
 resString3 <- greedy2b$bString
 ```
@@ -494,7 +496,7 @@ bcrRes <- bnem(search = "greedy",
                    initBstring=initBstring,
                    draw = FALSE,
                    verbose = FALSE,
-                   method = "llr"
+                   method = "cosine"
                    )
 ```
 ```{r, fig.width = 10, fig.height = 5, fig.cap = fig.cap3}

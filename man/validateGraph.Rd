@@ -4,14 +4,36 @@
 \alias{validateGraph}
 \title{validate graph}
 \usage{
-validateGraph(CNOlist, fc = NULL, exprs = NULL, approach = "fc",
-  model, bString, Egenes = 25, Sgene = 1, parameters = list(cutOffs =
-  c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)), plot = TRUE, disc = 0,
-  affyIds = TRUE, relFit = FALSE, xrot = 25, Rowv = FALSE,
-  Colv = FALSE, dendrogram = "none", soft = TRUE,
-  colSideColors = NULL, affychip = "hgu133plus2", method = "s",
-  ranks = FALSE, breaks = NULL, col = "RdYlGn", sizeFac = 10^-10,
-  verbose = TRUE, order = "rank", ...)
+validateGraph(
+  CNOlist,
+  fc = NULL,
+  exprs = NULL,
+  approach = "fc",
+  model,
+  bString,
+  Egenes = 25,
+  Sgene = 1,
+  parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)),
+  plot = TRUE,
+  disc = 0,
+  affyIds = TRUE,
+  relFit = FALSE,
+  xrot = 25,
+  Rowv = FALSE,
+  Colv = FALSE,
+  dendrogram = "none",
+  soft = TRUE,
+  colSideColors = NULL,
+  affychip = "hgu133plus2",
+  method = "s",
+  ranks = FALSE,
+  breaks = NULL,
+  col = "RdYlGn",
+  sizeFac = 10^-10,
+  verbose = TRUE,
+  order = "rank",
+  ...
+)
 }
 \arguments{
 \item{CNOlist}{CNOlist object.}
@@ -86,7 +108,7 @@ expected response scheme of the regulating signalling gene
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,
+write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")

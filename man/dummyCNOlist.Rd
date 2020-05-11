@@ -4,8 +4,13 @@
 \alias{dummyCNOlist}
 \title{Create dummy CNOlist}
 \usage{
-dummyCNOlist(stimuli = NULL, inhibitors = NULL, maxStim = 0,
-  maxInhibit = 0, signals = NULL)
+dummyCNOlist(
+  stimuli = NULL,
+  inhibitors = NULL,
+  maxStim = 0,
+  maxInhibit = 0,
+  signals = NULL
+)
 }
 \arguments{
 \item{stimuli}{character vector of stimulated genes}
@@ -28,7 +33,7 @@ creates a general CNOlist object from meta information
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,
+write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")

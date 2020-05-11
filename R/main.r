@@ -310,12 +310,11 @@ NA
 #' E-genes will return 100 E-genes overall
 #' @param flip number of inhibited E-genes
 #' @param reps number of replicates
-#' @param sd standard deviation for the gaussian noise
 #' @param keepsif if TRUE does not delete sif file, which encodes
 #' the prior network
 #' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
 #' while loops do not run to infinity
-#' @param negation has to bee greater or equal to 0 and less than 1; if
+#' @param negation has to be greater or equal to 0 and less than 1; if
 #' greater than 0, negation is the sample probability for negative edges
 #' @param allstim full network in which all S-genes are possibly stimulated
 #' @param and probability for and gates in the GTN
@@ -332,8 +331,8 @@ simBoolGtn <-
     function(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
              frac = 0.1,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
-             Egenes = 10, flip = 0.33, reps = 3, sd = 1, keepsif = FALSE,
-             maxcount = 10, negation = TRUE, allstim = FALSE, and = 0.25,
+             Egenes = 10, flip = 0.33, reps = 3, keepsif = FALSE,
+             maxcount = 10, negation = 0.25, allstim = FALSE, and = 0.25,
              verbose = FALSE) {
         n <- Sgenes
         m <- Egenes
@@ -375,7 +374,8 @@ simBoolGtn <-
             while(length(Sgenes) > 0) {
                 count <- count + 1
                 pp <- rbeta(1, 1, (length(Sgenes)*p)/10)
-                layers[[count]] <- layer <- sample(Sgenes, ceiling(length(Sgenes)*pp))
+                layers[[count]] <- layer <- sample(Sgenes,
+                                                   ceiling(length(Sgenes)*pp))
                 enew <- enew + length(prev)*length(layer)
                 Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
                 for (i in seq_len(length(prev))) {
@@ -475,7 +475,6 @@ simBoolGtn <-
                           collapse = "|"), colnames(ERS))
         ERS <- ERS[, ind]
         fc <- ERS[rep(seq_len(nrow(ERS)), m), rep(seq_len(ncol(ERS)), r)]
-        fc <- fc + rnorm(length(fc), 0, sd)
         flip <- sample(seq_len(nrow(fc)), floor(mflip*row(fc)))
         fc[flip, ] <- fc[flip, ]*(-1)
         rownames(fc) <- paste(rownames(fc), seq_len(nrow(fc)), sep = "_")
@@ -688,7 +687,6 @@ absorption <-
 #' @export
 #' @import
 #' CellNOptR
-#' nem
 #' snowfall
 #' mnem
 #' methods

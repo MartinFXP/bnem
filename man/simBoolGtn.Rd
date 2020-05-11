@@ -4,11 +4,26 @@
 \alias{simBoolGtn}
 \title{Sample random network and simulate data}
 \usage{
-simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
-  frac = 0.1, dag = TRUE, maxSize = 2, maxStim = 2,
-  maxInhibit = 1, Egenes = 10, flip = 0.33, reps = 3, sd = 1,
-  keepsif = FALSE, maxcount = 10, negation = TRUE, allstim = FALSE,
-  verbose = FALSE)
+simBoolGtn(
+  Sgenes = 10,
+  maxEdges = 25,
+  stimGenes = 2,
+  layer = 1,
+  frac = 0.1,
+  dag = TRUE,
+  maxSize = 2,
+  maxStim = 2,
+  maxInhibit = 1,
+  Egenes = 10,
+  flip = 0.33,
+  reps = 3,
+  keepsif = FALSE,
+  maxcount = 10,
+  negation = 0.25,
+  allstim = FALSE,
+  and = 0.25,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{Sgenes}{number of S-genes}
@@ -18,7 +33,7 @@ simBoolGtn(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
 \item{stimGenes}{number of stimulated S-genes}
 
 \item{layer}{scaling factor for the sampling of next Sgene layer; high
-means less Sgenes and low more Sgenes}
+means a higher probability for less Sgenes and low more Sgenes}
 
 \item{frac}{fraction of hyper-edges in the ground truth}
 
@@ -37,17 +52,18 @@ E-genes will return 100 E-genes overall}
 
 \item{reps}{number of replicates}
 
-\item{sd}{standard deviation for the gaussian noise}
-
 \item{keepsif}{if TRUE does not delete sif file, which encodes
 the prior network}
 
 \item{maxcount}{while loopes ensure a reasonable network, maxcount makes sure
 while loops do not run to infinity}
 
-\item{negation}{if TRUE negative edges are allowed}
+\item{negation}{has to be greater or equal to 0 and less than 1; if
+greater than 0, negation is the sample probability for negative edges}
 
 \item{allstim}{full network in which all S-genes are possibly stimulated}
+
+\item{and}{probability for and gates in the GTN}
 
 \item{verbose}{TRUE for verbose output}
 }

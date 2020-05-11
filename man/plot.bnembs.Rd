@@ -4,8 +4,17 @@
 \alias{plot.bnembs}
 \title{Plot Bootstrap result}
 \usage{
-\method{plot}{bnembs}(x, scale = 3, shift = 0.1, cut = 0.5,
-  dec = 2, ci = 0, cip = 0.95, method = "exact", ...)
+\method{plot}{bnembs}(
+  x,
+  scale = 3,
+  shift = 0.1,
+  cut = 0.5,
+  dec = 2,
+  ci = 0,
+  cip = 0.95,
+  method = "exact",
+  ...
+)
 }
 \arguments{
 \item{x}{bnembs object}
@@ -38,7 +47,7 @@ or confidence intervals
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t",
+write.table(sifMatrix, file = "temp.sif", sep = "\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")

@@ -4,19 +4,53 @@
 \alias{bnem}
 \title{Boolean Nested Effects Model main function}
 \usage{
-bnem(search = "greedy", fc = NULL, exprs = NULL, egenes = NULL,
-  pkn = NULL, design = NULL, stimuli = NULL, inhibitors = NULL,
-  signals = NULL, CNOlist = NULL, model = NULL, sizeFac = 10^-10,
-  NAFac = 1, parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1,
-  0.2, 0.9)), parallel = NULL, method = "s", approach = "fc",
-  relFit = FALSE, verbose = TRUE, reduce = TRUE, parallel2 = 1,
-  initBstring = NULL, popSize = 100, pMutation = 0.5,
-  maxTime = Inf, maxGens = Inf, stallGenMax = 10, relTol = 0.01,
-  priorBitString = NULL, selPress = c(1.2, 1e-04), fit = "linear",
-  targetBstring = "none", elitism = NULL, inversion = NULL,
-  selection = c("t"), type = "SOCK", exhaustive = FALSE,
-  delcyc = FALSE, seeds = 1, maxSteps = Inf, node = NULL,
-  absorpII = TRUE, draw = TRUE, prior = NULL, maxInputsPerGate = 2)
+bnem(
+  search = "greedy",
+  fc = NULL,
+  exprs = NULL,
+  egenes = NULL,
+  pkn = NULL,
+  design = NULL,
+  stimuli = NULL,
+  inhibitors = NULL,
+  signals = NULL,
+  CNOlist = NULL,
+  model = NULL,
+  sizeFac = 10^-10,
+  NAFac = 1,
+  parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)),
+  parallel = NULL,
+  method = "s",
+  approach = "fc",
+  relFit = FALSE,
+  verbose = TRUE,
+  reduce = TRUE,
+  parallel2 = 1,
+  initBstring = NULL,
+  popSize = 100,
+  pMutation = 0.5,
+  maxTime = Inf,
+  maxGens = Inf,
+  stallGenMax = 10,
+  relTol = 0.01,
+  priorBitString = NULL,
+  selPress = c(1.2, 1e-04),
+  fit = "linear",
+  targetBstring = "none",
+  elitism = NULL,
+  inversion = NULL,
+  selection = c("t"),
+  type = "SOCK",
+  exhaustive = FALSE,
+  delcyc = FALSE,
+  seeds = 1,
+  maxSteps = Inf,
+  node = NULL,
+  absorpII = TRUE,
+  draw = TRUE,
+  prior = NULL,
+  maxInputsPerGate = 2
+)
 }
 \arguments{
 \item{search}{Type of search heuristic. Either "greedy", "genetic" or
@@ -160,7 +194,7 @@ as input and trains logical functions on that prior network
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t",
+write.table(sifMatrix, file = "temp.sif", sep = "\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")

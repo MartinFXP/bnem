@@ -4,8 +4,13 @@
 \alias{randomDnf}
 \title{sample normal form}
 \usage{
-randomDnf(vertices = 10, negation = TRUE, max.edge.size = NULL,
-  max.edges = NULL, dag = FALSE)
+randomDnf(
+  vertices = 10,
+  negation = TRUE,
+  max.edge.size = NULL,
+  max.edges = NULL,
+  dag = FALSE
+)
 }
 \arguments{
 \item{vertices}{number of vertices}

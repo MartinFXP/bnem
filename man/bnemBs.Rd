@@ -4,8 +4,7 @@
 \alias{bnemBs}
 \title{Bootstraped Network}
 \usage{
-bnemBs(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
-  ...)
+bnemBs(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL, ...)
 }
 \arguments{
 \item{fc}{matrix with foldchanges or signed effects}
@@ -33,7 +32,7 @@ Runs Bootstraps on the data
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t",
+write.table(sifMatrix, file = "temp.sif", sep = "\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")

@@ -15,7 +15,6 @@ LazyData: true
 biocViews: Pathways, SystemsBiology, NetworkInference, Network
 Imports:
     CellNOptR,
-    nem,
     matrixStats,
     snowfall,
     Rgraphviz,
@@ -39,4 +38,4 @@ VignetteBuilder: knitr
 Suggests:
     knitr, 
     BiocGenerics
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0

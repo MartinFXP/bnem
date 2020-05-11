@@ -4,14 +4,26 @@
 \alias{findResiduals}
 \title{compute residuals}
 \usage{
-findResiduals(bString, CNOlist, model, fc = NULL, exprs = NULL,
-  egenes = NULL, NEMlist = NULL, parameters = list(cutOffs = c(0, 1,
-  0), scoring = c(0.1, 0.2, 0.9)), method = "s", sizeFac = 10^-10,
+findResiduals(
+  bString,
+  CNOlist,
+  model,
+  fc = NULL,
+  exprs = NULL,
+  egenes = NULL,
+  NEMlist = NULL,
+  parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)),
+  method = "s",
+  sizeFac = 10^-10,
   main = "residuals for decoupled vertices",
   sub = paste0("green residuals are added effects (left positive,",
-  " right negative) and red residuals are deleted ", "effects"),
-  cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE,
-  ...)
+    " right negative) and red residuals are deleted ", "effects"),
+  cut = TRUE,
+  approach = "fc",
+  parallel = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{bString}{Binary vector denoting the network given a model}
@@ -61,7 +73,7 @@ visualizes them
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\\t", row.names = FALSE,
+write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
 col.names = FALSE,
 quote = FALSE)
 PKN <- CellNOptR::readSIF("temp.sif")
