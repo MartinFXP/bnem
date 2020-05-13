@@ -302,6 +302,7 @@ NA
 #' @param layer scaling factor for the sampling of next Sgene layer; high
 #' means a higher probability for less Sgenes and low more Sgenes
 #' @param frac fraction of hyper-edges in the ground truth
+#' @param maxInDeg maximum number of incoming hyper-edges
 #' @param dag if TRUE graph will be acyclic
 #' @param maxSize maximum number of S-genes in a disjunction or clause
 #' @param maxStim maximum of stimulated S-genes in the data samples
@@ -329,7 +330,7 @@ NA
 #' plot(sim)
 simBoolGtn <-
     function(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
-             frac = 0.1,
+             frac = 0.1, maxInDeg = 2,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
              Egenes = 10, flip = 0.33, reps = 3, keepsif = FALSE,
              maxcount = 10, negation = 0.25, allstim = FALSE, and = 0.25,
@@ -363,10 +364,9 @@ simBoolGtn <-
             }
             pkn <- dnf
         } else {
-            Sgenes <- paste0("S", seq_len(n))
-            if (length(Sgenes) > 9) { Sgenes <- paste0(Sgenes, "g") }
+            Sgenes <- paste0("S", seq_len(n), "g")
             layers <- list()
-            layers[[1]] <- stimuli <- prev <- sample(Sgenes, s)
+            layers[[1]] <- stimuli <- prev <- Sgenes[seq_len(s)] # sample(Sgenes, s)
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
             pkn <- NULL
             enew <- 0
@@ -453,6 +453,13 @@ simBoolGtn <-
                                        prob = prob)] <- 1
                     }
                 }
+            }
+            toomany <- table(gsub(".*=", "", model$reacID[as.logical(bString)]))
+            toomany <- toomany[which(toomany > maxInDeg)]
+            for (i in seq_len(length(toomany))) {
+                manyIn <- intersect(which(bString == 1), grep(paste0("=", names(toomany)[i]), model$reacID))
+                bString[grep(paste0("=", names(toomany)[i]), model$reacID)] <- 0
+                bString[sample(manyIn, maxInDeg)] <- 1
             }
         }
         bString <- reduceGraph(bString, model, CNOlist)
