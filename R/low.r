@@ -2478,6 +2478,7 @@ getNemFit <-
             ## if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
             ##     print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in%
             ##                                        rownames(SCompMat)))]);
+            ##     print(rownames(SCompMat))
             ## }
             if (is.null(rownames(SCompMat))) {
                 SCompMat <- SCompMat[, colnames(NEMlist$fc)]

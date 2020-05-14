@@ -879,7 +879,7 @@ bnem <-
 #' fc <- computeFc(CNOlist, exprs)
 computeFc <-
     function (CNOlist, y) {
-        test <- 0 # for debugging
+        test <- 1 # for debugging
         CompMat <- numeric()
         CompMatNames <- character()
         cnolistStimuli <- apply(CNOlist@stimuli, 1, sum)
@@ -900,7 +900,8 @@ computeFc <-
         for (i in grepKds) {
             inhibitorsNames <-
                 c(inhibitorsNames,
-                  paste(names(which(CNOlist@inhibitors[i, ] >= 1)),
+                  paste(colnames(CNOlist@inhibitors)[which(
+                                    CNOlist@inhibitors[i, ] >= 1)],
                         collapse = "_"))
         }
         if (length(grepKds) > 0) {
@@ -1155,7 +1156,7 @@ dummyCNOlist <-
                 for (i in seq_len(nrow(stimDesign))) {
                     design[((i-1)*nrow(inhibDesign) + 1):
                            (i*nrow(inhibDesign)), ] <-
-                        cbind(stimDesign[rep(i, nrow(inhibDesign)), ],
+                        cbind(stimDesign[rep(i, nrow(inhibDesign)), , drop = FALSE],
                               inhibDesign)
                 }
             }
@@ -1211,6 +1212,9 @@ dummyCNOlist <-
             unlist(lapply(as.list(2:nrow(design)), getRowname, design))
         if (ncol(stimDesign) == 1) {
             colnames(stimDesign) <- stimuli
+        }
+        if (ncol(inhibDesign) == 1) {
+            colnames(inhibDesign) <- inhibitors
         }
         cnolist <- new("CNOlist",
                        cues = design, inhibitors = inhibDesign,
