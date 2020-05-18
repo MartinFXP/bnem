@@ -7,18 +7,14 @@
 .*~
 *.R#
 ._.*
-*.R#
 ._*
 *.gz
 
-*.R#
 
-*.gz
 
 *.sb-8fe449af-TUcAWe
 
-*.gz
 
 *.Rnw#
 
-*.gz
+*.DS_Store
