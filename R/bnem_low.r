@@ -2474,10 +2474,12 @@ getNemFit <-
             SCompMat[is.na(SCompMat)] <- 0
             SCompMat <- SCompMat*signtmp
             SCompMat <- t(SCompMat)
+            SCompMat <- rbind(SCompMat, null = 0)
             ## for debugging:
             ## if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
             ##     print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in%
             ##                                        rownames(SCompMat)))]);
+            ##     print("-----------------------------------------------------")
             ##     print(rownames(SCompMat))
             ## }
             if (is.null(rownames(SCompMat))) {
@@ -3278,27 +3280,17 @@ localSearch <-
                             if (bitString[whichGate] == 1) {
                                 print(paste("Added gate ",
                                             model$reacID[whichGate], sep = ""))
-                                if (!(verbose2 %in% "part")) {
-                                    print(toString(bitString))
-                                }
-                                print(paste(" - Score: ", topScore, sep = ""))
-                                print(paste(" - Iter_time: ", timePassed, " @ ",
-                                            Sys.time(), sep = ""))
-                                print("-------------------------
--------------------------")
                             } else {
                                 print(paste("Deleted gate ",
                                             model$reacID[whichGate], sep = ""))
-                                if (!(verbose2 %in% "part")) {
-                                    print(toString(bitString))
-                                }
-                                print(paste(" - Score: ", topScore, sep = ""))
-                                print(paste(" - Iter_time: ",
-                                            timePassed, " @ ", Sys.time(),
-                                            sep = ""))
-                                print("---------------------------------------
------------")
                             }
+                            if (!(verbose2 %in% "part")) {
+                                print(toString(bitString))
+                            }
+                            print(paste(" - Score: ", topScore, sep = ""))
+                            print(paste(" - Iter_time: ", timePassed, " @ ",
+                                        Sys.time(), sep = ""))
+                            print("--------------------------------------------------")
                             if (any(bitString != 0) & draw) {
                                 plotDnf(model$reacID[which(bitString == 1)],
                                         CNOlist = CNOlist)
