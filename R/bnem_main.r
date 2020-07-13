@@ -364,7 +364,7 @@ simBoolGtn <-
             }
             pkn <- dnf
         } else {
-            Sgenes <- paste0("S", seq_len(n), "g")
+            Sgenes <- paste0("S", seq_len(n)-1, "g")
             layers <- list()
             layers[[1]] <- stimuli <- prev <- Sgenes[seq_len(s)] # sample(Sgenes, s)
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
@@ -3028,7 +3028,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
         if (vertices < 27) {
             vertices <- LETTERS[seq_len(vertices)]
         } else {
-            vertices <- paste("S", seq_len(vertices), "g", sep = "")
+            vertices <- paste("S", seq_len(vertices)-1, "g", sep = "")
         }
     }
     if (is.null(max.edge.size)) {
