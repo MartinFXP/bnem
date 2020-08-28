@@ -319,6 +319,8 @@ NA
 #' greater than 0, negation is the sample probability for negative edges
 #' @param allstim full network in which all S-genes are possibly stimulated
 #' @param and probability for and gates in the GTN
+#' @param positive if TRUE, sets all stimulation edges to activation, else
+#' samples inhibitory edges by negation probability
 #' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return list with the corresponding prior graph, ground truth network and
@@ -334,7 +336,7 @@ simBoolGtn <-
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
              Egenes = 10, flip = 0.33, reps = 3, keepsif = FALSE,
              maxcount = 10, negation = 0.25, allstim = FALSE, and = 0.25,
-             verbose = FALSE) {
+             positive = TRUE, verbose = FALSE) {
         n <- Sgenes
         m <- Egenes
         p <- layer
@@ -379,15 +381,17 @@ simBoolGtn <-
                 enew <- enew + length(prev)*length(layer)
                 Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
                 for (i in seq_len(length(prev))) {
-                    if (negation > 0) {
-                        die <- sample(c(0,1), 1, prob = c(negation, 1-negation))
-                    } else {
-                        die <- 1
-                    }
-                    if (die) {
-                        pkn <- c(pkn, paste0(prev[i], "=", layer))
-                    } else {
-                        pkn <- c(pkn, paste0("!", prev[i], "=", layer))
+                    for (j in layer) {
+                        if (negation > 0 & (!positive | count > 2)) {
+                            die <- sample(c(0,1), 1, prob = c(negation, 1-negation))
+                        } else {
+                            die <- 1
+                        }
+                        if (die) {
+                            pkn <- c(pkn, paste0(prev[i], "=", layer))
+                        } else {
+                            pkn <- c(pkn, paste0("!", prev[i], "=", layer))
+                        }
                     }
                 }
                 prev <- layer
