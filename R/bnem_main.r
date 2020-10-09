@@ -788,7 +788,10 @@ bnem <-
             NEMlist$egenes <- egenes
         }
         CNOlist <- checkCNOlist(CNOlist)
-
+        ## create foldchanges if not already included in nemlist
+        NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist,
+                                parameters = parameters, approach = approach,
+                                method)
         if (search %in% c("greedy", "genetic", "exhaustive")) {
 
             if (search %in% "greedy") {
@@ -883,7 +886,7 @@ bnem <-
 #' fc <- computeFc(CNOlist, exprs)
 computeFc <-
     function (CNOlist, y) {
-        test <- 1 # for debugging
+        test <- 0 # for debugging DONT FORGET TO SET TO 0!!!
         CompMat <- numeric()
         CompMatNames <- character()
         cnolistStimuli <- apply(CNOlist@stimuli, 1, sum)
@@ -3081,11 +3084,14 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' @examples
 #' sim <- simBoolGtn()
 #' scoreDnf(sim$bString, sim$CNOlist, sim$fc, sim$model)
-scoreDnf <- function(bString, CNOlist, fc, model, method = "llr") {
-    res <- bnem(search = "greedy", fc = fc, CNOlist = CNOlist,
-                model = model, method = method, maxSteps = 0,
-                initBstring = bString, draw = FALSE, verbose = FALSE)
-    return(min(res$scores[[1]]))
+scoreDnf <- function(bString, CNOlist, fc, model, method = "llr",sizeFac=10^-10,NAFac=1,parameters = list(cutOffs = c(0,1,0), scoring = c(0.25,0.5,2)),approach = "fc",NEMlist = NULL,relFit = FALSE,verbose = FALSE,opt = "min") {
+    NEMlist <- list()
+    NEMlist$fc <- fc
+    NEMlist <- checkNEMlist(NEMlist, CNOlist=CNOlist,
+                            parameters = parameters, approach = approach,
+                            method=method)
+    score <- computeScoreNemT1(CNOlist,model,bString,sizeFac=sizeFac,NAFac=NAFac,parameters=parameters,approach=approach,NEMlist=NEMlist,relFit=relFit,method=method,verbose=verbose,opt=opt)
+    return(score)
 }
 #' plot simulation object
 #'

@@ -280,6 +280,14 @@ performing simple normalization")
                 colnames(NEMlist$exprs) <- colnames.exprs
                 rownames(NEMlist$exprs) <- rownames.exprs
             }
+            if ("cosine" %in% method) {
+                colnames.exprs <- colnames(NEMlist$exprs)
+                rownames.exprs <- rownames(NEMlist$exprs)
+                vprod <- function(x) { return(x%*%x) }
+                NEMlist$exprs <- NEMlist$exprs/(apply(NEMlist$exprs, 1, vprod)^0.5)
+                colnames(NEMlist$exprs) <- colnames.exprs
+                rownames(NEMlist$exprs) <- rownames.exprs
+            }
         }
         if ("fc" %in% approach) {
             if (length(NEMlist$fc) == 0)  {
@@ -306,6 +314,14 @@ performing simple normalization")
                 colnames.fc <- colnames(NEMlist$fc)
                 rownames.fc <- rownames(NEMlist$fc)
                 NEMlist$fc <- t(apply(NEMlist$fc, 1, rank))
+                colnames(NEMlist$fc) <- colnames.fc
+                rownames(NEMlist$fc) <- rownames.fc
+            }
+            if ("cosine" %in% method) {
+                colnames.fc <- colnames(NEMlist$fc)
+                rownames.fc <- rownames(NEMlist$fc)
+                vprod <- function(x) { return(x%*%x) }
+                NEMlist$fc <- NEMlist$fc/(apply(NEMlist$fc, 1, vprod)^0.5)
                 colnames(NEMlist$fc) <- colnames.fc
                 rownames(NEMlist$fc) <- rownames.fc
             }
@@ -1712,10 +1728,6 @@ sep = ""))
         if (!is(CNOlist, "CNOlist")) {
             CNOlist = CNOlist(CNOlist)
         }
-        ## create foldchanges if not already included in nemlist
-        NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist,
-                                parameters = parameters, approach = approach,
-                                method)
         spaceExp <- 2^length(model$reacID)
         if ((popSize*stallGenMax) >= spaceExp & exhaustive) {
             print(paste("the genetic algorithm would score at least ",
@@ -2432,9 +2444,6 @@ getNemFit <-
         MSEIabs <- NULL
         MSEAfc <- NULL
         MSEIfc <- NULL
-        NEMlist <- checkNEMlist(NEMlist = NEMlist, CNOlist = CNOlist,
-                                parameters = parameters, approach = approach,
-                                method = method)
         if ("abs" %in% approach) {
             MSEE <- rep(Inf, nrow(NEMlist$norm))
             S.mat <- simResults
@@ -2550,7 +2559,6 @@ getNemFit <-
                         }
                         vprod <- function(x) { return(x%*%x) }
                         S.mat <- S.mat/(apply(S.mat, 1, vprod)^0.5)
-                        E.mat <- E.mat/(apply(E.mat, 1, vprod)^0.5)
                         cosine.sim <- -E.mat%*%t(S.mat)
                     }
                     if ("test" %in% method) {
@@ -2994,7 +3002,6 @@ localSearch <-
         if (!is(CNOlist, "CNOlist")) {
             CNOlist = CNOlist(CNOlist)
         }
-        NEMlist <- checkNEMlist(NEMlist, CNOlist, parameters, approach, method)
         bLength <- length(model$reacID)
         ##simList = prep4sim(model)
         indexList = indexFinder(CNOlist, model)

@@ -66,12 +66,12 @@
 
 print(version)
 
-source("main.r")
-source("low.r")
+source("bnem_main.r")
+source("bnem_low.r")
 library(CellNOptR)
 library(matrixStats)
 
-## source("~/Documents/B-NEM/R/main.r"); source("~/Documents/B-NEM/R/low.r")
+## source("~/Documents/B-NEM/R/bnem_main.r"); source("~/Documents/B-NEM/R/bnem_low.r")
 
 maxrun <- as.numeric(commandArgs(TRUE)[1])
 
@@ -91,7 +91,7 @@ n <- as.numeric(commandArgs(TRUE)[8])
 
 m <- as.numeric(commandArgs(TRUE)[9])
 
-## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 0.5; n <- 30; m <- 10
+## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 2; sd <- 0.5; n <- 10; m <- 10
 
 runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
 
@@ -104,15 +104,16 @@ draw <- FALSE
 
 result <- array(0, c(maxrun, 5, 4), list(paste0("run", seq_len(maxrun)), c("greedy", "greedy_ia", "genetic_quick", "genetic_long", "random"), c("time", "accracy truth table", "accuracy differential effects", "score")))
 
+path <- "/cluster/work/bewi/members/mpirkl/"
+
 for (run in runs) {
 
     ## run <- 1
 
-    ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     cat(run)
     bString <- numeric(100000)
     while(length(bString) > 1000) {
-        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, sd=sd, verbose = verbose, reps = 3, frac = 0.1, layer = 3, negation = 0, and = 0.25)
+        sim <- simBoolGtn(Sgenes=n, maxEdges = maxEdges, stimGenes=s, maxSize = maxSize, maxStim=maxStim, maxInhibit=maxInhibit, Egenes=m, verbose = verbose, reps = 1, frac = 0.1, layer = 3, negation = 0.33, and = 0.25)
         bString <- sim$bString
         cat(".")
     }
@@ -135,18 +136,24 @@ for (run in runs) {
     sim$ERS <- sim$ERS[, unique(colnames(sim$fc))]
 
     ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
+    
+    pos <- which(sim$fc == 1)
+    neg <- which(sim$fc == -1)
+    zero <- which(sim$fc == 0)
+    sim$fc[pos] <- rnorm(length(pos),1,sd)
+    sim$fc[neg] <- rnorm(length(neg),-1,sd)
+    sim$fc[zero] <- rnorm(length(zero),0,sd)
 
-    ## par(mfrow=c(1,2)); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$PKN$reacID)
+    ## par(mfrow=c(1,2)); mnem::plotDnf(sim$model$reacID[as.logical(sim$bString)]); mnem::plotDnf(sim$PKN$reacID)
 
     ## ## runtime:
-    ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
-    ## Rprof("temp.txt", line.profiling=TRUE)
-    ## res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE, maxSteps = 1)
-    ## Rprof(NULL)
-    ## summaryRprof("temp.txt", lines = "show")$sampling.time
-    ## head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
+    # source("~/Documents/B-NEM/R/bnem_low.r"); source("~/Documents/B-NEM/R/bnem_main.r")
+    # Rprof("temp.txt", line.profiling=TRUE)
+    # res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE, maxSteps = 3)
+    # Rprof(NULL)
+    # summaryRprof("temp.txt", lines = "show")$sampling.time
+    # head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
 
-    ## source("~/Documents/B-NEM/R/low.r"); source("~/Documents/B-NEM/R/main.r")
     start <- as.numeric(Sys.time())
     res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE)
     result[run, 1, 1] <- as.numeric(Sys.time()) - start
@@ -232,25 +239,9 @@ for (run in runs) {
 
 }
 
-save(result, file = paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_"))
+save(result, file = paste(path, "bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_"))
 
 stop()
-
-## leo:
-
-module load r/3.5.1
-
-module load curl/7.53.1
-
-module load gmp/6.1.2
-
-## euler: (use R/bin/R instead of R)
-
-module load bioconductor/3.6
-
-module load curl/7.49.1
-
-module load gmp/5.1.3
 
 ##general:
 
