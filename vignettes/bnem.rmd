@@ -85,8 +85,15 @@ the function generates data given the ground truth.
 ```{r}
 set.seed(8675309)
 
-sim <- simBoolGtn(Sgenes = 10, maxEdges = 10, keepsif = TRUE, sd = 0.5)
+sim <- simBoolGtn(Sgenes = 5, maxEdges = 10, keepsif = TRUE, negation=0.1,
+                  layer=1)
 fc <- sim$fc
+pos <- which(fc == 1)
+neg <- which(fc == -1)
+zero <- which(fc == 0)
+fc[pos] <- rnorm(length(pos),1,1)
+fc[neg] <- rnorm(length(neg),-1,1)
+fc[zero] <- rnorm(length(zero),0,1)
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
 model <- sim$model
@@ -288,10 +295,16 @@ if the S-gene is activated, the stimuli is set to 1. If the S-gene
 is inhibited the inhibitor S-gene is set to 0. 
 
 ```{r}
-set.seed(12345)
-sim <- simBoolGtn(Sgenes = 4, maxEdges = 10, dag = FALSE,
-                  negation = 0, allstim = TRUE)
+set.seed(9247)
+sim <- simBoolGtn(Sgenes = 4, maxEdges = 50, dag = FALSE,
+                  negation = 0, allstim = TRUE,frac=0.1)
 fc <- sim$fc
+pos <- which(fc == 1)
+neg <- which(fc == -1)
+zero <- which(fc == 0)
+fc[pos] <- rnorm(length(pos),1,1)
+fc[neg] <- rnorm(length(neg),-1,1)
+fc[zero] <- rnorm(length(zero),0,1)
 exprs <- sim$exprs
 CNOlist <- sim$CNOlist
 model <- sim$model
@@ -329,7 +342,7 @@ greedy3 <- bnem(search = "greedy",
 resString2 <- greedy3$bString
 ```
 
-Again, we look at the accuracy.
+We look at the accuracy again.
 
 ```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap1}
 par(mfrow=c(1,2))

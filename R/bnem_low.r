@@ -284,7 +284,8 @@ performing simple normalization")
                 colnames.exprs <- colnames(NEMlist$exprs)
                 rownames.exprs <- rownames(NEMlist$exprs)
                 vprod <- function(x) { return(x%*%x) }
-                NEMlist$exprs <- NEMlist$exprs/(apply(NEMlist$exprs, 1, vprod)^0.5)
+                NEMlist$exprs <-
+                    NEMlist$exprs/(apply(NEMlist$exprs, 1, vprod)^0.5)
                 colnames(NEMlist$exprs) <- colnames.exprs
                 rownames(NEMlist$exprs) <- rownames.exprs
             }
@@ -2488,7 +2489,7 @@ getNemFit <-
             ## if (any(!(colnames(NEMlist$fc) %in% rownames(SCompMat)))) {
             ##     print(colnames(NEMlist$fc)[which(!(colnames(NEMlist$fc) %in%
             ##                                        rownames(SCompMat)))]);
-            ##     print("-----------------------------------------------------")
+            ##     print("-------------------------------------------")
             ##     print(rownames(SCompMat))
             ## }
             if (is.null(rownames(SCompMat))) {
@@ -3297,7 +3298,7 @@ localSearch <-
                             print(paste(" - Score: ", topScore, sep = ""))
                             print(paste(" - Iter_time: ", timePassed, " @ ",
                                         Sys.time(), sep = ""))
-                            print("--------------------------------------------------")
+                            print("-----------------------------------")
                             if (any(bitString != 0) & draw) {
                                 plotDnf(model$reacID[which(bitString == 1)],
                                         CNOlist = CNOlist)

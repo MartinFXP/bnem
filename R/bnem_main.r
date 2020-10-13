@@ -334,7 +334,7 @@ simBoolGtn <-
     function(Sgenes = 10, maxEdges = 25, stimGenes = 2, layer = 1,
              frac = 0.1, maxInDeg = 2,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
-             Egenes = 10, flip = 0.33, reps = 3, keepsif = FALSE,
+             Egenes = 10, flip = 0.33, reps = 1, keepsif = FALSE,
              maxcount = 10, negation = 0.25, allstim = FALSE, and = 0.25,
              positive = TRUE, verbose = FALSE) {
         n <- Sgenes
@@ -368,7 +368,7 @@ simBoolGtn <-
         } else {
             Sgenes <- paste0("S", seq_len(n)-1, "g")
             layers <- list()
-            layers[[1]] <- stimuli <- prev <- Sgenes[seq_len(s)] # sample(Sgenes, s)
+            layers[[1]] <- stimuli <- prev <- Sgenes[seq_len(s)]
             Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
             pkn <- NULL
             enew <- 0
@@ -383,7 +383,9 @@ simBoolGtn <-
                 for (i in seq_len(length(prev))) {
                     for (j in layer) {
                         if (negation > 0 & (!positive | count > 2)) {
-                            die <- sample(c(0,1), 1, prob = c(negation, 1-negation))
+                            die <- sample(c(0,1),
+                                          1,
+                                          prob = c(negation, 1-negation))
                         } else {
                             die <- 1
                         }
@@ -437,6 +439,7 @@ simBoolGtn <-
         if (allstim) {
             bString[sample(seq_len(length(model$reacID)),
                            ceiling(length(model$reacID)*frac))] <- 1
+            bString[grep("stim",model$reacID)] <- 1
         } else {
             for (i in seq_len(length(layers))) {
                 for (j in seq_len(length(layers[[i]]))) {
@@ -461,7 +464,9 @@ simBoolGtn <-
             toomany <- table(gsub(".*=", "", model$reacID[as.logical(bString)]))
             toomany <- toomany[which(toomany > maxInDeg)]
             for (i in seq_len(length(toomany))) {
-                manyIn <- intersect(which(bString == 1), grep(paste0("=", names(toomany)[i]), model$reacID))
+                manyIn <- intersect(which(bString == 1),
+                                    grep(paste0("=", names(toomany)[i]),
+                                         model$reacID))
                 bString[grep(paste0("=", names(toomany)[i]), model$reacID)] <- 0
                 bString[sample(manyIn, maxInDeg)] <- 1
             }
@@ -1163,7 +1168,8 @@ dummyCNOlist <-
                 for (i in seq_len(nrow(stimDesign))) {
                     design[((i-1)*nrow(inhibDesign) + 1):
                            (i*nrow(inhibDesign)), ] <-
-                        cbind(stimDesign[rep(i, nrow(inhibDesign)), , drop = FALSE],
+                        cbind(stimDesign[rep(i, nrow(inhibDesign)), ,
+                                         drop = FALSE],
                               inhibDesign)
                 }
             }
@@ -3078,19 +3084,47 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' @param fc data (see ?bnem)
 #' @param model network model
 #' @param method see ?bnem
+#' @param sizeFac numeric penalty for network size
+#' @param NAFac numeric penalty for network size
+#' @param parameters parameters for discrete case (not recommended);
+#' has to ba list with entries cutOffs and scoring:
+#' cutOffs = c(a,b,c) with a (cutoff for real zeros),
+#' b (cutoff for real effects),
+#' c = -1 for normal scoring, c between 0 and
+#' 1 for keeping only relevant % of E-genes,
+#' between -1 and 0 for keeping only a specific quantile of E-genes,
+#' and c > 1 for keeping the top c E-genes;
+#' scoring = c(a,b,c) with a (weight for real effects),
+#' c (weight for real zeros),
+#' b (multiplicator for effects/zeros between a and c);
+#' @param approach "fc" for log foldchanges, "exprs" for
+#' absolute expression values (not recommended)
+#' @param NEMlist NEMlist object (optional)
+#' @param relFit if TRUE returns a network specific relative score
+#' @param opt "min" returns minimal optimum, "max" return 1-minimum
+#' @param verbose if TRUE returns verbose output
 #' @author Martin Pirkl
 #' @return numeric value (score)
 #' @export
 #' @examples
 #' sim <- simBoolGtn()
 #' scoreDnf(sim$bString, sim$CNOlist, sim$fc, sim$model)
-scoreDnf <- function(bString, CNOlist, fc, model, method = "llr",sizeFac=10^-10,NAFac=1,parameters = list(cutOffs = c(0,1,0), scoring = c(0.25,0.5,2)),approach = "fc",NEMlist = NULL,relFit = FALSE,verbose = FALSE,opt = "min") {
+scoreDnf <- function(bString, CNOlist, fc, model, method = "llr",
+                     sizeFac=10^-10,NAFac=1,
+                     parameters = list(cutOffs = c(0,1,0),
+                                       scoring = c(0.25,0.5,2)),
+                     approach = "fc",NEMlist = NULL,relFit = FALSE,
+                     opt = "min",verbose = FALSE) {
     NEMlist <- list()
     NEMlist$fc <- fc
     NEMlist <- checkNEMlist(NEMlist, CNOlist=CNOlist,
                             parameters = parameters, approach = approach,
                             method=method)
-    score <- computeScoreNemT1(CNOlist,model,bString,sizeFac=sizeFac,NAFac=NAFac,parameters=parameters,approach=approach,NEMlist=NEMlist,relFit=relFit,method=method,verbose=verbose,opt=opt)
+    score <- computeScoreNemT1(CNOlist,model,bString,sizeFac=sizeFac,
+                               NAFac=NAFac,parameters=parameters,
+                               approach=approach,NEMlist=NEMlist,
+                               relFit=relFit,method=method,verbose=verbose,
+                               opt=opt)
     return(score)
 }
 #' plot simulation object
