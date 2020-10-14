@@ -95,7 +95,7 @@ if (is.na(commandArgs(TRUE)[2])) {
     
     m <- as.numeric(commandArgs(TRUE)[9])
     
-    ## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 2; sd <- 0.5; n <- 10; m <- 10
+    ## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 1; n <- 30; m <- 10
     
     runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
     
@@ -106,7 +106,9 @@ if (is.na(commandArgs(TRUE)[2])) {
     verbose <- FALSE
     draw <- FALSE
     
-    result <- array(0, c(maxrun, 5, 8), list(paste0("run", seq_len(maxrun)), c("greedy", "greedy_ia", "genetic_quick", "genetic_long", "random"), c("time", "accracy truth table", "accuracy differential effects", "score","tp","fp","tn","fn")))
+    methnames <- c("greedy", "greedy_ia", "genetic_quick", "genetic_long", "genetic_stall","random")
+    storenames <- c("time", "accracy truth table", "accuracy differential effects", "score","tp","fp","tn","fn")
+    result <- array(0, c(maxrun, length(methnames), length(storenames)), list(paste0("run", seq_len(maxrun)), methnames, storenames))
     
     path <- "/cluster/work/bewi/members/mpirkl/"
     
@@ -220,29 +222,40 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 4, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
         
         start <- as.numeric(Sys.time())
-        rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
+        res4 <- bnem(search = "genetic", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
         result[run, 5, 1] <- as.numeric(Sys.time()) - start
-        ETT4 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=rand))
-        result[run, 5, 2] <- sum(ETT4 == ETT)/length(ETT)
-        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT4)
-        ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res4$bString))
+        result[run, 5, 2] <- sum(ETT3 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT3)
+        ERS3 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
         result[run, 5, 3] <- sum(ERS == sim$ERS)/length(ERS)
-        result[run, 5, 4] <- scoreDnf(rand, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method)
+        result[run, 5, 4] <- min(res4$scores)
         result[run, 5, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
         result[run, 5, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 5, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 5, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
         
+        start <- as.numeric(Sys.time())
+        rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
+        result[run, 6, 1] <- as.numeric(Sys.time()) - start
+        ETT4 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=rand))
+        result[run, 6, 2] <- sum(ETT4 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT4)
+        ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        result[run, 6, 3] <- sum(ERS == sim$ERS)/length(ERS)
+        result[run, 6, 4] <- scoreDnf(rand, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method)
+        result[run, 6, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
+        result[run, 6, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
+        result[run, 6, 7] <- sum(ERS == 0 & sim$ERS == 0)
+        result[run, 6, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
+
         ## result[1,,]; par(mfrow=c(1,4)); plotDnf(sim$model$reacID[as.logical(res1$bString)]); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$model$reacID[as.logical(res2$bString)]); plotDnf(sim$model$reacID[as.logical(res3$bString)]);
-        
         ## result[run,,]
-        
+
     }
     
     save(result, file = paste0(path, paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")))
-    
     stop("simulation done")
-    
 }
     
 ## general:
@@ -258,7 +271,7 @@ rm .RData
 
 Sgenes=30
 queue=4
-frac=100
+frac=10
 Egenes=10
 Stimuli=2
 Noise=1
@@ -274,6 +287,7 @@ then
 Stimuli=6
 frac=100
 ram=8000
+queue=24
 fi
 
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
@@ -332,26 +346,29 @@ for (n in c(10,20,30)) {
     results[[count]] <- result
 }
 
-methods <- c("greedy","greedy\n(inverse absorption)","genetic\n(time-limit)","genetic","random")
+methods <- c("greedy","greedy\n(inverse absorption)","genetic\n(time-limit)","genetic","genetic (stall)","random")
+cols <- c("darkred","red","darkgreen","green","lightgreen","grey")
 
-wilcox <- array(NA,c(3,5,5),list(Sgenes=c(10,20,30),methods=methods,methods2=methods))
+wilcox <- array(NA,c(3,length(methods),length(methods)),list(Sgenes=c(10,20,30),methods=methods,methods2=methods))
 idx1 <- 5
 idx2 <- 8
 for (i in 1:3) {
-    for (j in 1:5) {
-        for (k in 1:5) {
+    for (j in 1:6) {
+        for (k in 1:6) {
         wilcox[i,j,k] <- wilcox.test(results[[i]][,j,idx1]/(results[[i]][,j,idx1]+results[[i]][,j,idx2]),results[[i]][,k,idx1]/(results[[i]][,k,idx1]+results[[i]][,k,idx2]),alternative="less")$p.value
         }
     }
 }
     
 box <- 1
-time <- 0
+time <- 1
 if (box) {
-    restime <- cbind(results[[1]][,1:5,1],results[[2]][,1:5,1],results[[3]][,1:5,1])
+    restime <- cbind(results[[1]][,1:6,1],results[[2]][,1:6,1],results[[3]][,1:6,1])
     if (time) {
-        pdf("temp.pdf", width = 11, height = 6)
-        laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,29),rep(5,21)),2,byrow=TRUE)
+        # pdf("temp.pdf", width = 11, height = 6)
+        # laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,29),rep(5,21)),2,byrow=TRUE)
+        pdf("temp.pdf", width = 11, height = 3)
+        laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,32)),1,byrow=TRUE)
     } else {
         pdf("temp.pdf", width = 12, height = 3)
         laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,20)),1,byrow=TRUE)
@@ -359,22 +376,23 @@ if (box) {
         print(apply(restime,2,mean))
     }
     layout(laymat)
-    cols <- c("darkred","red","darkgreen","green","grey")
+    v.idx <- c(6.5,12.5)
+    axis.idx <- c(3.5,9.5,15.5)
     if (time) {
-        myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols)#,log="y")
-        abline(v=c(5.5,10.5))
-        axis(1,c(3,8,13),c(10,20,30))
+        myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y")
+        abline(v=v.idx)
+        axis(1,axis.idx,c(10,20,30))
     }
-    resacc <- cbind(results[[1]][,1:5,3],results[[2]][,1:5,3],results[[3]][,1:5,3])
-    resacc <- cbind(results[[1]][,1:5,5],results[[2]][,1:5,5],results[[3]][,1:5,5])/(cbind(results[[1]][,1:5,5],results[[2]][,1:5,5],results[[3]][,1:5,5])+cbind(results[[1]][,1:5,6],results[[2]][,1:5,6],results[[3]][,1:5,6]))
-    myboxplot(resacc, col = cols,border=cols,medcol="black",ylab = "precision", main = "Precision of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols)
-    abline(v=c(5.5,10.5))
-    axis(1,c(3,8,13),c(10,20,30))
-    resll <- -cbind(results[[1]][,1:5,4],results[[2]][,1:5,4],results[[3]][,1:5,4])
-    resll <- cbind(results[[1]][,1:5,5],results[[2]][,1:5,5],results[[3]][,1:5,5])/(cbind(results[[1]][,1:5,5],results[[2]][,1:5,5],results[[3]][,1:5,5])+cbind(results[[1]][,1:5,8],results[[2]][,1:5,8],results[[3]][,1:5,8]))
-    myboxplot(resll, col = cols,border=cols,medcol="black",ylab = "recall", main = "Recall of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols)#, ylim = c(0,1),dens=0,bordercol=cols)
-    abline(v=c(5.5,10.5))
-    axis(1,c(3,8,13),c(10,20,30))
+    resacc <- cbind(results[[1]][,1:6,3],results[[2]][,1:6,3],results[[3]][,1:6,3])
+    resacc <- cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])/(cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])+cbind(results[[1]][,1:6,6],results[[2]][,1:6,6],results[[3]][,1:6,6]))
+    myboxplot(resacc, col = cols,border=cols,medcol="black",ylab = "precision", main = "Precision of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))
+    abline(v=v.idx)
+    axis(1,axis.idx,c(10,20,30))
+    resll <- -cbind(results[[1]][,1:6,4],results[[2]][,1:6,4],results[[3]][,1:6,4])
+    resll <- cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])/(cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])+cbind(results[[1]][,1:6,8],results[[2]][,1:6,8],results[[3]][,1:6,8]))
+    myboxplot(resll, col = cols,border=cols,medcol="black",ylab = "recall", main = "Recall of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))#, ylim = c(0,1),dens=0,bordercol=cols)
+    abline(v=v.idx)
+    axis(1,axis.idx,c(10,20,30))
     plot(1:10,col="transparent",yaxt="n",xaxt="n",bty="n",xlab="",ylab="")
     legend("top",legend=methods,col=cols,fill=cols,border=FALSE,box.lwd=0,box.col="transparent",y.intersp=1.5)
     dev.off()
