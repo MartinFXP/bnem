@@ -19,7 +19,6 @@ simBoolGtn(
   flip = 0.33,
   reps = 1,
   keepsif = FALSE,
-  maxcount = 10,
   negation = 0.25,
   allstim = FALSE,
   and = 0.25,
@@ -30,47 +29,44 @@ simBoolGtn(
 \arguments{
 \item{Sgenes}{number of S-genes}
 
-\item{maxEdges}{number of maximum edges in the DAG}
+\item{maxEdges}{number of maximum edges (upper limit) in the DAG}
 
 \item{stimGenes}{number of stimulated S-genes}
 
-\item{layer}{scaling factor for the sampling of next Sgene layer; high
-means a higher probability for less Sgenes and low more Sgenes}
+\item{layer}{scaling factor for the sampling of next Sgene layerof the 
+prior. high (5-10) mean more depth and low (0-2) means more breadth}
 
-\item{frac}{fraction of hyper-edges in the ground truth}
+\item{frac}{fraction of hyper-edges in the ground truth (GTN)}
 
 \item{maxInDeg}{maximum number of incoming hyper-edges}
 
-\item{dag}{if TRUE graph will be acyclic}
+\item{dag}{if TRUE, graph will be acyclic}
 
-\item{maxSize}{maximum number of S-genes in a disjunction or clause}
+\item{maxSize}{maximum number of S-genes in a hyper-edge}
 
-\item{maxStim}{maximum of stimulated S-genes in the data samples}
+\item{maxStim}{maximum of stimulated S-genes in an experiment (=data samples)}
 
-\item{maxInhibit}{maximum of inhibited S-genes in the data samples}
+\item{maxInhibit}{maximum number of inhibited S-genes in
+an experiment (=data samples)}
 
 \item{Egenes}{number of E-genes per S-gene, e.g. 10 S-genes and 10
 E-genes will return 100 E-genes overall}
 
-\item{flip}{number of inhibited E-genes}
+\item{flip}{fraction of inhibited E-genes}
 
 \item{reps}{number of replicates}
 
 \item{keepsif}{if TRUE does not delete sif file, which encodes
 the prior network}
 
-\item{maxcount}{while loopes ensure a reasonable network, maxcount makes sure
-while loops do not run to infinity}
+\item{negation}{sample probability for negative or NOT edges}
 
-\item{negation}{has to be greater or equal to 0 and less than 1; if
-greater than 0, negation is the sample probability for negative edges}
+\item{allstim}{full network in which all S-genes are also stimulated}
 
-\item{allstim}{full network in which all S-genes are possibly stimulated}
-
-\item{and}{probability for and gates in the GTN}
+\item{and}{probability for AND-gates in the GTN}
 
 \item{positive}{if TRUE, sets all stimulation edges to activation, else
-samples inhibitory edges by negation probability}
+samples inhibitory edges by 'negation' probability}
 
 \item{verbose}{TRUE for verbose output}
 }

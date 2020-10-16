@@ -2,14 +2,15 @@
 % Please edit documentation in R/bnem_main.r
 \name{simulateStatesRecursive}
 \alias{simulateStatesRecursive}
-\title{simulate states}
+\title{Simulate states}
 \usage{
 simulateStatesRecursive(CNOlist, model, bString, NEMlist = NULL)
 }
 \arguments{
-\item{CNOlist}{CNOlist object}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
-\item{model}{model object}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
 \item{bString}{binary vector denoting the sub-graph given model}
 

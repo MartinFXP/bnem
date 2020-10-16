@@ -2,7 +2,7 @@
 % Please edit documentation in R/bnem_main.r
 \name{findResiduals}
 \alias{findResiduals}
-\title{compute residuals}
+\title{Compute residuals}
 \usage{
 findResiduals(
   bString,
@@ -11,7 +11,6 @@ findResiduals(
   fc = NULL,
   exprs = NULL,
   egenes = NULL,
-  NEMlist = NULL,
   parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)),
   method = "s",
   sizeFac = 10^-10,
@@ -19,7 +18,6 @@ findResiduals(
   sub = paste0("green residuals are added effects (left positive,",
     " right negative) and red residuals are deleted ", "effects"),
   cut = TRUE,
-  approach = "fc",
   parallel = NULL,
   verbose = TRUE,
   ...
@@ -28,24 +26,39 @@ findResiduals(
 \arguments{
 \item{bString}{Binary vector denoting the network given a model}
 
-\item{CNOlist}{CNOlist object}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
-\item{model}{Network model object.}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
-\item{fc}{ORS of the data as numeric matrix.}
+\item{fc}{m x l matrix of foldchanges of gene expression values or 
+equivalent input
+(normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+NULL, the gene expression
+data is used to calculate naive foldchanges.}
 
-\item{exprs}{Optional activation scheme of the data as numeric matrix.}
+\item{exprs}{Optional normalized m x l matrix of gene expression data 
+for m E-genes and l experiments.}
 
-\item{egenes}{Atachment of the E-genes (optional) as
-list named after S-genes.}
+\item{egenes}{list object; each list entry is named after an S-gene and
+contains the names of egenes which are potential children}
 
-\item{NEMlist}{NEMlist object (optional).}
+\item{parameters}{parameters for discrete case (not recommended);
+has to be a list with entries cutOffs and scoring:
+cutOffs = c(a,b,c) with a (cutoff for real zeros),
+b (cutoff for real effects),
+c = -1 for normal scoring, c between 0 and
+1 for keeping only relevant % of E-genes,
+between -1 and 0 for keeping only a specific quantile of E-genes,
+and c > 1 for keeping the top c E-genes;
+scoring = c(a,b,c) with a (weight for real effects),
+c (weight for real zeros),
+b (multiplicator for effects/zeros between a and c);}
 
-\item{parameters}{see ?bnem}
+\item{method}{Scoring method can be "cosine", a correlation,
+or a distance measure. See ?cor and ?dist for details.}
 
-\item{method}{Scoring method (optional).}
-
-\item{sizeFac}{Zeta parameter to penelize network size.}
+\item{sizeFac}{Size factor penelizing the hyper-graph size.}
 
 \item{main}{Main title of the figure.}
 
@@ -54,13 +67,14 @@ list named after S-genes.}
 \item{cut}{If TRUE does not visualize experiments/S-genes which do
 not have any residuals.}
 
-\item{approach}{see ?bnem}
+\item{parallel}{Parallelize the search. An integer value specifies the
+number of threads on the local machine or a list object as in list(c(1,2,3),
+c("machine1", "machine2", "machine3")) specifies the threads distributed
+on different machines (local or others).}
 
-\item{parallel}{the number of threads used for computation.}
+\item{verbose}{TRUE for verbose output}
 
-\item{verbose}{verbose output}
-
-\item{...}{additional parameters for ?epiNEM::HeatmapOP}
+\item{...}{additional parameters for epiNEM::HeatmapOP}
 }
 \value{
 numeric matrices indicating experiments and/or genes, where the

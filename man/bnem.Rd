@@ -20,8 +20,7 @@ bnem(
   NAFac = 1,
   parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.1, 0.2, 0.9)),
   parallel = NULL,
-  method = "s",
-  approach = "fc",
+  method = "cosine",
   relFit = FALSE,
   verbose = TRUE,
   reduce = TRUE,
@@ -59,39 +58,43 @@ neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
 "exhaustive" searches through the complete search space and is not
 recommended.}
 
-\item{fc}{Foldchanges of gene expression values or equivalent input
-(normalized pvalues, logodds, ...). If left NULL, the gene expression
+\item{fc}{m x l matrix of foldchanges of gene expression values or 
+equivalent input
+(normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+NULL, the gene expression
 data is used to calculate naive foldchanges.}
 
-\item{exprs}{Optional normalized gene expression data.}
+\item{exprs}{Optional normalized m x l matrix of gene expression data 
+for m E-genes and l experiments.}
 
 \item{egenes}{list object; each list entry is named after an S-gene and
-contains the egenes which are potential children}
+contains the names of egenes which are potential children}
 
-\item{pkn}{Prior knowledge network.}
+\item{pkn}{Prior knowledge network as output by CellNOptR::readSIF.}
 
-\item{design}{Optional design matrix for the gene expression values, if
-available. If kept NULL, bnem needs either stimuli, inhibitors or a CNOlist
-object.}
+\item{design}{Optional n x l design matrix with n S-genes and l experiments.
+If available. If kept NULL, bnem needs either stimuli, inhibitors or a
+CNOlist object.}
 
 \item{stimuli}{Character vector of stimuli names.}
 
 \item{inhibitors}{Character vector of inhibitors.}
 
 \item{signals}{Optional character vector of signals. Signals are S-genes,
-which can directly regulate E-genes. If left NULL, alls stimuli and
+which can directly regulate E-genes. If left NULL, all stimuli and
 inhibitors are defined as signals.}
 
-\item{CNOlist}{CNOlist object if available.}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
-\item{model}{Model object including the search space, if available.}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
 \item{sizeFac}{Size factor penelizing the hyper-graph size.}
 
 \item{NAFac}{factor penelizing NAs in the data.}
 
 \item{parameters}{parameters for discrete case (not recommended);
-has to ba list with entries cutOffs and scoring:
+has to be a list with entries cutOffs and scoring:
 cutOffs = c(a,b,c) with a (cutoff for real zeros),
 b (cutoff for real effects),
 c = -1 for normal scoring, c between 0 and
@@ -103,31 +106,27 @@ c (weight for real zeros),
 b (multiplicator for effects/zeros between a and c);}
 
 \item{parallel}{Parallelize the search. An integer value specifies the
-number of threads on the local machine. A list object as in list(c(1,2,3),
+number of threads on the local machine or a list object as in list(c(1,2,3),
 c("machine1", "machine2", "machine3")) specifies the threads distributed
 on different machines (local or others).}
 
-\item{method}{Scoring method can be "cosine" a correlation,
-distance measure or a
-probability based score "llr". See ?cor and ?dist for details.}
-
-\item{approach}{default "fc" for foldchanges or signed effect probabilities,
-"abs" for absolute effects or probabilities}
+\item{method}{Scoring method can be "cosine", a correlation,
+or a distance measure. See ?cor and ?dist for details.}
 
 \item{relFit}{if TRUE a relative fit for each
 E-gene is computed (not recommended)}
 
-\item{verbose}{TRUE gives additional information during the search.}
+\item{verbose}{TRUE for verbose output}
 
 \item{reduce}{if TRUE reduces the search space for exhaustive search}
 
 \item{parallel2}{if TRUE parallelises the starts and not the search itself}
 
-\item{initBstring}{Binary string of the initial hyper-graph.}
+\item{initBstring}{Binary vector for the initial hyper-graph.}
 
 \item{popSize}{Population size (only "genetic").}
 
-\item{pMutation}{Probability for mutation (only "genetic").}
+\item{pMutation}{Probability between 0 and 1 for mutation (only "genetic").}
 
 \item{maxTime}{Define a maximal time (seconds) for the search.}
 
@@ -138,16 +137,17 @@ E-gene is computed (not recommended)}
 \item{relTol}{Score tolerance for networks defined as optimal but with a
 lower score as the real optimum (only "genetic").}
 
-\item{priorBitString}{Binary string defining hyper-edges which are added
+\item{priorBitString}{Binary vector defining hyper-edges which are added
 to every hyper-graph. E.g. if you know hyper-edge 55 is definitly there and
 to fix that, set priorBitString[55] <- 1 (only "genetic").}
 
-\item{selPress}{Selection pressure for the stochastic universal sampling
+\item{selPress}{Selection pressure between 1 and 2 (if fit="linear") and
+greater 2 (for fit "nonlinear") for the stochastic universal sampling
 (only "genetic").}
 
 \item{fit}{"linear" or "nonlinear fit for stochastic universal sampling}
 
-\item{targetBstring}{define a binary string representing a network;
+\item{targetBstring}{define a binary vector representing a network;
 if this network is found, the computation stops}
 
 \item{elitism}{Number of best hyper-graphs transferred to the next generation
@@ -159,7 +159,8 @@ are inversed  (only "genetic").}
 \item{selection}{"t" for tournament selection and "s" for stochastic
 universal sampling (only "genetic").}
 
-\item{type}{type of the paralellisation on multpile machines (default: SOCK)}
+\item{type}{type of the paralellisation on multpile machines (default: 
+"SOCK")}
 
 \item{exhaustive}{If TRUE an exhaustive search is conducted if the genetic
 algorithm would take longer (only "genetic").}
@@ -173,7 +174,7 @@ algorithm would take longer (only "genetic").}
 \item{node}{vector of S-gene names, which are used in the greedy
 search; if node = NULL all nodes are considered}
 
-\item{absorpII}{Use inverse absorption.}
+\item{absorpII}{Use inverse absorption (default: TRUE).}
 
 \item{draw}{If TRUE draws the network evolution.}
 
@@ -184,8 +185,8 @@ optimized (only "greedy").}
 maxInputsPerGate as maximum number of parents for each hyper-edge.}
 }
 \value{
-List object including the optimized hyper-graph and its
-corresponding binary string.
+List object including the optimized hyper-graph, its
+corresponding binary vector for full hyper-graph and optimized scores.
 }
 \description{
 This function takes a prior network and normalized perturbation data

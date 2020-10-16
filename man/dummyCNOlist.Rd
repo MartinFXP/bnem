@@ -13,16 +13,17 @@ dummyCNOlist(
 )
 }
 \arguments{
-\item{stimuli}{character vector of stimulated genes}
+\item{stimuli}{Character vector of stimuli names.}
 
-\item{inhibitors}{character vector of inhibited genes}
+\item{inhibitors}{Character vector of inhibitors.}
 
 \item{maxStim}{maximal number of stimulated genes for a single experiment}
 
 \item{maxInhibit}{maximal number of inhibited genes for a single experiment}
 
-\item{signals}{character vector of genes which can directly regulate effect
-reporters}
+\item{signals}{Optional character vector of signals. Signals are S-genes,
+which can directly regulate E-genes. If left NULL, all stimuli and
+inhibitors are defined as signals.}
 }
 \value{
 CNOlist object

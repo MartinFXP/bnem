@@ -11,7 +11,7 @@ transRed(g, max.iter = NULL, verbose = FALSE)
 
 \item{max.iter}{maximal number of iterations till convergence}
 
-\item{verbose}{verbose output?}
+\item{verbose}{TRUE for verbose output}
 }
 \value{
 transitive reduction of the hyper-graph in normal form

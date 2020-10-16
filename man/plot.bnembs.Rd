@@ -31,11 +31,10 @@
 
 \item{cip}{range for the confidence interval, e.g. 0.95}
 
-\item{method}{method to use for conidence itneral
+\item{method}{method to use for conidence interval
 computation (see function binom.confint from package binom)}
 
-\item{...}{additional parameters for the function mnem::plotDnf
-from package mnem}
+\item{...}{additional parameters for the function mnem::plotDnf}
 }
 \value{
 plot of the network from the bootstrap

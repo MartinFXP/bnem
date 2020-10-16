@@ -7,9 +7,10 @@
 processDataBCR(path = "", combsign = FALSE)
 }
 \arguments{
-\item{path}{path to the CEL.gz files}
+\item{path}{path to the CEL.gz/Cel files}
 
-\item{combsign}{if TRUE includes all covariates in ComBat analysis}
+\item{combsign}{if TRUE includes all covariates in ComBat analysis
+to estimate batch effects.}
 }
 \value{
 list with the full foldchanges and epxression matrix,

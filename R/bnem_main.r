@@ -3,8 +3,9 @@
 #' Produce the application data from the BCR paper
 #' of Pirkl, et al., 2016, Bioinformatics. Raw data is available at
 #' https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE68761
-#' @param path path to the CEL.gz files
+#' @param path path to the CEL.gz/Cel files
 #' @param combsign if TRUE includes all covariates in ComBat analysis
+#' to estimate batch effects.
 #' @author Martin Pirkl
 #' @return list with the full foldchanges and epxression matrix,
 #' a reduced foldchange matrix and the design matrix for the computations
@@ -143,10 +144,9 @@ processDataBCR <- function(path = "", combsign = FALSE) {
 #' @param dec integer for function round
 #' @param ci if TRUE shows confidence intervals
 #' @param cip range for the confidence interval, e.g. 0.95
-#' @param method method to use for conidence itneral
+#' @param method method to use for conidence interval
 #' computation (see function binom.confint from package binom)
 #' @param ... additional parameters for the function mnem::plotDnf
-#' from package mnem
 #' @author Martin Pirkl
 #' @return plot of the network from the bootstrap
 #' @method plot bnembs
@@ -207,7 +207,11 @@ plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
 #' Bootstraped Network
 #'
 #' Runs Bootstraps on the data
-#' @param fc matrix with foldchanges or signed effects
+#' @param fc m x l matrix of foldchanges of gene expression values or
+#' equivalent input
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
+#' NULL, the gene expression
+#' data is used to calculate naive foldchanges.
 #' @param x number of bootstraps
 #' @param f percentage to sample, e.g. f = 0.5 samples only 50%
 #' the amount of E-genes as the original data
@@ -280,7 +284,8 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
 #' synergistic and non-synergistic interactions in signalling pathways
 #' using Boolean Nested Effect Models, Bioinformatics, Volume 32, Issue 6,
 #' 15 March 2016, Pages 893–900, https://doi.org/10.1093/bioinformatics/btv680.
-#' Alternatively see also the function processDataBCR for details.
+#' Alternatively see also the function processDataBCR for details and
+#'  for reproduction.
 #' @name bcr
 #' @docType data
 #' @usage bcr
@@ -297,30 +302,28 @@ NA
 #' Draws a random prior network, samples a ground truth from the full boolean
 #' extension and generates data
 #' @param Sgenes number of S-genes
-#' @param maxEdges number of maximum edges in the DAG
+#' @param maxEdges number of maximum edges (upper limit) in the DAG
 #' @param stimGenes number of stimulated S-genes
-#' @param layer scaling factor for the sampling of next Sgene layer; high
-#' means a higher probability for less Sgenes and low more Sgenes
-#' @param frac fraction of hyper-edges in the ground truth
+#' @param layer scaling factor for the sampling of next Sgene layerof the 
+#' prior. high (5-10) mean more depth and low (0-2) means more breadth
+#' @param frac fraction of hyper-edges in the ground truth (GTN)
 #' @param maxInDeg maximum number of incoming hyper-edges
-#' @param dag if TRUE graph will be acyclic
-#' @param maxSize maximum number of S-genes in a disjunction or clause
-#' @param maxStim maximum of stimulated S-genes in the data samples
-#' @param maxInhibit maximum of inhibited S-genes in the data samples
+#' @param dag if TRUE, graph will be acyclic
+#' @param maxSize maximum number of S-genes in a hyper-edge
+#' @param maxStim maximum of stimulated S-genes in an experiment (=data samples)
+#' @param maxInhibit maximum number of inhibited S-genes in
+#'  an experiment (=data samples)
 #' @param Egenes number of E-genes per S-gene, e.g. 10 S-genes and 10
 #' E-genes will return 100 E-genes overall
-#' @param flip number of inhibited E-genes
+#' @param flip fraction of inhibited E-genes
 #' @param reps number of replicates
 #' @param keepsif if TRUE does not delete sif file, which encodes
 #' the prior network
-#' @param maxcount while loopes ensure a reasonable network, maxcount makes sure
-#' while loops do not run to infinity
-#' @param negation has to be greater or equal to 0 and less than 1; if
-#' greater than 0, negation is the sample probability for negative edges
-#' @param allstim full network in which all S-genes are possibly stimulated
-#' @param and probability for and gates in the GTN
+#' @param negation sample probability for negative or NOT edges
+#' @param allstim full network in which all S-genes are also stimulated
+#' @param and probability for AND-gates in the GTN
 #' @param positive if TRUE, sets all stimulation edges to activation, else
-#' samples inhibitory edges by negation probability
+#' samples inhibitory edges by 'negation' probability
 #' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return list with the corresponding prior graph, ground truth network and
@@ -335,7 +338,7 @@ simBoolGtn <-
              frac = 0.1, maxInDeg = 2,
              dag = TRUE, maxSize = 2, maxStim = 2, maxInhibit = 1,
              Egenes = 10, flip = 0.33, reps = 1, keepsif = FALSE,
-             maxcount = 10, negation = 0.25, allstim = FALSE, and = 0.25,
+             negation = 0.25, allstim = FALSE, and = 0.25,
              positive = TRUE, verbose = FALSE) {
         n <- Sgenes
         m <- Egenes
@@ -503,7 +506,8 @@ simBoolGtn <-
 #'
 #' applies "inverse" absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
-#' @param model model for respective binary vector
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
 #' @author Martin Pirkl
 #' @return bString after "inverse" absorption law
 #' @export
@@ -567,7 +571,8 @@ absorptionII <-
 #'
 #' applies absorption law to a disjuncitve normal form
 #' @param bString a disjunctive normal form or binary vector according to model
-#' @param model model for respective binary vector
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
 #' @author Martin Pirkl
 #' @return bString after absorption law
 #' @export
@@ -618,27 +623,31 @@ absorption <-
 #' neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
 #' "exhaustive" searches through the complete search space and is not
 #' recommended.
-#' @param fc Foldchanges of gene expression values or equivalent input
-#' (normalized pvalues, logodds, ...). If left NULL, the gene expression
+#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' equivalent input
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param exprs Optional normalized gene expression data.
+#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' for m E-genes and l experiments.
 #' @param egenes list object; each list entry is named after an S-gene and
-#' contains the egenes which are potential children
-#' @param pkn Prior knowledge network.
-#' @param design Optional design matrix for the gene expression values, if
-#' available. If kept NULL, bnem needs either stimuli, inhibitors or a CNOlist
-#' object.
+#' contains the names of egenes which are potential children
+#' @param pkn Prior knowledge network as output by CellNOptR::readSIF.
+#' @param design Optional n x l design matrix with n S-genes and l experiments.
+#' If available. If kept NULL, bnem needs either stimuli, inhibitors or a
+#' CNOlist object.
 #' @param stimuli Character vector of stimuli names.
 #' @param inhibitors Character vector of inhibitors.
 #' @param signals Optional character vector of signals. Signals are S-genes,
-#' which can directly regulate E-genes. If left NULL, alls stimuli and
+#' which can directly regulate E-genes. If left NULL, all stimuli and
 #' inhibitors are defined as signals.
-#' @param CNOlist CNOlist object if available.
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
 #' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
 #' @param sizeFac Size factor penelizing the hyper-graph size.
 #' @param NAFac factor penelizing NAs in the data.
 #' @param parameters parameters for discrete case (not recommended);
-#' has to ba list with entries cutOffs and scoring:
+#' has to be a list with entries cutOffs and scoring:
 #' cutOffs = c(a,b,c) with a (cutoff for real zeros),
 #' b (cutoff for real effects),
 #' c = -1 for normal scoring, c between 0 and
@@ -649,33 +658,31 @@ absorption <-
 #' c (weight for real zeros),
 #' b (multiplicator for effects/zeros between a and c);
 #' @param parallel Parallelize the search. An integer value specifies the
-#' number of threads on the local machine. A list object as in list(c(1,2,3),
+#' number of threads on the local machine or a list object as in list(c(1,2,3),
 #' c("machine1", "machine2", "machine3")) specifies the threads distributed
 #' on different machines (local or others).
-#' @param method Scoring method can be "cosine" a correlation,
-#' distance measure or a
-#' probability based score "llr". See ?cor and ?dist for details.
+#' @param method Scoring method can be "cosine", a correlation,
+#' or a distance measure. See ?cor and ?dist for details.
 #' @param relFit if TRUE a relative fit for each
 #' E-gene is computed (not recommended)
-#' @param verbose TRUE gives additional information during the search.
+#' @param verbose TRUE for verbose output
 #' @param reduce if TRUE reduces the search space for exhaustive search
-#' @param initBstring Binary string of the initial hyper-graph.
+#' @param initBstring Binary vector for the initial hyper-graph.
 #' @param popSize Population size (only "genetic").
-#' @param pMutation Probability for mutation (only "genetic").
+#' @param pMutation Probability between 0 and 1 for mutation (only "genetic").
 #' @param maxTime Define a maximal time (seconds) for the search.
 #' @param maxGens Maximal number of generations (only "genetic").
 #' @param stallGenMax Maximum number of stall generations (only "genetic").
 #' @param relTol Score tolerance for networks defined as optimal but with a
 #' lower score as the real optimum (only "genetic").
-#' @param priorBitString Binary string defining hyper-edges which are added
+#' @param priorBitString Binary vector defining hyper-edges which are added
 #' to every hyper-graph. E.g. if you know hyper-edge 55 is definitly there and
 #' to fix that, set priorBitString[55] <- 1 (only "genetic").
-#' @param selPress Selection pressure for the stochastic universal sampling
+#' @param selPress Selection pressure between 1 and 2 (if fit="linear") and
+#' greater 2 (for fit "nonlinear") for the stochastic universal sampling
 #' (only "genetic").
-#' @param approach default "fc" for foldchanges or signed effect probabilities,
-#' "abs" for absolute effects or probabilities
 #' @param fit "linear" or "nonlinear fit for stochastic universal sampling
-#' @param targetBstring define a binary string representing a network;
+#' @param targetBstring define a binary vector representing a network;
 #' if this network is found, the computation stops
 #' @param elitism Number of best hyper-graphs transferred to the next generation
 #' (only "genetic").
@@ -684,7 +691,8 @@ absorption <-
 #' @param parallel2 if TRUE parallelises the starts and not the search itself
 #' @param selection "t" for tournament selection and "s" for stochastic
 #' universal sampling (only "genetic").
-#' @param type type of the paralellisation on multpile machines (default: SOCK)
+#' @param type type of the paralellisation on multpile machines (default: 
+#' "SOCK")
 #' @param exhaustive If TRUE an exhaustive search is conducted if the genetic
 #' algorithm would take longer (only "genetic").
 #' @param delcyc If TRUE deletes cycles in all hyper-graphs (not recommended).
@@ -692,7 +700,7 @@ absorption <-
 #' @param maxSteps Maximal number of steps (only "greedy").
 #' @param node vector of S-gene names, which are used in the greedy
 #' search; if node = NULL all nodes are considered
-#' @param absorpII Use inverse absorption.
+#' @param absorpII Use inverse absorption (default: TRUE).
 #' @param draw If TRUE draws the network evolution.
 #' @param prior Binary vector. A 1 specifies hyper-edges which should not be
 #' optimized (only "greedy").
@@ -706,8 +714,8 @@ absorption <-
 #' snowfall
 #' mnem
 #' methods
-#' @return List object including the optimized hyper-graph and its
-#' corresponding binary string.
+#' @return List object including the optimized hyper-graph, its
+#' corresponding binary vector for full hyper-graph and optimized scores.
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
@@ -744,8 +752,7 @@ bnem <-
              NAFac=1,
              parameters=list(cutOffs=c(0,1,0), scoring=c(0.1,0.2,0.9)),
              parallel = NULL,
-             method = "s",
-             approach = "fc",
+             method = "cosine",
              relFit = FALSE,
              verbose = TRUE,
              reduce = TRUE,
@@ -777,6 +784,12 @@ bnem <-
              prior = NULL,
              maxInputsPerGate = 2
              ) {
+        approach <- "fc"
+        if (is.null(fc)) { approach <- "abs" }
+        if (is.null(fc) & is.null(exprs)) {
+            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
+            "or a matrix of expression values 'exprs'"))
+        }
         if (is.null(model) | is.null(CNOlist)) {
             tmp <- preprocessInput(stimuli=stimuli,inhibitors=inhibitors,
                                    signals=signals,design=design,exprs=exprs,
@@ -865,11 +878,11 @@ bnem <-
             return("search must be be one of greedy, genetic or exhaustive")
         }
     }
-#' Compute repsonse scheme
+#' Compute differential effects
 #'
-#' computes response scheme given an activation pattern
-#' (absolute gene expression, truth table)
-#' @param CNOlist a CNOlist object with correct annotation
+#' computes differential effects given an activation pattern
+#' (absolute gene expression or truth table)
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
 #' @param y activation pattern according to the annotation in CNOlist
 #' @author Martin Pirkl
 #' @return numeric matrix with annotated response scheme
@@ -942,7 +955,7 @@ computeFc <-
             CompMatNames <- c(CompMatNames, paste("Ctrl_vs_", stimuliNames,
                                                   sep = ""))
         }
-        ## get stim_vs_stim_kd:
+        ## get stim_vs_stim_kd (experimental):
         ## combiNames <- NULL
         ## for (i in grepStimsKds) {
         ##     combiNames <-
@@ -1079,12 +1092,13 @@ convertGraph <-
 #' Create dummy CNOlist
 #'
 #' creates a general CNOlist object from meta information
-#' @param stimuli character vector of stimulated genes
-#' @param inhibitors character vector of inhibited genes
+#' @param stimuli Character vector of stimuli names.
+#' @param inhibitors Character vector of inhibitors.
 #' @param maxStim maximal number of stimulated genes for a single experiment
 #' @param maxInhibit maximal number of inhibited genes for a single experiment
-#' @param signals character vector of genes which can directly regulate effect
-#' reporters
+#' @param signals Optional character vector of signals. Signals are S-genes,
+#' which can directly regulate E-genes. If left NULL, all stimuli and
+#' inhibitors are defined as signals.
 #' @author Martin Pirkl
 #' @return CNOlist object
 #' @export
@@ -1371,29 +1385,47 @@ epiNEM2Bg <- function(t) {
         return(unique(graph))
     }
 }
-#' compute residuals
+#' Compute residuals
 #'
 #' calculates residuals (data and optimized network do not match) and
 #' visualizes them
 #' @param bString Binary vector denoting the network given a model
-#' @param CNOlist CNOlist object
-#' @param model Network model object.
-#' @param fc ORS of the data as numeric matrix.
-#' @param exprs Optional activation scheme of the data as numeric matrix.
-#' @param egenes Atachment of the E-genes (optional) as
-#' list named after S-genes.
-#' @param NEMlist NEMlist object (optional).
-#' @param parameters see ?bnem
-#' @param method Scoring method (optional).
-#' @param sizeFac Zeta parameter to penelize network size.
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
+#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' equivalent input
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' NULL, the gene expression
+#' data is used to calculate naive foldchanges.
+#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' for m E-genes and l experiments.
+#' @param egenes list object; each list entry is named after an S-gene and
+#' contains the names of egenes which are potential children
+#' @param parameters parameters for discrete case (not recommended);
+#' has to be a list with entries cutOffs and scoring:
+#' cutOffs = c(a,b,c) with a (cutoff for real zeros),
+#' b (cutoff for real effects),
+#' c = -1 for normal scoring, c between 0 and
+#' 1 for keeping only relevant % of E-genes,
+#' between -1 and 0 for keeping only a specific quantile of E-genes,
+#' and c > 1 for keeping the top c E-genes;
+#' scoring = c(a,b,c) with a (weight for real effects),
+#' c (weight for real zeros),
+#' b (multiplicator for effects/zeros between a and c);
+#' @param method Scoring method can be "cosine", a correlation,
+#' or a distance measure. See ?cor and ?dist for details.
+#' @param sizeFac Size factor penelizing the hyper-graph size.
 #' @param main Main title of the figure.
 #' @param sub Subtitle of the figure.
 #' @param cut If TRUE does not visualize experiments/S-genes which do
 #' not have any residuals.
-#' @param approach see ?bnem
-#' @param parallel the number of threads used for computation.
-#' @param verbose verbose output
-#' @param ... additional parameters for ?epiNEM::HeatmapOP
+#' @param parallel Parallelize the search. An integer value specifies the
+#' number of threads on the local machine or a list object as in list(c(1,2,3),
+#' c("machine1", "machine2", "machine3")) specifies the threads distributed
+#' on different machines (local or others).
+#' @param verbose TRUE for verbose output
+#' @param ... additional parameters for epiNEM::HeatmapOP
 #' @author Martin Pirkl
 #' @return numeric matrices indicating experiments and/or genes, where the
 #' network and the data disagree
@@ -1425,20 +1457,24 @@ epiNEM2Bg <- function(t) {
 #' residuals <- findResiduals(res$bString, CNOlist, model, fc = fc)
 findResiduals <-
     function(bString, CNOlist, model, fc=NULL, exprs=NULL, egenes=NULL,
-             NEMlist=NULL, parameters = list(cutOffs = c(0,1,0),
+             parameters = list(cutOffs = c(0,1,0),
                                              scoring = c(0.1,0.2,0.9)),
              method = "s", sizeFac = 10^-10,
              main = "residuals for decoupled vertices",
              sub = paste0("green residuals are added effects (left positive,",
                           " right negative) and red residuals are deleted ",
                           "effects"),
-cut = TRUE, approach = "fc", parallel = NULL, verbose = TRUE, ...) {
-        if (is.null(NEMlist)) {
-            NEMlist <- list()
-            NEMlist$fc <- fc
-            NEMlist$egenes <- egenes
-            NEMlist$exprs <- exprs
+cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
+        approach <- "fc"
+        if (is.null(fc)) { approach <- "abs" }
+        if (is.null(fc) & is.null(exprs)) {
+            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
+                        "or a matrix of expression values 'exprs'"))
         }
+        NEMlist <- list()
+        NEMlist$fc <- fc
+        NEMlist$egenes <- egenes
+        NEMlist$exprs <- exprs
         CNOlist <- checkCNOlist(CNOlist)
         method <- checkMethod(method)[1]
         NEMlist <- checkNEMlist(NEMlist, CNOlist, parameters, approach, method)
@@ -1654,12 +1690,13 @@ same.") }
         return(list(resDiff1 = resDiff1, resDiff2 = resDiff2,
                     resDiff3 = resDiff3))
     }
-#' reduce graph
+#' Reduce graph
 #'
-#' reduces the size of a graph if possible to an equivalent sub-graph
+#' reduces the size of a graph, if possible, to an equivalent sub-graph
 #' @param bString binary vector indicating the sub-graph given a model
-#' @param model model object for the whole graph space
-#' @param CNOlist CNOlist object
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
 #' @author Martin Pirkl
 #' @return equivalent sub-graph denoted by a bString
 #' @export
@@ -1698,12 +1735,13 @@ reduceGraph <-
         bString <- absorption(bString, model)
         return(bString)
     }
-#' simulate states
+#' Simulate states
 #'
 #' simulates the activation pattern (truth table) of a hyper-graph and
 #' annotated perturbation experiments
-#' @param CNOlist CNOlist object
-#' @param model model object
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
 #' @param bString binary vector denoting the sub-graph given model
 #' @param NEMlist NEMlist object only for devel
 #' @author Martin Pirkl
@@ -1861,7 +1899,7 @@ simulateStatesRecursive <-
 #' calculates transitive closure of a hyper-graph
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal iteration till convergence
-#' @param verbose verbose output?
+#' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return transitive closure in normal form
 #' @export
@@ -1960,7 +1998,7 @@ transClose <-
 #' calculates transitive reduction of a hyper-graph in normal form
 #' @param g hyper-graph in normal form
 #' @param max.iter maximal number of iterations till convergence
-#' @param verbose verbose output?
+#' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return transitive reduction of the hyper-graph in normal form
 #' @export
@@ -2006,42 +2044,57 @@ transRed <-
     }
 #' validate graph
 #'
-#' plotting the observed response scheme of an effect reporter and the
-#' expected response scheme of the regulating signalling gene
-#' @param CNOlist CNOlist object.
-#' @param fc matrix of foldchanges (observed response scheme, ORS).
-#' @param exprs optional matrix of normalized expression (observed
-#' activation scheme).
-#' @param approach default "fc" for foldchanges or signed effect probabilities,
-#' "abs" for absolute effects or probabilities
-#' @param model Model object.
+#' plotting the observed differential effects of an effect reporter and the
+#' expected differential effects of the regulating signalling gene
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
+#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' equivalent input
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' NULL, the gene expression
+#' data is used to calculate naive foldchanges.
+#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' for m E-genes and l experiments.
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
 #' @param bString Binary string denoting the hyper-graph.
 #' @param Egenes Maximal number of visualized E-genes.
 #' @param Sgene Integer denoting the S-gene. See
 #' colnames(CNOlist@signals[[1]]) to match integer with S-gene name.
-#' @param parameters see ?bnem
+#' @param parameters parameters for discrete case (not recommended);
+#' has to be a list with entries cutOffs and scoring:
+#' cutOffs = c(a,b,c) with a (cutoff for real zeros),
+#' b (cutoff for real effects),
+#' c = -1 for normal scoring, c between 0 and
+#' 1 for keeping only relevant % of E-genes,
+#' between -1 and 0 for keeping only a specific quantile of E-genes,
+#' and c > 1 for keeping the top c E-genes;
+#' scoring = c(a,b,c) with a (weight for real effects),
+#' c (weight for real zeros),
+#' b (multiplicator for effects/zeros between a and c);
 #' @param plot Plot the heatmap. If FALSE, only corresponding
 #' information is printed.
 #' @param disc Discretize the data.
 #' @param affyIds Experimental. Turn Affymetrix Ids into HGNC
 #' gene symbols.
-#' @param relFit see ?bnem
-#' @param xrot See package ?epiNEM::HeatmapOP
-#' @param Rowv See package ?epiNEM::HeatmapOP
-#' @param Colv See package ?epiNEM::HeatmapOP
-#' @param dendrogram See package ?epiNEM::HeatmapOP
-#' @param soft weighting the expected pattern, if TRUE
-#' @param colSideColors See package ?epiNEM::HeatmapOP
+#' @param relFit if TRUE a relative fit for each
+#' E-gene is computed (not recommended)
+#' @param xrot See function epiNEM::HeatmapOP
+#' @param Rowv See function epiNEM::HeatmapOP
+#' @param Colv See function epiNEM::HeatmapOP
+#' @param dendrogram See function epiNEM::HeatmapOP
+#' @param soft if TRUE, assigns weights to the expected pattern
+#' @param colSideColors See function epiNEM::HeatmapOP
 #' @param affychip Define Affymetrix chip used to generate the data
-#' (optional).
-#' @param method see ?bnem
-#' @param ranks Turns data into ranks, if TRUE
-#' @param breaks See package ?epiNEM::HeatmapOP
-#' @param col See package ?epiNEM::HeatmapOP
-#' @param sizeFac size factor penelizing the hyper-graph size.
-#' @param verbose verbose output, if TRUE
-#' @param order Order by "rank" or "name" or "none"
-#' @param ... additional arguments for ?epiNEM::HeatmapOP
+#' (optional and experimental).
+#' @param method Scoring method can be "cosine", a correlation,
+#' or a distance measure. See ?cor and ?dist for details.
+#' @param ranks if TRUE, turns data into ranks
+#' @param breaks See function epiNEM::HeatmapOP
+#' @param col See function epiNEM::HeatmapOP
+#' @param sizeFac Size factor penelizing the hyper-graph size.
+#' @param order Order by "rank", "name" or "none"
+#' @param verbose TRUE for verbose output
+#' @param ... additional arguments for epiNEM::HeatmapOP
 #' @author Martin Pirkl
 #' @return lattice object with matrix information
 #' @export
@@ -2073,7 +2126,7 @@ transRed <-
 #' val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
 #' bString = res$bString, Egenes = 10, Sgene = 4)
 validateGraph <-
-    function(CNOlist, fc=NULL, exprs=NULL, approach = "fc", model, bString,
+    function(CNOlist, fc=NULL, exprs=NULL, model, bString,
              Egenes = 25, Sgene = 1,
              parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)),
              plot = TRUE,
@@ -2082,7 +2135,13 @@ validateGraph <-
              dendrogram = "none", soft = TRUE, colSideColors = NULL,
              affychip = "hgu133plus2", method = "s", ranks = FALSE,
              breaks = NULL, col = "RdYlGn", sizeFac = 10^-10,
-             verbose = TRUE, order = "rank", ...) {
+             order = "rank", verbose = TRUE, ...) {
+        approach <- "fc"
+        if (is.null(fc)) { approach <- "abs" }
+        if (is.null(fc) & is.null(exprs)) {
+            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
+                        "or a matrix of expression values 'exprs'"))
+        }
         csc <- TRUE
         colnames <- "bio"
         complete <- FALSE
@@ -3025,10 +3084,10 @@ validateGraph <-
 #'
 #' creates a random normal form or hyper-graph
 #' @param vertices number of vertices
-#' @param negation negation is allowed, if TRUE
+#' @param negation if TRUE, negations (NOT gates) are allowed
 #' @param max.edge.size maximal number of inputs per edge
 #' @param max.edges maximal number of hyper-edges
-#' @param dag acyclic graph, if TRUE
+#' @param dag if TRUE, graph will be acyclic
 #' @author Martin Pirkl
 #' @return random hyper-graph in normal form
 #' @export
@@ -3080,14 +3139,22 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #'
 #' computes the score of a boolean network given the model and data
 #' @param bString binary string denoting the boolean network
-#' @param CNOlist CNOlist object
-#' @param fc data (see ?bnem)
-#' @param model network model
-#' @param method see ?bnem
-#' @param sizeFac numeric penalty for network size
-#' @param NAFac numeric penalty for network size
+#' @param CNOlist CNOlist object (see package CellNOptR), if available.
+#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' equivalent input
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' NULL, the gene expression
+#' data is used to calculate naive foldchanges.
+#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' for m E-genes and l experiments.
+#' @param model Model object including the search space, if available.
+#' See CellNOptR::preprocessing.
+#' @param method Scoring method can be "cosine", a correlation,
+#' or a distance measure. See ?cor and ?dist for details.
+#' @param sizeFac Size factor penelizing the hyper-graph size.
+#' @param NAFac factor penelizing NAs in the data.
 #' @param parameters parameters for discrete case (not recommended);
-#' has to ba list with entries cutOffs and scoring:
+#' has to be a list with entries cutOffs and scoring:
 #' cutOffs = c(a,b,c) with a (cutoff for real zeros),
 #' b (cutoff for real effects),
 #' c = -1 for normal scoring, c between 0 and
@@ -3097,26 +3164,32 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' scoring = c(a,b,c) with a (weight for real effects),
 #' c (weight for real zeros),
 #' b (multiplicator for effects/zeros between a and c);
-#' @param approach "fc" for log foldchanges, "exprs" for
-#' absolute expression values (not recommended)
 #' @param NEMlist NEMlist object (optional)
-#' @param relFit if TRUE returns a network specific relative score
-#' @param opt "min" returns minimal optimum, "max" return 1-minimum
-#' @param verbose if TRUE returns verbose output
+#' @param relFit if TRUE a relative fit for each
+#' E-gene is computed (not recommended)
+#' @param verbose TRUE for verbose output
 #' @author Martin Pirkl
 #' @return numeric value (score)
 #' @export
 #' @examples
 #' sim <- simBoolGtn()
-#' scoreDnf(sim$bString, sim$CNOlist, sim$fc, sim$model)
-scoreDnf <- function(bString, CNOlist, fc, model, method = "llr",
+#' scoreDnf(sim$bString, sim$CNOlist, sim$fc, model=sim$model)
+scoreDnf <- function(bString, CNOlist, fc, 
+                     exprs=NULL, model, method = "cosine",
                      sizeFac=10^-10,NAFac=1,
                      parameters = list(cutOffs = c(0,1,0),
                                        scoring = c(0.25,0.5,2)),
-                     approach = "fc",NEMlist = NULL,relFit = FALSE,
-                     opt = "min",verbose = FALSE) {
+                     NEMlist = NULL,relFit = FALSE,
+                     verbose = FALSE) {
+    approach <- "fc"
+    if (is.null(fc)) { approach <- "abs" }
+    if (is.null(fc) & is.null(exprs)) {
+        stop(paste0("please either provide a matrix of foldchanges 'fc' ",
+                    "or a matrix of expression values 'exprs'"))
+    }
     NEMlist <- list()
     NEMlist$fc <- fc
+    NEMlist$exprs <- exprs
     NEMlist <- checkNEMlist(NEMlist, CNOlist=CNOlist,
                             parameters = parameters, approach = approach,
                             method=method)
@@ -3124,7 +3197,7 @@ scoreDnf <- function(bString, CNOlist, fc, model, method = "llr",
                                NAFac=NAFac,parameters=parameters,
                                approach=approach,NEMlist=NEMlist,
                                relFit=relFit,method=method,verbose=verbose,
-                               opt=opt)
+                               opt="min")
     return(score)
 }
 #' plot simulation object

@@ -11,7 +11,7 @@ transClose(g, max.iter = NULL, verbose = FALSE)
 
 \item{max.iter}{maximal iteration till convergence}
 
-\item{verbose}{verbose output?}
+\item{verbose}{TRUE for verbose output}
 }
 \value{
 transitive closure in normal form

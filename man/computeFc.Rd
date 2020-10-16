@@ -2,12 +2,12 @@
 % Please edit documentation in R/bnem_main.r
 \name{computeFc}
 \alias{computeFc}
-\title{Compute repsonse scheme}
+\title{Compute differential effects}
 \usage{
 computeFc(CNOlist, y)
 }
 \arguments{
-\item{CNOlist}{a CNOlist object with correct annotation}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
 \item{y}{activation pattern according to the annotation in CNOlist}
 }
@@ -15,8 +15,8 @@ computeFc(CNOlist, y)
 numeric matrix with annotated response scheme
 }
 \description{
-computes response scheme given an activation pattern
-(absolute gene expression, truth table)
+computes differential effects given an activation pattern
+(absolute gene expression or truth table)
 }
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),

@@ -2,22 +2,23 @@
 % Please edit documentation in R/bnem_main.r
 \name{reduceGraph}
 \alias{reduceGraph}
-\title{reduce graph}
+\title{Reduce graph}
 \usage{
 reduceGraph(bString, model, CNOlist)
 }
 \arguments{
 \item{bString}{binary vector indicating the sub-graph given a model}
 
-\item{model}{model object for the whole graph space}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
-\item{CNOlist}{CNOlist object}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 }
 \value{
 equivalent sub-graph denoted by a bString
 }
 \description{
-reduces the size of a graph if possible to an equivalent sub-graph
+reduces the size of a graph, if possible, to an equivalent sub-graph
 }
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),

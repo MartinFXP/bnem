@@ -15,13 +15,13 @@ randomDnf(
 \arguments{
 \item{vertices}{number of vertices}
 
-\item{negation}{negation is allowed, if TRUE}
+\item{negation}{if TRUE, negations (NOT gates) are allowed}
 
 \item{max.edge.size}{maximal number of inputs per edge}
 
 \item{max.edges}{maximal number of hyper-edges}
 
-\item{dag}{acyclic graph, if TRUE}
+\item{dag}{if TRUE, graph will be acyclic}
 }
 \value{
 random hyper-graph in normal form

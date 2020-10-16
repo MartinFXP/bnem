@@ -9,7 +9,8 @@ absorption(bString, model = NULL)
 \arguments{
 \item{bString}{a disjunctive normal form or binary vector according to model}
 
-\item{model}{model for respective binary vector}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 }
 \value{
 bString after absorption law

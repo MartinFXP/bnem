@@ -16,7 +16,8 @@ Martin Pirkl, Elisabeth Hand, Dieter Kube, Rainer Spang, Analyzing
 synergistic and non-synergistic interactions in signalling pathways
 using Boolean Nested Effect Models, Bioinformatics, Volume 32, Issue 6,
 15 March 2016, Pages 893–900, https://doi.org/10.1093/bioinformatics/btv680.
-Alternatively see also the function processDataBCR for details.
+Alternatively see also the function processDataBCR for details and
+ for reproduction.
 }
 \examples{
 data(bcr)

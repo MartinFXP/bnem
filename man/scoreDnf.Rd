@@ -8,35 +8,43 @@ scoreDnf(
   bString,
   CNOlist,
   fc,
+  exprs = NULL,
   model,
-  method = "llr",
+  method = "cosine",
   sizeFac = 10^-10,
   NAFac = 1,
   parameters = list(cutOffs = c(0, 1, 0), scoring = c(0.25, 0.5, 2)),
-  approach = "fc",
   NEMlist = NULL,
   relFit = FALSE,
-  opt = "min",
   verbose = FALSE
 )
 }
 \arguments{
 \item{bString}{binary string denoting the boolean network}
 
-\item{CNOlist}{CNOlist object}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
-\item{fc}{data (see ?bnem)}
+\item{fc}{m x l matrix of foldchanges of gene expression values or 
+equivalent input
+(normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+NULL, the gene expression
+data is used to calculate naive foldchanges.}
 
-\item{model}{network model}
+\item{exprs}{Optional normalized m x l matrix of gene expression data 
+for m E-genes and l experiments.}
 
-\item{method}{see ?bnem}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
-\item{sizeFac}{numeric penalty for network size}
+\item{method}{Scoring method can be "cosine", a correlation,
+or a distance measure. See ?cor and ?dist for details.}
 
-\item{NAFac}{numeric penalty for network size}
+\item{sizeFac}{Size factor penelizing the hyper-graph size.}
+
+\item{NAFac}{factor penelizing NAs in the data.}
 
 \item{parameters}{parameters for discrete case (not recommended);
-has to ba list with entries cutOffs and scoring:
+has to be a list with entries cutOffs and scoring:
 cutOffs = c(a,b,c) with a (cutoff for real zeros),
 b (cutoff for real effects),
 c = -1 for normal scoring, c between 0 and
@@ -47,16 +55,12 @@ scoring = c(a,b,c) with a (weight for real effects),
 c (weight for real zeros),
 b (multiplicator for effects/zeros between a and c);}
 
-\item{approach}{"fc" for log foldchanges, "exprs" for
-absolute expression values (not recommended)}
-
 \item{NEMlist}{NEMlist object (optional)}
 
-\item{relFit}{if TRUE returns a network specific relative score}
+\item{relFit}{if TRUE a relative fit for each
+E-gene is computed (not recommended)}
 
-\item{opt}{"min" returns minimal optimum, "max" return 1-minimum}
-
-\item{verbose}{if TRUE returns verbose output}
+\item{verbose}{TRUE for verbose output}
 }
 \value{
 numeric value (score)
@@ -66,7 +70,7 @@ computes the score of a boolean network given the model and data
 }
 \examples{
 sim <- simBoolGtn()
-scoreDnf(sim$bString, sim$CNOlist, sim$fc, sim$model)
+scoreDnf(sim$bString, sim$CNOlist, sim$fc, model=sim$model)
 }
 \author{
 Martin Pirkl

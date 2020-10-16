@@ -7,7 +7,11 @@
 bnemBs(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL, ...)
 }
 \arguments{
-\item{fc}{matrix with foldchanges or signed effects}
+\item{fc}{m x l matrix of foldchanges of gene expression values or
+equivalent input
+(normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
+NULL, the gene expression
+data is used to calculate naive foldchanges.}
 
 \item{x}{number of bootstraps}
 

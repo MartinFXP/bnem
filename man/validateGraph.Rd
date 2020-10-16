@@ -8,7 +8,6 @@ validateGraph(
   CNOlist,
   fc = NULL,
   exprs = NULL,
-  approach = "fc",
   model,
   bString,
   Egenes = 25,
@@ -30,23 +29,25 @@ validateGraph(
   breaks = NULL,
   col = "RdYlGn",
   sizeFac = 10^-10,
-  verbose = TRUE,
   order = "rank",
+  verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{CNOlist}{CNOlist object.}
+\item{CNOlist}{CNOlist object (see package CellNOptR), if available.}
 
-\item{fc}{matrix of foldchanges (observed response scheme, ORS).}
+\item{fc}{m x l matrix of foldchanges of gene expression values or 
+equivalent input
+(normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+NULL, the gene expression
+data is used to calculate naive foldchanges.}
 
-\item{exprs}{optional matrix of normalized expression (observed
-activation scheme).}
+\item{exprs}{Optional normalized m x l matrix of gene expression data 
+for m E-genes and l experiments.}
 
-\item{approach}{default "fc" for foldchanges or signed effect probabilities,
-"abs" for absolute effects or probabilities}
-
-\item{model}{Model object.}
+\item{model}{Model object including the search space, if available.
+See CellNOptR::preprocessing.}
 
 \item{bString}{Binary string denoting the hyper-graph.}
 
@@ -55,7 +56,17 @@ activation scheme).}
 \item{Sgene}{Integer denoting the S-gene. See
 colnames(CNOlist@signals[[1]]) to match integer with S-gene name.}
 
-\item{parameters}{see ?bnem}
+\item{parameters}{parameters for discrete case (not recommended);
+has to be a list with entries cutOffs and scoring:
+cutOffs = c(a,b,c) with a (cutoff for real zeros),
+b (cutoff for real effects),
+c = -1 for normal scoring, c between 0 and
+1 for keeping only relevant % of E-genes,
+between -1 and 0 for keeping only a specific quantile of E-genes,
+and c > 1 for keeping the top c E-genes;
+scoring = c(a,b,c) with a (weight for real effects),
+c (weight for real zeros),
+b (multiplicator for effects/zeros between a and c);}
 
 \item{plot}{Plot the heatmap. If FALSE, only corresponding
 information is printed.}
@@ -65,45 +76,47 @@ information is printed.}
 \item{affyIds}{Experimental. Turn Affymetrix Ids into HGNC
 gene symbols.}
 
-\item{relFit}{see ?bnem}
+\item{relFit}{if TRUE a relative fit for each
+E-gene is computed (not recommended)}
 
-\item{xrot}{See package ?epiNEM::HeatmapOP}
+\item{xrot}{See function epiNEM::HeatmapOP}
 
-\item{Rowv}{See package ?epiNEM::HeatmapOP}
+\item{Rowv}{See function epiNEM::HeatmapOP}
 
-\item{Colv}{See package ?epiNEM::HeatmapOP}
+\item{Colv}{See function epiNEM::HeatmapOP}
 
-\item{dendrogram}{See package ?epiNEM::HeatmapOP}
+\item{dendrogram}{See function epiNEM::HeatmapOP}
 
-\item{soft}{weighting the expected pattern, if TRUE}
+\item{soft}{if TRUE, assigns weights to the expected pattern}
 
-\item{colSideColors}{See package ?epiNEM::HeatmapOP}
+\item{colSideColors}{See function epiNEM::HeatmapOP}
 
 \item{affychip}{Define Affymetrix chip used to generate the data
-(optional).}
+(optional and experimental).}
 
-\item{method}{see ?bnem}
+\item{method}{Scoring method can be "cosine", a correlation,
+or a distance measure. See ?cor and ?dist for details.}
 
-\item{ranks}{Turns data into ranks, if TRUE}
+\item{ranks}{if TRUE, turns data into ranks}
 
-\item{breaks}{See package ?epiNEM::HeatmapOP}
+\item{breaks}{See function epiNEM::HeatmapOP}
 
-\item{col}{See package ?epiNEM::HeatmapOP}
+\item{col}{See function epiNEM::HeatmapOP}
 
-\item{sizeFac}{size factor penelizing the hyper-graph size.}
+\item{sizeFac}{Size factor penelizing the hyper-graph size.}
 
-\item{verbose}{verbose output, if TRUE}
+\item{order}{Order by "rank", "name" or "none"}
 
-\item{order}{Order by "rank" or "name" or "none"}
+\item{verbose}{TRUE for verbose output}
 
-\item{...}{additional arguments for ?epiNEM::HeatmapOP}
+\item{...}{additional arguments for epiNEM::HeatmapOP}
 }
 \value{
 lattice object with matrix information
 }
 \description{
-plotting the observed response scheme of an effect reporter and the
-expected response scheme of the regulating signalling gene
+plotting the observed differential effects of an effect reporter and the
+expected differential effects of the regulating signalling gene
 }
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
