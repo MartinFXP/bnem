@@ -264,14 +264,10 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
                 }
             }
         }
-
         accum <- c(accum, tmp$graph)
     }
-
     accum <- list(x = accum, n = x)
-
     class(accum) <- "bnembs"
-
     return(accum)
 }
 #' B-Cell receptor signalling perturbations
@@ -696,7 +692,9 @@ absorption <-
 #' @param exhaustive If TRUE an exhaustive search is conducted if the genetic
 #' algorithm would take longer (only "genetic").
 #' @param delcyc If TRUE deletes cycles in all hyper-graphs (not recommended).
-#' @param seeds how many starts for the greedy search? (default: 1)
+#' @param seeds how many starts for the greedy search? (default: 1); uses 
+#' the n-dimensional cube (n = number of S-genes) to maximize search 
+#' space coverage
 #' @param maxSteps Maximal number of steps (only "greedy").
 #' @param node vector of S-gene names, which are used in the greedy
 #' search; if node = NULL all nodes are considered
@@ -873,6 +871,7 @@ bnem <-
                                bString = res$bString, bStrings = res$bStrings,
                                scores = res$scores)
             }
+            class(result) <- "bnem"
             return(result)
         } else {
             return("search must be be one of greedy, genetic or exhaustive")
@@ -3228,8 +3227,34 @@ plot.bnemsim <- function(x, ...) {
 #' @export
 #' @importFrom mnem plotDnf
 #' @examples
-#' sim <- simBoolGtn()
-#' plot(sim)
-plot.bnem <- function(x, ...) {
-    plotDnf(x$model$reacID[as.logical(x$bString)])
+#' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
+#' c("C", 1, "D"))
+#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
+#' quote = FALSE)
+#' PKN <- CellNOptR::readSIF("temp.sif")
+#' unlink('temp.sif')
+#' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
+#' maxInhibit = 2, signals = c("A", "B","C","D"))
+#' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' nrow(slot(CNOlist, "cues")))
+#' fc <- computeFc(CNOlist, exprs)
+#' initBstring <- rep(0, length(model$reacID))
+#' res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
+#' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
+#' parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
+#' maxSteps = Inf, seeds = 10)
+#' plot(res)
+plot.bnem <- function(x,...) {
+    par(mfrow=c(1,2))
+    plotDnf(x$graph,...)
+    for (i in seq_len(length(x$scores))) {
+        if (i == 1) {
+            plot(x$scores[[i]],type="b",col=i,
+                 main="score progression",ylab="score")
+        } else {
+            lines(x$scores[[i]],type="b",col=i)
+        }
+    }
 }

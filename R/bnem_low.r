@@ -4289,7 +4289,7 @@ smoothMatrix <-
     }
 #' @noRd
 createCube <- function(n=3, m=n) {
-    if (m > n) { m <- n }
+    if (m > n) { m <- n-1 }
     n2 <- FALSE
     m2 <- FALSE
     if (!(round(n/2) == n/2)) {
