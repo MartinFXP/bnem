@@ -83,9 +83,9 @@ sample a subset of edges to define our ground truth. In the last step,
 the function generates data given the ground truth.
 
 ```{r}
-set.seed(8675309)
+set.seed(9247)
 
-sim <- simBoolGtn(Sgenes = 5, maxEdges = 10, keepsif = TRUE, negation=0.1,
+sim <- simBoolGtn(Sgenes = 10, maxEdges = 10, keepsif = TRUE, negation=0.1,
                   layer=1)
 fc <- sim$fc
 pos <- which(fc == 1)

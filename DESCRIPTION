@@ -5,7 +5,7 @@ Title: Training of logical models from indirect measurements of perturbation
 Version: 0.99.0
 Author: Martin Pirkl
 Maintainer: Martin Pirkl <martinpirkl@yahoo.de>
-Description: It combines the use of indirect measurements of Nested Effects
+Description: bnem combines the use of indirect measurements of Nested Effects
     Models (package mnem) with the Boolean networks of CellNOptR. Perturbation experiments of signalling nodes in cells are analysed for their effect on the global gene expression profile. Those profiles give evidence for the Boolean regulation of down-stream nodes in the network, e.g., whether two parents activate their child independently (OR-gate) or jointly (AND-gate).
 Depends:
     R (>= 4.0)
