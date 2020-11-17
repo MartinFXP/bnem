@@ -1,3 +1,24 @@
+#' Add noise
+#'
+#' Adds noise to simulated data
+#' @param sim bnemsim object from simBoolGtn
+#' @param sd standard deviation for the rnorm function
+#' @author Martin Pirkl
+#' @return noisy fold-change matrix
+#' @export
+#' @examples
+#' sim <- simBoolGtn(Sgenes = 10, maxEdges = 10, negation=0.1,layer=1)
+#' fc <- addNoise(sim,sd=1)
+addNoise <- function(sim,sd=1) {
+    fc <- sim$fc
+    pos <- which(fc == 1)
+    neg <- which(fc == -1)
+    zero <- which(fc == 0)
+    fc[pos] <- rnorm(length(pos),1,1)
+    fc[neg] <- rnorm(length(neg),-1,1)
+    fc[zero] <- rnorm(length(zero),0,1)
+    return(fc)
+}
 #' BCR perturbation reproduction
 #'
 #' Produce the application data from the BCR paper
@@ -29,10 +50,9 @@ processDataBCR <- function(path = "", combsign = FALSE) {
     ev <- vsn::vsnrma(ab)
     data <- exprs(ev)
     colnames(data) <- gsub("GSM16808[0-9][0-9]_|\\.CEL\\.gz", "",
-                          colnames(data))
-
+                           colnames(data))
     batch <- gsub(".*_", "", colnames(data))
-    batch[which(batch == "Batch")] <- "Batch3"
+    batch[batch == "Batch"] <- "Batch3"
     colnames(data) <- gsub("SP600125", "Jnk", colnames(data))
     colnames(data) <- gsub("SB203580", "p38", colnames(data))
     colnames(data) <- gsub("10058F4", "Myc", colnames(data))
@@ -46,7 +66,7 @@ processDataBCR <- function(path = "", combsign = FALSE) {
     vars <- unique(unlist(strsplit(gsub("_Batch.*", "", colnames(data)),
                                    "_")))
     vars <- sort(vars[-grep("\\+", vars)])
-    vars <- vars[-which(vars %in% c("KO"))]
+    vars <- vars[!vars %in% c("KO")]
     design <- matrix(0, ncol(data), length(vars))
     colnames(design) <- vars
     rownames(design) <- colnames(data)
@@ -54,34 +74,31 @@ processDataBCR <- function(path = "", combsign = FALSE) {
         design[grep(i, colnames(data)), i] <- 1
     }
     combos <- NULL
-    for (i in which(apply(design, 1, sum) > 1)) {
+    for (i in which(rowSums(design) > 1)) {
         combos <- c(combos,
-                    paste(sort(colnames(design)[which(design[i, ] > 0)]),
+                    paste(sort(colnames(design)[design[i, ] > 0]),
                           collapse = "_"))
     }
     combos <- sort(unique(combos))
     design2 <- design
-    design2[which(apply(design, 1, sum) > 1), ] <- 0
+    design2[rowSums(design) > 1, ] <- 0
     for (i in combos) {
         comb <- unlist(strsplit(i, "_"))
         tmp2 <- numeric(nrow(design))
-        tmp2[which(apply(design[, comb], 1, sum) == length(comb) &
-                  apply(design, 1, sum) == length(comb))] <- 1
+        tmp2[rowSums(design[, comb]) == length(comb) &
+                 rowSums(design) == length(comb)] <- 1
         design2 <- cbind(design2, tmp2)
         colnames(design2)[ncol(design2)] <- i
     }
-    design2 <- design2[, -which(colnames(design2) %in% "BCR")]
-    colnames(design2)[which(colnames(design2) %in% "BCR_Ctrl")] <- "BCR"
-
+    design2 <- design2[, !colnames(design2) %in% "BCR"]
+    colnames(design2)[colnames(design2) %in% "BCR_Ctrl"] <- "BCR"
     if (combsign) {
         dataCB <- sva::ComBat(data, batch,
                               design2[, -grep("Ctrl", colnames(design2))])
     } else {
         dataCB <- sva::ComBat(data, batch)
     }
-
     fit <- limma::lmFit(dataCB, design2)
-
     fc <- matrix(0, nrow(dataCB), (ncol(design2)-2)*2 + 1)
     colnames(fc) <- seq_len(ncol(fc))
     contmat <- limma::makeContrasts(Ctrl_vs_BCR="BCR-Ctrl", levels=design2)
@@ -90,46 +107,45 @@ processDataBCR <- function(path = "", combsign = FALSE) {
     fc[, 1] <- fit2$coefficients
     colnames(fc)[1] <- "Ctrl_vs_BCR"
     colnames(fc)[-1] <- c(paste("Ctrl_vs",
-                                colnames(design2)[-which(colnames(design2) %in%
-                                                         c("Ctrl", "BCR"))],
+                                colnames(design2)[!colnames(design2) %in%
+                                                      c("Ctrl", "BCR")],
                                 sep = "_"),
                           paste("BCR_vs",
-                                colnames(design2)[-which(colnames(design2) %in%
-                                                         c("Ctrl", "BCR"))],
+                                colnames(design2)[!colnames(design2) %in%
+                                                      c("Ctrl", "BCR")],
                                 sep = "_"))
     for (i in colnames(design2)) {
         if (i %in% c("Ctrl", "BCR")) { next() }
         contmat <- contmat*0
-        contmat[which(colnames(design2) %in% "Ctrl")] <- -1
+        contmat[colnames(design2) %in% "Ctrl"] <- -1
         contmat[i, ] <- 1
         fit2 <- limma::contrasts.fit(fit, contmat)
         fit2 <- limma::eBayes(fit2)
         fc[, paste0("Ctrl_vs_", i)] <- fit2$coefficients
         contmat <- contmat*0
-        contmat[which(colnames(design2) %in% "BCR")] <- -1
+        contmat[colnames(design2) %in% "BCR"] <- -1
         contmat[i, ] <- 1
         fit2 <- limma::contrasts.fit(fit, contmat)
         fit2 <- limma::eBayes(fit2)
         fc[, paste0("BCR_vs_", i)] <- fit2$coefficients
     }
     targets <- paste("BCR_vs_BCR",
-                                colnames(design2)[-which(colnames(design2) %in%
-                                                         c("DMSO", "BCR"))],
-                                sep = "_")
+                     colnames(design2)[!colnames(design2) %in%
+                                           c("DMSO", "BCR")],
+                     sep = "_")
     targets <- targets[-grep("Myc|LY294|U0126|Vivit|BCR_BCR|BCR_Ctrl", targets)]
     fc2 <- fc[, c("Ctrl_vs_BCR", targets)]
     rownames(fc) <- rownames(data)
-
-    fc2 <- fc2[which(abs(fc2[, "Ctrl_vs_BCR"]) > 1 &
-                   apply(abs(fc2[, -which(colnames(fc2) %in%
-                                         "Ctrl_vs_BCR")]), 1, max) >
-                   log2(1.5)), ]
-    fci <- fc2[, -which(colnames(fc2) %in%
-                        "Ctrl_vs_BCR")]*sign(fc2[, "Ctrl_vs_BCR"])
-    argl <- apply(fci, 1, min)
-    fc2 <- fc2[which(argl < 0), ]
-
-    bcr <- list(exprs = fit$coefficients%*%t(design2), fc = fc2, full = fc,
+    
+    fc2 <- fc2[abs(fc2[, "Ctrl_vs_BCR"]) > 1 &
+                   rowMaxs(abs(fc2[, !colnames(fc2) %in%
+                                       "Ctrl_vs_BCR"])) >
+                   log2(1.5), ]
+    fci <- fc2[, !colnames(fc2) %in%
+                   "Ctrl_vs_BCR"]*sign(fc2[, "Ctrl_vs_BCR"])
+    argl <- rowMins(fci)
+    fc2 <- fc2[argl < 0, ]
+    bcr <- list(expression = fit$coefficients%*%t(design2), fc = fc2, full = fc,
                 design = design2)
     return(bcr)
 }
@@ -137,7 +153,7 @@ processDataBCR <- function(path = "", combsign = FALSE) {
 #'
 #' Shows the result of a Boostrap with either edge frequencies
 #' or confidence intervals
-#' @param x bnembs object
+#' @param x bnemBs object
 #' @param scale numeric value for scaling the edgewidth
 #' @param shift numeric value for shifting the edgewidth
 #' @param cut shows only edges with a fraction larger than cut
@@ -149,30 +165,30 @@ processDataBCR <- function(path = "", combsign = FALSE) {
 #' @param ... additional parameters for the function mnem::plotDnf
 #' @author Martin Pirkl
 #' @return plot of the network from the bootstrap
-#' @method plot bnembs
+#' @method plot bnemBs
 #' @export
 #' @importFrom mnem plotDnf
 #' @importFrom binom binom.confint
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnemBs(search = "greedy", model = model, CNOlist = CNOlist,
 #' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
 #' parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
 #' maxSteps = Inf)
-plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
+plot.bnemBs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
                         ci = 0, cip = 0.95, method = "exact", ...) {
     y <- x$x
     n <- x$n
@@ -182,8 +198,8 @@ plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
     x$freq <- x$freq[order(names(x$freq))]/n
     graph <- x$graph
     freq <- x$freq
-    graph <- graph[which(freq >= cut)]
-    freq <- freq[which(freq >= cut)]
+    graph <- graph[freq >= cut]
+    freq <- freq[freq >= cut]
     freq2 <- NULL
     for (i in seq_len(length(graph))) {
         tmp <- rep(freq[i], length(unlist(strsplit(graph[i], "\\+"))))
@@ -227,17 +243,17 @@ plot.bnembs <- function(x, scale = 3, shift = 0.1, cut = 0.5, dec = 2,
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnemBs(search = "greedy", model = model, CNOlist = CNOlist,
 #' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
@@ -267,7 +283,7 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
         accum <- c(accum, tmp$graph)
     }
     accum <- list(x = accum, n = x)
-    class(accum) <- "bnembs"
+    class(accum) <- "bnemBs"
     return(accum)
 }
 #' B-Cell receptor signalling perturbations
@@ -326,6 +342,7 @@ NA
 #' data
 #' @export
 #' @importFrom mnem plotDnf
+#' @import CellNOptR
 #' @examples
 #' sim <- simBoolGtn()
 #' plot(sim)
@@ -351,11 +368,11 @@ simBoolGtn <-
                                                      "\\+")))))
             inputs <-
                 unique(unlist(strsplit(gsub("!", "", gsub("=.*", "", dnf)),
-                                             "=")))
+                                       "=")))
             outputs <- unique(gsub(".*=", "", dnf))
             stimuli <- cues
             inhibitors <- cues
-            both <- stimuli[which(stimuli %in% inhibitors)]
+            both <- stimuli[stimuli %in% inhibitors]
             for (i in both) {
                 dnf <- gsub(i, paste(i, "inhibit", sep = ""), dnf)
                 dnf <- c(dnf, paste(i, "stim=", i, "inhibit", sep = ""))
@@ -368,7 +385,7 @@ simBoolGtn <-
             Sgenes <- paste0("S", seq_len(n)-1, "g")
             layers <- list()
             layers[[1]] <- stimuli <- prev <- Sgenes[seq_len(s)]
-            Sgenes <- inhibitors <- Sgenes[which(!(Sgenes %in% stimuli))]
+            Sgenes <- inhibitors <- Sgenes[!(Sgenes %in% stimuli)]
             pkn <- NULL
             enew <- 0
             count <- 1
@@ -378,7 +395,7 @@ simBoolGtn <-
                 layers[[count]] <- layer <- sample(Sgenes,
                                                    ceiling(length(Sgenes)*pp))
                 enew <- enew + length(prev)*length(layer)
-                Sgenes <- Sgenes[which(!(Sgenes %in% layer))]
+                Sgenes <- Sgenes[!(Sgenes %in% layer)]
                 for (i in seq_len(length(prev))) {
                     for (j in layer) {
                         if (negation > 0 & (!positive | count > 2)) {
@@ -461,7 +478,7 @@ simBoolGtn <-
                 }
             }
             toomany <- table(gsub(".*=", "", model$reacID[as.logical(bString)]))
-            toomany <- toomany[which(toomany > maxInDeg)]
+            toomany <- toomany[toomany > maxInDeg]
             for (i in seq_len(length(toomany))) {
                 manyIn <- intersect(which(bString == 1),
                                     grep(paste0("=", names(toomany)[i]),
@@ -474,8 +491,8 @@ simBoolGtn <-
         steadyState <- steadyState2 <- simulateStatesRecursive(CNOlist, model,
                                                                bString)
         ind <- grep(paste(inhibitors, collapse = "|"), colnames(steadyState2))
-        steadyState2[, ind] <- steadyState2[, ind] + CNOlist@inhibitors
-        exprs <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
+        steadyState2[, ind] <- steadyState2[, ind] + getInhibitors(CNOlist)
+        expression <- t(steadyState)[rep(seq_len(ncol(steadyState)), m),
                                 rep(seq_len(nrow(steadyState)), r)]
         ERS <- computeFc(CNOlist, t(steadyState))
         stimcomb <- apply(expand.grid(stimuli, stimuli), c(1,2), as.character)
@@ -494,7 +511,8 @@ simBoolGtn <-
         fc[flip, ] <- fc[flip, ]*(-1)
         rownames(fc) <- paste(rownames(fc), seq_len(nrow(fc)), sep = "_")
         sim <- list(PKN = PKN, CNOlist = CNOlist, model = model,
-                    bString = bString, fc = fc, exprs = exprs, ERS = ERS)
+                    bString = bString, fc = fc, expression = expression,
+                    ERS = ERS)
         class(sim) <- "bnemsim"
         return(sim)
     }
@@ -520,13 +538,13 @@ absorptionII <-
                             unlist(strsplit(unlist(strsplit(graph, "=")),
                                             "\\+"))))
         } else {
-            graph <- model$reacID[which(bString == 1)]
+            graph <- model$reacID[bString == 1]
             nodes <- model$namesSpecies
         }
         for (i in graph) {
             players <- unlist(strsplit(gsub("=.*", "", i), "\\+"))
             target <- gsub(".*=", "", i)
-            others <- nodes[-which(nodes %in% c(players, target))]
+            others <- nodes[!nodes %in% c(players, target)]
             players2 <- gsub("!", "", players)
             change1 <- which(players == players2)
             change2 <- which(!(players == players2))
@@ -535,7 +553,7 @@ absorptionII <-
                                           sep = ""))
             }
             if (length(change2) > 0) {
-                others <- c(others[-which(others %in% players2[change2])],
+                others <- c(others[!others %in% players2[change2]],
                             paste("\\+", players2[change2], sep = ""),
                             paste("^", players2[change2], sep = ""))
             }
@@ -551,13 +569,13 @@ absorptionII <-
                 targets <- targets[-toomuch]
             }
             if (length(targets) > 1) {
-                targets <- targets[-which(targets %in% which(graph %in% i))]
+                targets <- targets[!targets %in% which(graph %in% i)]
                 if (is.null(model)) {
                     if (sum(bString %in% graph[targets]) > 0) {
-                        bString <- bString[-which(bString %in% graph[targets])]
+                        bString <- bString[!bString %in% graph[targets]]
                     }
                 } else {
-                    bString[which(model$reacID %in% graph[targets])] <- 0
+                    bString[model$reacID %in% graph[targets]] <- 0
                 }
             }
         }
@@ -580,7 +598,7 @@ absorption <-
         if (is.null(model)) {
             graph <- bString
         } else {
-            graph <- model$reacID[which(bString == 1)]
+            graph <- model$reacID[bString == 1]
         }
         for (i in graph) {
             targets <-
@@ -598,13 +616,13 @@ absorption <-
                                         sep = ""), graph[targets])]
             }
             if (length(targets) > 1) {
-                targets <- targets[-which(targets == which(graph %in% i))]
+                targets <- targets[!targets == which(graph %in% i)]
                 if (is.null(model)) {
                     if (sum(bString %in% graph[targets]) > 0) {
-                        bString <- bString[-which(bString %in% graph[targets])]
+                        bString <- bString[!bString %in% graph[targets]]
                     }
                 } else {
-                    bString[which(model$reacID %in% graph[targets])] <- 0
+                    bString[model$reacID %in% graph[targets]] <- 0
                 }
             }
         }
@@ -624,7 +642,7 @@ absorption <-
 #' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data 
 #' for m E-genes and l experiments.
 #' @param egenes list object; each list entry is named after an S-gene and
 #' contains the names of egenes which are potential children
@@ -717,17 +735,17 @@ absorption <-
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
 #' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
@@ -735,9 +753,9 @@ absorption <-
 #' maxSteps = Inf)
 bnem <-
     function(search = "greedy",
-
+             
              fc=NULL,
-             exprs=NULL,
+             expression=NULL,
              egenes=NULL,
              pkn=NULL,
              design=NULL,
@@ -755,7 +773,7 @@ bnem <-
              verbose = TRUE,
              reduce = TRUE,
              parallel2 = 1,
-
+             
              initBstring = NULL,
              popSize = 100,
              pMutation = 0.5,
@@ -773,7 +791,7 @@ bnem <-
              type = "SOCK",
              exhaustive = FALSE,
              delcyc = FALSE,
-
+             
              seeds = 1,
              maxSteps = Inf,
              node = NULL,
@@ -781,26 +799,27 @@ bnem <-
              draw = TRUE,
              prior = NULL,
              maxInputsPerGate = 2
-             ) {
+    ) {
         approach <- "fc"
         if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(exprs)) {
-            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
-            "or a matrix of expression values 'exprs'"))
+        if (is.null(fc) & is.null(expression)) {
+            stop("please either provide a matrix of foldchanges 'fc' ",
+                 "or a matrix of expression values 'expression'")
         }
         if (is.null(model) | is.null(CNOlist)) {
             tmp <- preprocessInput(stimuli=stimuli,inhibitors=inhibitors,
-                                   signals=signals,design=design,exprs=exprs,
+                                   signals=signals,design=design,
+                                   expression=expression,
                                    fc=fc,pkn=pkn,
                                    maxInputsPerGate=maxInputsPerGate)
-
+            
             CNOlist <- tmp$CNOlist
             NEMlist <- tmp$NEMlist
             model <- tmp$model
         } else {
             NEMlist <- list()
             NEMlist$fc <- fc
-            NEMlist$exprs <- exprs
+            NEMlist$expression <- expression
             NEMlist$egenes <- egenes
         }
         CNOlist <- checkCNOlist(CNOlist)
@@ -809,7 +828,7 @@ bnem <-
                                 parameters = parameters, approach = approach,
                                 method)
         if (search %in% c("greedy", "genetic", "exhaustive")) {
-
+            
             if (search %in% "greedy") {
                 res <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist,
                                    model=model,
@@ -855,7 +874,7 @@ bnem <-
                                      selection = selection,relFit = relFit,
                                      method = method,type = type,
                                      exhaustive = exhaustive,delcyc = delcyc
-                                     )
+                )
                 result <- list(graph = model$reacID[as.logical(res$bString)],
                                bString = res$bString, bStrings = res$stringsTol,
                                scores = res$stringsTolScores)
@@ -890,25 +909,25 @@ bnem <-
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signals = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 computeFc <-
     function (CNOlist, y) {
         test <- 0 # for debugging DONT FORGET TO SET TO 0!!!
         CompMat <- numeric()
         CompMatNames <- character()
-        cnolistStimuli <- apply(CNOlist@stimuli, 1, sum)
-        cnolistInhibitors <- apply(CNOlist@inhibitors, 1, sum)
-        cnolistCues <- apply(CNOlist@cues, 1, sum)
+        cnolistStimuli <- rowSums(getStimuli(CNOlist))
+        cnolistInhibitors <- rowSums(getInhibitors(CNOlist))
+        cnolistCues <- rowSums(getCues(CNOlist))
         maxStim <- max(cnolistStimuli)
         maxKd <- max(cnolistInhibitors)
         grepCtrl <- which(cnolistCues == 0)[1]
@@ -918,15 +937,15 @@ computeFc <-
                              which(cnolistInhibitors != 0))
         grepStimsKds <- intersect(which(cnolistStimuli != 0),
                                   which(cnolistInhibitors != 0))
-        stimsKdsCbind <- cbind(CNOlist@stimuli, CNOlist@inhibitors)
+        stimsKdsCbind <- cbind(getStimuli(CNOlist), getInhibitors(CNOlist))
         ## get ctrl_vs_kd:
         inhibitorsNames <- NULL
         for (i in grepKds) {
             inhibitorsNames <-
                 c(inhibitorsNames,
-                  paste(colnames(CNOlist@inhibitors)[which(
-                                    CNOlist@inhibitors[i, ] >= 1)],
-                        collapse = "_"))
+                  paste(colnames(getInhibitors(CNOlist))[
+                      getInhibitors(CNOlist)[i, ] >= 1],
+                      collapse = "_"))
         }
         if (length(grepKds) > 0) {
             CompMat <- cbind(CompMat, y[, grepKds] - y[, grepCtrl])
@@ -937,16 +956,16 @@ computeFc <-
         ## get ctrl_vs_stim:
         stimuliNames <- NULL
         for (i in grepStims) {
-            if (sum(CNOlist@stimuli[i, ] >= 1) > 1) {
+            if (sum(getStimuli(CNOlist)[i, ] >= 1) > 1) {
                 stimuliNames <-
                     c(stimuliNames,
-                      paste(names(which(CNOlist@stimuli[i, ] >= 1)),
+                      paste(names(which(getStimuli(CNOlist)[i, ] >= 1)),
                             collapse = "_"))
             } else {
                 stimuliNames <-
                     c(stimuliNames,
-                      colnames(CNOlist@stimuli)[
-                          which(CNOlist@stimuli[i, ] >= 1)])
+                      colnames(getStimuli(CNOlist))[
+                          getStimuli(CNOlist)[i, ] >= 1])
             }
         }
         if (length(grepStims) > 0) {
@@ -962,12 +981,12 @@ computeFc <-
         ##           paste(names(which(stimsKdsCbind[i, ] >= 1)),
         ##                 collapse = "_"))
         ## }
-        combiNames <- rownames(CNOlist@cues)[grepStimsKds]
+        combiNames <- rownames(getCues(CNOlist))[grepStimsKds]
         if (length(grepStimsKds) > 0 & length(grepStims) > 0) {
             CompMat <-
                 cbind(CompMat,
                       y[, rep(grepStimsKds, length(grepStims))] -
-                      y[, sort(rep(grepStims, length(grepStimsKds)))])
+                          y[, sort(rep(grepStims, length(grepStimsKds)))])
             orderStims <- order(rep(grepStims, length(grepStimsKds)))
             CompMatNames <-
                 c(CompMatNames,
@@ -979,7 +998,7 @@ computeFc <-
         colnames(CompMat) <- CompMatNames
         if (sum(duplicated(colnames(CompMat)) == TRUE)) {
             CompMat <-
-                CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]
+                CompMat[, !duplicated(colnames(CompMat))]
         }
         if (test == 1) {
             ## get stim_vs_stim:
@@ -987,13 +1006,13 @@ computeFc <-
             for (i in grepStims) {
                 combiNames2 <-
                     c(combiNames2,
-                      paste(names(which(CNOlist@stimuli[i, ] >= 1)),
+                      paste(names(which(getStimuli(CNOlist)[i, ] >= 1)),
                             collapse = "_"))
             }
             if (length(grepStims) > 0) {
                 CompMat <-
                     cbind(CompMat, y[, rep(grepStims, length(grepStims))] -
-                                   y[, sort(rep(grepStims, length(grepStims)))])
+                              y[, sort(rep(grepStims, length(grepStims)))])
                 orderStims2 <- order(rep(grepStims, length(grepStims)))
                 CompMatNames <-
                     c(CompMatNames,
@@ -1012,8 +1031,8 @@ computeFc <-
             if (length(grepStimsKds) > 0 & length(grepKds) > 0) {
                 CompMat <-
                     cbind(CompMat, y[, rep(grepStimsKds, length(grepKds))] -
-                                   y[, sort(rep(grepKds,
-                                                length(grepStimsKds)))])
+                              y[, sort(rep(grepKds,
+                                           length(grepStimsKds)))])
                 orderKds <- order(rep(grepKds, length(grepStimsKds)))
                 CompMatNames <-
                     c(CompMatNames,
@@ -1039,7 +1058,7 @@ computeFc <-
         colnames(CompMat) <- CompMatNames
         if (sum(duplicated(colnames(CompMat)) == TRUE)) {
             CompMat <-
-                CompMat[, -which(duplicated(colnames(CompMat)) == TRUE)]
+                CompMat[, !duplicated(colnames(CompMat))]
         }
         return(CompMat)
     }
@@ -1072,7 +1091,7 @@ convertGraph <-
             }
             cnf <- expand.grid(dnf)
             dnf <- NULL
-            for (j in seq_len(dim(cnf)[1])) {
+            for (j in seq_len(nrow(cnf))) {
                 dnf <- c(dnf, paste(sort(unique(unlist(cnf[j, ]))),
                                     collapse = "+"))
             }
@@ -1105,11 +1124,11 @@ convertGraph <-
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signals = c("A", "B","C","D"))
 dummyCNOlist <-
@@ -1180,7 +1199,7 @@ dummyCNOlist <-
                                  stimn+inhibn)
                 for (i in seq_len(nrow(stimDesign))) {
                     design[((i-1)*nrow(inhibDesign) + 1):
-                           (i*nrow(inhibDesign)), ] <-
+                               (i*nrow(inhibDesign)), ] <-
                         cbind(stimDesign[rep(i, nrow(inhibDesign)), ,
                                          drop = FALSE],
                               inhibDesign)
@@ -1208,9 +1227,12 @@ dummyCNOlist <-
             colnames(design) <- c(stimuli, inhibitors)
         }
         colnamesdesign <- colnames(design)
-        design <- rbind(cbind(stimDesign, matrix(0, nrow(stimDesign),
-        (ncol(design) - ncol(stimDesign)))), cbind(matrix(0, nrow(inhibDesign),
-        (ncol(design) - ncol(inhibDesign))), inhibDesign), design)
+        design <- rbind(cbind(stimDesign,
+                              matrix(0, nrow(stimDesign),
+                                     (ncol(design) - ncol(stimDesign)))),
+                        cbind(matrix(0, nrow(inhibDesign),
+                                     (ncol(design) - ncol(inhibDesign))), 
+                              inhibDesign), design)
         colnames(design) <- colnamesdesign
         ## make signalmatrix:
         signaln <- length(signals)
@@ -1228,7 +1250,7 @@ dummyCNOlist <-
         rownames(design) <- rownames(inhibDesign) <- rownames(stimDesign) <-
             rownames(signalData) <- c("Ctrl", 2:nrow(design))
         getRowname <- function(i, M) {
-            r <- paste(colnames(M)[which(M[i, ] == 1)], collapse = "_")
+            r <- paste(colnames(M)[M[i, ] == 1], collapse = "_")
             return(r)
         }
         rownames(design)[2:nrow(design)] <-
@@ -1271,14 +1293,14 @@ epiNEM2Bg <- function(t) {
                              sep = "")
         return(t)
     } else {
-        tmp <- apply(t$origModel, 2, sum)
-        stim <- rownames(t$origModel)[which(tmp == min(tmp))]
+        tmp <- rowSums(t$origModel)
+        stim <- rownames(t$origModel)[tmp == min(tmp)]
         graph <- NULL
-
+        
         for (i in seq_len(length(t$column))) {
             parents <-
-                sort(rownames(t$origModel)[which(t$origModel[
-                                                     , t$column[i]] == 1)])
+                sort(rownames(t$origModel)[t$origModel[
+                    , t$column[i]] == 1])
             child <- colnames(t$origModel)[t$column[i]]
             if (length(parents) == 2) {
                 if (t$logics[i] %in% "OR") {
@@ -1378,7 +1400,7 @@ epiNEM2Bg <- function(t) {
         all <- rownames(t$origModel)
         children2 <- unique(gsub(".*=", "", graph))
         if (sum(!(all %in% children2)) > 0) {
-            graph <- c(graph, paste("S", all[which(!(all %in% children2))],
+            graph <- c(graph, paste("S", all[!(all %in% children2)],
                                     sep = "="))
         }
         return(unique(graph))
@@ -1397,7 +1419,7 @@ epiNEM2Bg <- function(t) {
 #' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data 
 #' for m E-genes and l experiments.
 #' @param egenes list object; each list entry is named after an S-gene and
 #' contains the names of egenes which are potential children
@@ -1435,17 +1457,17 @@ epiNEM2Bg <- function(t) {
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc, model = model,
 #' parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
@@ -1455,57 +1477,57 @@ epiNEM2Bg <- function(t) {
 #' ## bString = res$bString, Egenes = 10, Sgene = 4)
 #' residuals <- findResiduals(res$bString, CNOlist, model, fc = fc)
 findResiduals <-
-    function(bString, CNOlist, model, fc=NULL, exprs=NULL, egenes=NULL,
+    function(bString, CNOlist, model, fc=NULL, expression=NULL, egenes=NULL,
              parameters = list(cutOffs = c(0,1,0),
-                                             scoring = c(0.1,0.2,0.9)),
+                               scoring = c(0.1,0.2,0.9)),
              method = "s", sizeFac = 10^-10,
              main = "residuals for decoupled vertices",
              sub = paste0("green residuals are added effects (left positive,",
                           " right negative) and red residuals are deleted ",
                           "effects"),
-cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
+             cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
         approach <- "fc"
         if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(exprs)) {
-            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
-                        "or a matrix of expression values 'exprs'"))
+        if (is.null(fc) & is.null(expression)) {
+            stop("please either provide a matrix of foldchanges 'fc' ",
+                 "or a matrix of expression values 'expression'")
         }
         NEMlist <- list()
         NEMlist$fc <- fc
         NEMlist$egenes <- egenes
-        NEMlist$exprs <- exprs
+        NEMlist$expression <- expression
         CNOlist <- checkCNOlist(CNOlist)
         method <- checkMethod(method)[1]
         NEMlist <- checkNEMlist(NEMlist, CNOlist, parameters, approach, method)
         simResults <- simulateStatesRecursive(CNOlist = CNOlist, model = model,
                                               bString = bString)
         SCompMat <- computeFc(CNOlist, t(simResults))
-        SCompMat <- SCompMat[, which(colnames(SCompMat) %in%
-                                     colnames(NEMlist$fc))]
+        SCompMat <- SCompMat[, colnames(SCompMat) %in%
+                                 colnames(NEMlist$fc)]
         NEMlist$fc <- NEMlist$fc[, order(colnames(NEMlist$fc))]
         SCompMat <- SCompMat[, order(colnames(SCompMat))]
         SCompMat <- SCompMat[, colnames(NEMlist$fc)]
-        stimuli <- colnames(CNOlist@stimuli)
-        inhibitors <- colnames(CNOlist@inhibitors)
+        stimuli <- colnames(getStimuli(CNOlist))
+        inhibitors <- colnames(getInhibitors(CNOlist))
         tmp <- computeScoreNemT1(CNOlist, model = model, bString,
                                  NEMlist = NEMlist, tellme = 1,
                                  parameters = parameters, method = method,
                                  verbose = verbose, sizeFac = sizeFac)
         EtoS <- tmp$EtoS
-
+        
         if (verbose) {
-            print(paste("calculating residuals for ",
-                        ncol(CNOlist@signals[[1]]),
-                        " S-genes based on ", length(unique(EtoS[, 1])),
-                        " E-genes.", sep = ""))
+            message("calculating residuals for ",
+                    ncol(getSignals(CNOlist)[[1]]),
+                    " S-genes based on ", length(unique(EtoS[, 1])),
+                    " E-genes.")
         }
-
-        resMat <- matrix(0, nrow = ncol(CNOlist@signals[[1]]),
+        
+        resMat <- matrix(0, nrow = ncol(getSignals(CNOlist)[[1]]),
                          ncol = 2*ncol(NEMlist$fc))
-        resVec <- numeric(ncol(CNOlist@signals[[1]]))
-        resType <- matrix(0, nrow = ncol(CNOlist@signals[[1]]),
+        resVec <- numeric(ncol(getSignals(CNOlist)[[1]]))
+        resType <- matrix(0, nrow = ncol(getSignals(CNOlist)[[1]]),
                           ncol = 2*ncol(NEMlist$fc))
-
+        
         checkSgene <- function(i) {
             resType <- numeric(2*ncol(NEMlist$fc))
             resMat <- numeric(2*ncol(NEMlist$fc))
@@ -1517,30 +1539,29 @@ cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
                         names(which(EtoS[, 2] == i))) == 1) {
                     data.tmp <-
                         t(as.matrix(
-                            NEMlist$fc[which(rownames(NEMlist$fc) %in%
-                                             names(which(EtoS[, 2] == i))), ]))
+                            NEMlist$fc[rownames(NEMlist$fc) %in%
+                                           names(which(EtoS[, 2] == i)), ]))
                     rownames(data.tmp) <-
                         rownames(NEMlist$fc)[
-                            which(rownames(NEMlist$fc) %in%
-                                  names(which(EtoS[, 2] == i)))]
+                            rownames(NEMlist$fc) %in%
+                                names(which(EtoS[, 2] == i))]
                 } else {
                     data.tmp <-
-                        NEMlist$fc[which(rownames(NEMlist$fc) %in%
-                                         names(which(EtoS[, 2] == i))), ]
+                        NEMlist$fc[rownames(NEMlist$fc) %in%
+                                       names(which(EtoS[, 2] == i)), ]
                 }
                 resVec <- sum(abs(cor(SCompMat[i, ], t(data.tmp),
                                       method = method)))
                 for (j in seq_len(ncol(data.tmp))) { # parallel this!
-
+                    
                     if (verbose) {
                         cat('\r',
                             paste(floor(((i-1)*ncol(data.tmp) + j)/
-                                        (ncol(CNOlist@signals[[1]])*
-                                         ncol(data.tmp))*100), "%",
+                                            (ncol(getSignals(CNOlist)[[1]])*
+                                                 ncol(data.tmp))*100), "%",
                                   sep = ""))
-                        flush.console()
                     }
-
+                    
                     sgene <- SCompMat[i, ]
                     mem <- sgene[j]
                     if (mem == 0) {
@@ -1581,7 +1602,7 @@ cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
             }
             return(list(resMat = resMat, resType = resType, resVec = resVec))
         }
-
+        
         if (!is.null(parallel)) {
             if (is.list(parallel)) {
                 if (length(parallel[[1]]) != length(parallel[[2]])) {
@@ -1599,14 +1620,14 @@ same.") }
             }
             sfLibrary("CellNOptR")
         }
-
+        
         if (!is.null(parallel)) {
             resTmp <- sfLapply(as.list(seq_len(nrow(resMat))), checkSgene)
             sfStop()
         } else {
             resTmp <- lapply(as.list(seq_len(nrow(resMat))), checkSgene)
         }
-
+        
         for (i in seq_len(nrow(resMat))) {
             resMat[i, ] <- resTmp[[i]]$resMat
             resType[i, ] <- resTmp[[i]]$resType
@@ -1615,24 +1636,24 @@ same.") }
         resType <- resType*(-1)
         resDiff <- (resVec - resMat)/nrow(NEMlist$fc)
         colnames(resDiff) <- c(colnames(NEMlist$fc), colnames(NEMlist$fc))
-        rownames(resDiff) <- colnames(CNOlist@signals[[1]])
+        rownames(resDiff) <- colnames(getSignals(CNOlist)[[1]])
         resDiff1 <- cbind(resDiff[, seq_len(ncol(NEMlist$fc))], max(resDiff),
                           resDiff[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
-
+        
         p1 <- HeatmapOP(resDiff1, Rowv = FALSE, Colv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
-
+        
         resDiff2 <- cbind(resDiff[, seq_len(ncol(NEMlist$fc))], min(resDiff),
                           resDiff[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
         resType2 <- cbind(resType[, seq_len(ncol(NEMlist$fc))], min(resType),
                           resType[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
-        resDiff2[which(resDiff2 > 0)] <- 0
-
+        resDiff2[resDiff2 > 0] <- 0
+        
         p2 <- HeatmapOP(resDiff2, Colv = FALSE, Rowv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
-
+        
         resDiff3 <- resDiff2*resType2
-
+        
         p3 <- HeatmapOP(resDiff3, Colv = FALSE, Rowv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
         res.breaks <-
@@ -1642,48 +1663,48 @@ same.") }
                                                               na.rm = TRUE))),
                 (max(abs(min(resDiff3, na.rm = TRUE)), abs(max(resDiff3,
                                                                na.rm = TRUE))) -
-                 -max(abs(min(resDiff3, na.rm = TRUE)),
-                      abs(max(resDiff3,
-                              na.rm = TRUE))))/100)
-
+                     -max(abs(min(resDiff3, na.rm = TRUE)),
+                          abs(max(resDiff3,
+                                  na.rm = TRUE))))/100)
+        
         p1 <- HeatmapOP(resDiff3[, seq_len(ncol(NEMlist$fc))],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (positive effects)", sub = "",
                         xrot = "60", breaks = res.breaks, colorkey = FALSE)
-
+        
         p2 <- HeatmapOP(resDiff3[, (ncol(NEMlist$fc)+2):(2*ncol(NEMlist$fc)+1)],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (negative effects)", sub = "",
                         xrot = "60", breaks = res.breaks, colorkey = TRUE)
-
+        
         if (verbose) {
             print(p1, position=c(0, 0, .48, 1), more=TRUE)
             print(p2, position=c(.48, 0, 1, 1))
         }
         if (cut & all(is.na(resDiff) == FALSE)) {
-            if (sum(apply(abs(resDiff1), 1, sum) == 0) > 0) {
+            if (sum(rowSums(abs(resDiff1)) == 0) > 0) {
                 resDiff1 <-
-                    resDiff1[-which(apply(abs(resDiff1), 1, sum) == 0), ]
+                    resDiff1[!rowSums(abs(resDiff1)) == 0, ]
             }
-            if (sum(apply(abs(resDiff1), 2, sum) == 0) > 0) {
+            if (sum(colSums(abs(resDiff1)) == 0) > 0) {
                 resDiff1 <-
-                    resDiff1[, -which(apply(abs(resDiff1), 2, sum) == 0)]
+                    resDiff1[, !colSums(abs(resDiff1)) == 0]
             }
-            if (sum(apply(abs(resDiff2), 1, sum) == 0) > 0) {
+            if (sum(rowSums(abs(resDiff2)) == 0) > 0) {
                 resDiff2 <-
-                    resDiff2[-which(apply(abs(resDiff2), 1, sum) == 0), ]
+                    resDiff2[!rowSums(abs(resDiff2)) == 0, ]
             }
-            if (sum(apply(abs(resDiff2), 2, sum) == 0) > 0) {
+            if (sum(colSums(abs(resDiff2)) == 0) > 0) {
                 resDiff2 <-
-                    resDiff2[, -which(apply(abs(resDiff2), 2, sum) == 0)]
+                    resDiff2[, !colSums(abs(resDiff2)) == 0]
             }
-            if (sum(apply(abs(resDiff3), 1, sum) == 0) > 0) {
+            if (sum(rowSums(abs(resDiff3)) == 0) > 0) {
                 resDiff3 <-
-                    resDiff3[-which(apply(abs(resDiff3), 1, sum) == 0), ]
+                    resDiff3[!rowSums(abs(resDiff3)) == 0, ]
             }
-            if (sum(apply(abs(resDiff3), 2, sum) == 0) > 0) {
+            if (sum(colSums(abs(resDiff3)) == 0) > 0) {
                 resDiff3 <-
-                    resDiff3[, -which(apply(abs(resDiff3), 2, sum) == 0)]
+                    resDiff3[, !colSums(abs(resDiff3)) == 0]
             }
         }
         return(list(resDiff1 = resDiff1, resDiff2 = resDiff2,
@@ -1702,11 +1723,11 @@ same.") }
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
@@ -1714,8 +1735,8 @@ same.") }
 reduceGraph <-
     function(bString, model, CNOlist) {
         if (any(bString != 0)) {
-            stimuli <- colnames(CNOlist@stimuli)
-            graph <- model$reacID[which(bString == 1)]
+            stimuli <- colnames(getStimuli(CNOlist))
+            graph <- model$reacID[bString == 1]
             tmp <- unlist(strsplit(graph, "="))
             tmp <- unlist(strsplit(tmp, "\\+"))
             tmp <- unique(gsub("!", "", tmp))
@@ -1729,7 +1750,7 @@ reduceGraph <-
                 }
             }
             bString <- numeric(length(bString))
-            bString[which(model$reacID %in% graph)] <- 1
+            bString[model$reacID %in% graph] <- 1
         }
         bString <- absorption(bString, model)
         return(bString)
@@ -1753,11 +1774,11 @@ reduceGraph <-
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
@@ -1804,7 +1825,7 @@ simulateStatesRecursive <-
                                              signalStates = signalStates,
                                              graph = subGraph,
                                              children = children2[
-                                                 -which(children2 %in% node)],
+                                                 !children2 %in% node],
                                              NEMlist)
                                 if (add1 == 0) {
                                     pobMult <- signalStatesTmp[, j2]
@@ -1845,32 +1866,32 @@ simulateStatesRecursive <-
                     if (min(sop, na.rm = TRUE) > 0) { break() }
                 }
                 sop[sop > 0] <- 1
-                if (node %in% colnames(CNOlist@inhibitors)) {
-                    sop <- sop*(1 - CNOlist@inhibitors[, node])
+                if (node %in% colnames(getInhibitors(CNOlist))) {
+                    sop <- sop*(1 - getInhibitors(CNOlist)[, node])
                 }
-                if (node %in% colnames(CNOlist@stimuli)) {
-                    sop <- max(sop, CNOlist@stimuli[, node])
+                if (node %in% colnames(getStimuli(CNOlist))) {
+                    sop <- max(sop, getStimuli(CNOlist)[, node])
                 }
                 signalStates[, node] <- sop
             }
             return(signalStates)
         }
         bString <- reduceGraph(bString, model, CNOlist)
-        stimuli <- colnames(CNOlist@stimuli)
+        stimuli <- colnames(getStimuli(CNOlist))
         signals <-
-            sort(c(colnames(CNOlist@inhibitors),
+            sort(c(colnames(getInhibitors(CNOlist)),
                    model$namesSpecies[
-                             -which(model$namesSpecies %in%
-                                    c(stimuli,
-                                      colnames(CNOlist@inhibitors)))]))
-        graph0 <- model$reacID[which(bString == 1)]
-        stimuliStates <- CNOlist@stimuli
+                       !model$namesSpecies %in%
+                           c(stimuli,
+                             colnames(getInhibitors(CNOlist)))]))
+        graph0 <- model$reacID[bString == 1]
+        stimuliStates <- getStimuli(CNOlist)
         if (!is.null(NEMlist$signalStates)) {
             signalStates <- NEMlist$signalStates
         } else {
-            signalStates <- matrix(NA, nrow = nrow(CNOlist@signals[[2]]),
+            signalStates <- matrix(NA, nrow = nrow(getSignals(CNOlist)[[2]]),
                                    ncol = length(signals))
-            rownames(signalStates) <- rownames(CNOlist@signals[[2]])
+            rownames(signalStates) <- rownames(getSignals(CNOlist)[[2]])
             colnames(signalStates) <- signals
             signalStates <- cbind(stimuliStates, signalStates)
         }
@@ -1883,13 +1904,13 @@ simulateStatesRecursive <-
                                          NEMlist)
             }
         }
-        signalStates <- signalStates[, which(colnames(signalStates) %in%
-                                             colnames(CNOlist@signals[[1]]))]
-        if (ncol(CNOlist@signals[[1]]) != 1) {
+        signalStates <- signalStates[, colnames(signalStates) %in%
+                                         colnames(getSignals(CNOlist)[[1]])]
+        if (ncol(getSignals(CNOlist)[[1]]) != 1) {
             signalStates <- signalStates[, order(colnames(signalStates))]
         } else {
             signalStates <- as.matrix(signalStates)
-            colnames(signalStates) <- colnames(CNOlist@signals[[1]])
+            colnames(signalStates) <- colnames(getSignals(CNOlist)[[1]])
         }
         return(signalStates = signalStates)
     }
@@ -1914,16 +1935,15 @@ transClose <-
             max.iter <- length(h) - 2 # should be sufficient
         }
         if (verbose) {
-            print(paste("maximum iterations: ", max.iter, sep = ""))
+            message("maximum iterations: ", max.iter)
         }
         g.out <- unique(gsub(".*=", "", g))
         g.closed <- g
         for (iter in seq_len(max.iter)) {
             g.old <- g.closed
-
+            
             if (verbose) {
                 cat('\r', paste("iteration: ", iter, sep = ""))
-                flush.console()
             }
             for (i in g.closed) {
                 input <-
@@ -1967,7 +1987,7 @@ transClose <-
             if (all(g.closed %in% g.old)) {
                 if (verbose) {
                     cat("\n")
-                    print(paste("successfull convergence", sep = ""))
+                    message("successfull convergence")
                 }
                 break()
             }
@@ -2036,7 +2056,7 @@ transRed <-
         }
         g3 <- transClose(g2, max.iter)
         if (sum(g %in% g3) > 0) {
-            g4 <- g[-which(g %in% g3)]
+            g4 <- g[!g %in% g3]
         }
         g5 <- unique(c(g2, g4))
         return(g5)
@@ -2051,14 +2071,14 @@ transRed <-
 #' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data 
 #' for m E-genes and l experiments.
 #' @param model Model object including the search space, if available.
 #' See CellNOptR::preprocessing.
 #' @param bString Binary string denoting the hyper-graph.
 #' @param Egenes Maximal number of visualized E-genes.
 #' @param Sgene Integer denoting the S-gene. See
-#' colnames(CNOlist@signals[[1]]) to match integer with S-gene name.
+#' colnames(getSignals(CNOlist)[[1]]) to match integer with S-gene name.
 #' @param parameters parameters for discrete case (not recommended);
 #' has to be a list with entries cutOffs and scoring:
 #' cutOffs = c(a,b,c) with a (cutoff for real zeros),
@@ -2097,6 +2117,7 @@ transRed <-
 #' @author Martin Pirkl
 #' @return lattice object with matrix information
 #' @export
+#' @importFrom utils glob2rx
 #' @import
 #' CellNOptR
 #' stats
@@ -2106,17 +2127,17 @@ transRed <-
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-#' col.names = FALSE,
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
+#' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 #' signal = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc,
 #' model = model, parallel = NULL, initBstring = initBstring, draw = FALSE,
@@ -2125,7 +2146,7 @@ transRed <-
 #' val <- validateGraph(CNOlist = CNOlist, fc = fc, model = model,
 #' bString = res$bString, Egenes = 10, Sgene = 4)
 validateGraph <-
-    function(CNOlist, fc=NULL, exprs=NULL, model, bString,
+    function(CNOlist, fc=NULL, expression=NULL, model, bString,
              Egenes = 25, Sgene = 1,
              parameters = list(cutOffs = c(0,1,0), scoring = c(0.1,0.2,0.9)),
              plot = TRUE,
@@ -2137,19 +2158,19 @@ validateGraph <-
              order = "rank", verbose = TRUE, ...) {
         approach <- "fc"
         if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(exprs)) {
-            stop(paste0("please either provide a matrix of foldchanges 'fc' ",
-                        "or a matrix of expression values 'exprs'"))
+        if (is.null(fc) & is.null(expression)) {
+            stop("please either provide a matrix of foldchanges 'fc' ",
+                 "or a matrix of expression values 'expression'")
         }
         csc <- TRUE
         colnames <- "bio"
         complete <- FALSE
         sim <- 0
-
+        
         NEMlist <- list()
         NEMlist$fc <- fc
-        NEMlist$exprs <- exprs
-
+        NEMlist$expression <- expression
+        
         myCN2bioCN <- function(x, stimuli, inhibitors) {
             y <- gsub("_vs_", ") vs (", x)
             for (i in inhibitors) {
@@ -2162,43 +2183,31 @@ validateGraph <-
                                                sep = ""))
             return(y)
         }
-
+        genes.upper <- c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8",
+                         "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH",
+                         "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14",
+                         "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA",
+                         "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2",
+                         "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B",
+                         "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", 
+                         "WNT11", "WNT5A", "TNFa", "TRAIL")
+        genes.lower <- c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8",
+                         "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4",
+                         "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik",
+                         "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1",
+                         "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4",
+                         "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", 
+                         "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
         gene2protein <- function(genes, strict = FALSE) {
             if (strict) {
                 gene2prot <- cbind(
-                    c("^APC$", "^ATF2$", "^BIRC2$", "^BIRC3$", "^CASP4$",
-                      "^CASP8$", "^CFLAR$", "^CHUK$", "^CTNNB1$", "^DKK1$",
-                      "^DKK4$", "^FLASH$", "^IKBKB$", "^IKBKG$", "^JUN$",
-                      "^MAP2K1$", "^MAP3K14$", "^MAP3K7$", "^MAPK8$",
-                      "^PIK3CA$", "^RBCK1$", "^RELA$", "^RIPK1$", "^RIPK3$",
-                      "^RNF31$", "^SHARPIN$", "^TAB2$", "^TCF4$", "^TCF7L2$",
-                      "^TNFRSF10A$", "^TNFRSF10B$", "^TNFRSF1A$", "^TNIK$",
-                      "^TRAF2$", "^USP2$", "^WLS$", "^WNT11$", "^WNT5A$",
-                      "^TNFa$", "^TRAIL"),
-                    c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8",
-                      "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4",
-                      "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik",
-                      "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1",
-                      "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4",
-                      "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi",
-                      "Wnt11", "Wnt5A", "Tnfa", "Trail")
+                    glob2rx(genes.upper),
+                    genes.lower
                 )
             } else {
                 gene2prot <- cbind(
-                    c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8",
-                      "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH",
-                      "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14", "MAP3K7",
-                      "MAPK8", "PIK3CA", "RBCK1", "RELA", "RIPK1", "RIPK3",
-                      "RNF31", "SHARPIN", "TAB2", "TCF4", "TCF7L2",
-                      "TNFRSF10A", "TNFRSF10B", "TNFRSF1A", "TNIK", "TRAF2",
-                      "USP2", "WLS", "WNT11", "WNT5A", "TNFa", "TRAIL"),
-                    c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8",
-                      "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4",
-                      "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik",
-                      "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1", "Rip3",
-                      "Hoip", "Sharpin", "Tab2", "fake", "Tcf4", "Dr4", "Dr5",
-                      "Tnfr1", "Tnik", "Traf2", "Usp2", "Evi", "Wnt11",
-                      "Wnt5A", "Tnfa", "Trail")
+                    genes.upper,
+                    genes.lower
                 )
             }
             for (i in seq_len(nrow(gene2prot))) {
@@ -2206,46 +2215,17 @@ validateGraph <-
             }
             return(genes)
         }
-
+        
         protein2gene <- function(proteins, strict = FALSE) {
             if (strict) {
                 gene2prot <- cbind(
-                    c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8",
-                      "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH",
-                      "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14",
-                      "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA",
-                      "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2",
-                      "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B",
-                      "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS",
-                      "WNT11", "WNT5A", "TNFa", "TRAIL"),
-                    c("^Apc$", "^Atf2$", "^cIap1$", "^cIap2$",
-                      "^Casp4$", "^Casp8$", "^c-Flip$", "^Ikka$",
-                      "^Beta-Cat.$", "^Dkk1$", "^Dkk4$", "^Casp8ap2$",
-                      "^Ikkb$", "^Nemo$", "^cJun$", "^Mekk$", "^Nik$",
-                      "^Tak1$", "^Jnk$", "^Pi3k$", "^Hoil1$", "^RelA$",
-                      "^Rip1$", "^Rip3$", "^Hoip$", "^Sharpin$", "^Tab2$",
-                      "^fake$", "^Tcf4$", "^Dr4$", "^Dr5$", "^Tnfr1$",
-                      "^Tnik$", "^Traf2$", "^Usp2$", "^Evi$", "^Wnt11$",
-                      "^Wnt5A$", "^Tnfa$", "^Trail$")
+                    genes.upper,
+                    glob2rx(genes.lower)
                 )
             } else {
                 gene2prot <- cbind(
-                    c("APC", "ATF2", "BIRC2", "BIRC3", "CASP4", "CASP8",
-                      "CFLAR", "CHUK", "CTNNB1", "DKK1", "DKK4", "FLASH",
-                      "IKBKB", "IKBKG", "JUN", "MAP2K1", "MAP3K14",
-                      "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA",
-                      "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2",
-                      "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B",
-                      "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS",
-                      "WNT11", "WNT5A", "TNFa", "TRAIL"),
-                    c("Apc", "Atf2", "cIap1", "cIap2", "Casp4",
-                      "Casp8", "c-Flip", "Ikka", "Beta-Cat.", "Dkk1",
-                      "Dkk4", "Casp8ap2", "Ikkb", "Nemo", "cJun",
-                      "Mekk", "Nik", "Tak1", "Jnk", "Pi3k", "Hoil1",
-                      "RelA", "Rip1", "Rip3", "Hoip", "Sharpin", "Tab2",
-                      "fake", "Tcf4", "Dr4", "Dr5", "Tnfr1", "Tnik",
-                      "Traf2", "Usp2", "Evi", "Wnt11", "Wnt5A", "Tnfa",
-                      "Trail")
+                    genes.upper,
+                    genes.lower
                 )
             }
             for (i in seq_len(nrow(gene2prot))) {
@@ -2253,7 +2233,7 @@ validateGraph <-
             }
             return(proteins)
         }
-
+        
         colSideColorsSave <- NULL
         bad.data <- FALSE
         errorMat <- function() {
@@ -2301,26 +2281,24 @@ validateGraph <-
                                  sizeFac = sizeFac, verbose = FALSE)
         EtoS <- tmp$EtoS
         if (verbose) {
-            print(paste(Sgene, ".", colnames(CNOlist@signals[[1]])[Sgene],
-                        ": ", sum(EtoS[, 2] == Sgene), sep = ""))
-            print(paste("Activated: ", sum(EtoS[, 2] == Sgene & EtoS[, 3] == 1),
-                        sep = ""))
-            print(paste("Inhibited: ", sum(EtoS[, 2] == Sgene &
-                                           EtoS[, 3] == -1), sep = ""))
-            print("Summary Score:")
-            print(summary(EtoS[which(EtoS[, 2] == Sgene), 4]))
+            message(Sgene, ".", colnames(getSignals(CNOlist)[[1]])[Sgene],
+                    ": ", sum(EtoS[, 2] == Sgene))
+            message("Activated: ", sum(EtoS[, 2] == Sgene & EtoS[, 3] == 1))
+            message("Inhibited: ", sum(EtoS[, 2] == Sgene &
+                                           EtoS[, 3] == -1))
+            message("Summary Score:")
+            message(summary(EtoS[EtoS[, 2] == Sgene, 4]))
             dups <- sum(duplicated(rownames(EtoS)) == TRUE)
             if (dups > 0) {
                 used <- length(unique(rownames(EtoS)))
             } else {
                 used <- nrow(EtoS)
             }
-            print(paste("Unique genes used: ", (used), " (",
-                        round((used/nrow(NEMlist$fc))*100, 2), " %)",
-                        sep = ""))
-            print(paste("Duplicated genes: ", dups, sep = ""))
-            print("Overall fit:")
-            print(summary(EtoS[, 4]))
+            message("Unique genes used: ", (used), " (",
+                    round((used/nrow(NEMlist$fc))*100, 2), " %)")
+            message("Duplicated genes: ", dups)
+            message("Overall fit:")
+            message(summary(EtoS[, 4]))
         }
         indexList <- NULL
         if (is.null(indexList) == TRUE) {
@@ -2333,45 +2311,46 @@ validateGraph <-
                                         model = modelCut,
                                         bString =
                                             (numeric(length(modelCut$reacID)) +
-                                             1))
+                                                 1))
         }
         if (sim == 1) {
             simResults <-
                 simulateStatesRecursiveAdd(CNOlist = CNOlist, model = modelCut,
                                            bString =
                                                (numeric(
-                                               length(modelCut$reacID)) + 1))
+                                                   length(modelCut$reacID)) +
+                                                    1))
         }
         rownames(simResults) <- seq_len(nrow(simResults))
-        simResults <- simResults[, which(colnames(simResults) %in%
-                                         colnames(CNOlist@signals[[1]]))]
+        simResults <- simResults[, colnames(simResults) %in%
+                                     colnames(getSignals(CNOlist)[[1]])]
         SCompMat <- computeFc(CNOlist, t(simResults))
         SCompMat <- SCompMat[, colnames(NEMlist$fc)]
-
+        
         if (parameters$cutOffs[3] == -1) {
             method <- checkMethod(method)
             S.mat <- SCompMat
             ## do median polish over gene clusters
-            data.med <- NEMlist$fc[seq_len(ncol(CNOlist@signals[[2]])), ]*0
+            data.med <- NEMlist$fc[seq_len(ncol(getSignals(CNOlist)[[2]])), ]*0
             Epos <- EtoS[order(rownames(EtoS)), seq_len(2)]
-            for (i in seq_len(ncol(CNOlist@signals[[1]]))) {
+            for (i in seq_len(ncol(getSignals(CNOlist)[[1]]))) {
                 tmp <-
                     medpolish(rbind(
-                        NEMlist$fc[Epos[which(Epos[, 2] == i),
+                        NEMlist$fc[Epos[Epos[, 2] == i,
                                         1], ],
-                        NEMlist$fc[Epos[which(Epos[, 2] ==
-                                              (i+ncol(CNOlist@signals[[2]]))),
+                        NEMlist$fc[Epos[Epos[, 2] ==
+                                            (i+ncol(getSignals(CNOlist)[[2]])),
                                         1], ]), trace.iter=FALSE)
                 data.med[i, ] <- tmp$col
             }
             E.mat <- data.med
             E.mat[is.na(E.mat)] <- 0
-            tmp <- which(apply(E.mat, 1, sum) != 0)
-            E.mat <- E.mat[which(apply(E.mat, 1, sum) != 0), ]
+            tmp <- which(rowSums(E.mat) != 0)
+            E.mat <- E.mat[rowSums(E.mat) != 0, ]
             rownames(E.mat) <- rownames(S.mat)[tmp]
             NEMlist$fc <- E.mat
             if (parameters$scoring[1] == 0) {
-                S.mat[which(S.mat == 0)] <- NA
+                S.mat[S.mat == 0] <- NA
             }
             if ("pearson" %in% method) {
                 cosine.sim <- -t(cor(t(S.mat), t(E.mat), method = "p",
@@ -2389,7 +2368,7 @@ validateGraph <-
             R[is.na(R)] <- max(R[!is.na(R)])
             MSEE <- matrixStats::rowMins(R)
         }
-
+        
         ## matrix visualisation for egenes fitted:
         if ("fc" %in% approach) {
             check.data <- NEMlist$fc
@@ -2397,15 +2376,15 @@ validateGraph <-
             rownames(check.model) <- colnames(simResults)
         }
         if ("abs" %in% approach) {
-            check.data <- NEMlist$exprs # here the $norm is needed
+            check.data <- NEMlist$expression # here the $norm is needed
             check.model <- simResults
-            colnames(check.model) <- colnames(CNOlist@signals[[2]])
+            colnames(check.model) <- colnames(getSignals(CNOlist)[[2]])
         }
-
+        
         Egenes <- Egenes
-
+        
         Egenes <- min(Egenes, sum(EtoS[, 2] == Sgene))
-
+        
         if (Egenes == 0) {
             mainlab <- paste("Regulated by ",
                              rownames(check.model)[Sgene], "\n", sep = "")
@@ -2418,14 +2397,14 @@ validateGraph <-
             rownames(genesInfo) <- "dummy"
             return(list(genesInfo = genesInfo, data = genesInfo))
         }
-
+        
         if (complete) {
             egenefit <- matrix(0, nrow = (sum(EtoS[, 2] == Sgene)+1),
                                ncol = ncol(check.data))
         } else {
             egenefit <- matrix(0, nrow = (Egenes+1), ncol = ncol(check.data))
         }
-
+        
         egenefit[1,] <- check.model[Sgene, ]
         rownames(egenefit) <- seq_len(nrow(egenefit))
         rownames(egenefit)[1] <- rownames(check.model)[Sgene]
@@ -2436,13 +2415,13 @@ validateGraph <-
         } else {
             activatedEgenes <- numeric(Egenes+1)
         }
-
+        
         count <- 0
         for (i in seq_len(nrow(EtoS))) {
             if (EtoS[i, 2] == Sgene) {
                 egenefit[count+2,] <-
-                    check.data[which(rownames(check.data) %in%
-                                     rownames(EtoS)[i]), ]
+                    check.data[rownames(check.data) %in%
+                                   rownames(EtoS)[i], ]
                 rownames(egenefit)[count+2] <- rownames(EtoS)[i]
                 if (EtoS[i, 3] == 1) {
                     activatedEgenes[count+2] <- 1
@@ -2451,9 +2430,9 @@ validateGraph <-
             }
             if (count >= Egenes & !complete) { break() }
         }
-
+        
         Egenes <- count
-
+        
         if (affyIds == FALSE) {
             temp <-
                 as.vector(unlist(mget(unique(rownames(egenefit)[-1]),
@@ -2465,7 +2444,7 @@ validateGraph <-
             }
             rownames(egenefit)[-1] <- temp
         }
-
+        
         rownames(egenefit)[is.na(rownames(egenefit))] <- "NA"
         count <- 0
         if (min(egenefit) != max(egenefit)) {
@@ -2478,77 +2457,88 @@ validateGraph <-
                         real.breaks <-
                             seq(-max(abs(min(egenefit)),
                                      abs(max(egenefit))),
-                                max(abs(min(egenefit)),abs(max(egenefit))),0.1)
+                                max(abs(min(egenefit)),abs(max(egenefit))),
+                                0.1)
                         if (length(real.breaks) > 101) {
                             real.breaks <-
                                 real.breaks[
                                     c((floor(length(
-                                          real.breaks)/2)-50):
-                                      floor(length(real.breaks)/2),
-                                    (floor(length(real.breaks)/2)+1):
-                                    (floor(length(real.breaks)/2)+50))]
+                                        real.breaks)/2)-50):
+                                          floor(length(real.breaks)/2),
+                                      (floor(length(real.breaks)/2)+1):
+                                          (floor(length(real.breaks)/2)+50))]
                         }
                     } else {
                         if (activatedEgenes[i] == 1) {
                             onePosI <-
                                 c(which(egenefit[1, ] == 1 & egenefit[i, ] >
-                                        parameters$cutOffs[2]),
+                                            parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 0 & egenefit[i, ] >
-                                        parameters$cutOffs[2]),
+                                            parameters$cutOffs[2]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                        parameters$cutOffs[2]))
+                                            parameters$cutOffs[2]))
                             onePosII <-
                                 which(egenefit[1, ] == 1 & egenefit[i, ] >
-                                      parameters$cutOffs[1] & egenefit[i, ] <=
-                                      parameters$cutOffs[2])
+                                          parameters$cutOffs[1] & 
+                                          egenefit[i, ] <=
+                                          parameters$cutOffs[2])
                             oneNegI <-
                                 c(which(egenefit[1, ] == -1 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]),
+                                            -parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 0 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]),
+                                            -parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]))
+                                            -parameters$cutOffs[2]))
                             oneNegII <-
                                 which(egenefit[1, ] == -1 & egenefit[i, ] <
-                                      -parameters$cutOffs[1] & egenefit[i, ] >=
-                                      -parameters$cutOffs[2])
+                                          -parameters$cutOffs[1] & 
+                                          egenefit[i, ] >=
+                                          -parameters$cutOffs[2])
                             zeros <-
                                 c(which(egenefit[1, ] == 0 &
-                                        abs(egenefit[i, ]) <=
-                                        parameters$cutOffs[2]),
+                                            abs(egenefit[i, ]) <=
+                                            parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 1 &
-                                        egenefit[i, ] <= parameters$cutOffs[1] &
-                                        egenefit[i, ] >=
-                                        -parameters$cutOffs[2]),
+                                            egenefit[i, ] <= 
+                                            parameters$cutOffs[1] &
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[2]),
                                   which(egenefit[1, ] == -1 &
-                                        egenefit[i, ] >=
-                                        -parameters$cutOffs[1] &
-                                        egenefit[i, ] <= parameters$cutOffs[2]))
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[1] &
+                                            egenefit[i, ] <=
+                                            parameters$cutOffs[2]))
                             zerosI <-
                                 c(which(egenefit[1, ] == 0 &
-                                        abs(egenefit[i, ]) <=
-                                        parameters$cutOffs[1]),
+                                            abs(egenefit[i, ]) <=
+                                            parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <=
-                                        parameters$cutOffs[1] & egenefit[i, ] >=
-                                        -parameters$cutOffs[1]),
-                                  which(egenefit[1, ] == -1 & egenefit[i, ] <=
-                                        parameters$cutOffs[1] & egenefit[i, ] >=
-                                        -parameters$cutOffs[1]))
+                                            parameters$cutOffs[1] & 
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[1]),
+                                  which(egenefit[1, ] == -1 & 
+                                            egenefit[i, ] <=
+                                            parameters$cutOffs[1] & 
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[1]))
                             zerosII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] <=
-                                        parameters$cutOffs[2] & egenefit[i, ] >
-                                        parameters$cutOffs[1]),
+                                            parameters$cutOffs[2] & 
+                                            egenefit[i, ] >
+                                            parameters$cutOffs[1]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                        parameters$cutOffs[1] & egenefit[i, ] <=
-                                        parameters$cutOffs[2]))
+                                            parameters$cutOffs[1] & 
+                                            egenefit[i, ] <=
+                                            parameters$cutOffs[2]))
                             zerosIII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] >=
-                                        -parameters$cutOffs[2] & egenefit[i, ] <
-                                        -parameters$cutOffs[1]),
+                                            -parameters$cutOffs[2] & 
+                                            egenefit[i, ] <
+                                            -parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <
-                                        -parameters$cutOffs[1] &
-                                        egenefit[i, ] >=
-                                        -parameters$cutOffs[2]))
+                                            -parameters$cutOffs[1] &
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[2]))
                             if (soft) {
                                 egenefit[i, onePosI] <- 3
                                 egenefit[i, oneNegI] <- -3
@@ -2569,51 +2559,59 @@ validateGraph <-
                         } else {
                             onePosI <-
                                 c(which(egenefit[1, ] == 1 & egenefit[i, ] >
-                                        parameters$cutOffs[2]),
+                                            parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 0 & egenefit[i, ] >
-                                        parameters$cutOffs[2]),
+                                            parameters$cutOffs[2]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                        parameters$cutOffs[2]))
+                                            parameters$cutOffs[2]))
                             onePosII <-
                                 which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                      parameters$cutOffs[1] & egenefit[i, ] <=
-                                      parameters$cutOffs[2])
+                                          parameters$cutOffs[1] & 
+                                          egenefit[i, ] <=
+                                          parameters$cutOffs[2])
                             oneNegI <-
                                 c(which(egenefit[1, ] == -1 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]),
+                                            -parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 0 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]),
+                                            -parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <
-                                        -parameters$cutOffs[2]))
+                                            -parameters$cutOffs[2]))
                             oneNegII <-
                                 which(egenefit[1, ] == 1 & egenefit[i, ] <
-                                      -parameters$cutOffs[1] & egenefit[i, ] >=
-                                      -parameters$cutOffs[2])
+                                          -parameters$cutOffs[1] &
+                                          egenefit[i, ] >=
+                                          -parameters$cutOffs[2])
                             zerosI <-
                                 c(which(egenefit[1, ] == 0 &
-                                        abs(egenefit[i, ]) <=
-                                        parameters$cutOffs[1]),
+                                            abs(egenefit[i, ]) <=
+                                            parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <=
-                                        parameters$cutOffs[1] & egenefit[i, ] >=
-                                        -parameters$cutOffs[1]),
-                                  which(egenefit[1, ] == -1 & egenefit[i, ] <=
-                                        parameters$cutOffs[1] & egenefit[i, ] >=
-                                        -parameters$cutOffs[1]))
+                                            parameters$cutOffs[1] &
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[1]),
+                                  which(egenefit[1, ] == -1 &
+                                            egenefit[i, ] <=
+                                            parameters$cutOffs[1] &
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[1]))
                             zerosII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] <=
-                                        parameters$cutOffs[2] & egenefit[i, ] >
-                                        parameters$cutOffs[1]),
+                                            parameters$cutOffs[2] &
+                                            egenefit[i, ] >
+                                            parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] >
-                                        parameters$cutOffs[1] & egenefit[i, ] <=
-                                        parameters$cutOffs[2]))
+                                            parameters$cutOffs[1] &
+                                            egenefit[i, ] <=
+                                            parameters$cutOffs[2]))
                             zerosIII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] >=
-                                        -parameters$cutOffs[2] & egenefit[i, ] <
-                                        -parameters$cutOffs[1]),
+                                            -parameters$cutOffs[2] & 
+                                            egenefit[i, ] <
+                                            -parameters$cutOffs[1]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] <
-                                        -parameters$cutOffs[1] &
-                                        egenefit[i, ] >=
-                                        -parameters$cutOffs[2]))
+                                            -parameters$cutOffs[1] &
+                                            egenefit[i, ] >=
+                                            -parameters$cutOffs[2]))
                             if (soft) {
                                 egenefit[i, onePosI] <- 3
                                 egenefit[i, oneNegI] <- -3
@@ -2648,29 +2646,30 @@ validateGraph <-
                                 unlist(strsplit(colnames(egenefit)[i], "_"))
                             if (length(names) > 1) {
                                 if (names[1] %in%
-                                    colnames(CNOlist@inhibitors) &
+                                    colnames(getInhibitors(CNOlist)) &
                                     names[length(names)] %in%
-                                    colnames(CNOlist@stimuli)) {
+                                    colnames(getStimuli(CNOlist))) {
                                     colSideColors[i] <- "brown"
                                 }
                                 if (names[1] %in%
-                                    colnames(CNOlist@stimuli) &
+                                    colnames(getStimuli(CNOlist)) &
                                     names[length(names)] %in%
-                                    colnames(CNOlist@inhibitors)) {
+                                    colnames(getInhibitors(CNOlist))) {
                                     colSideColors[i] <- "orange"
                                 }
                                 if (names[1] %in% "Ctrl" &
                                     names[length(names)] %in%
-                                    colnames(CNOlist@stimuli)) {
+                                    colnames(getStimuli(CNOlist))) {
                                     colSideColors[i] <- "yellow"
                                 }
                                 if (names[1] %in% "Ctrl" &
                                     names[length(names)] %in%
-                                    colnames(CNOlist@inhibitors)) {
+                                    colnames(getInhibitors(CNOlist))) {
                                     colSideColors[i] <- "blue"
                                 }
                             } else {
-                                if (names %in% colnames(CNOlist@inhibitors)) {
+                                if (names %in%
+                                    colnames(getInhibitors(CNOlist))) {
                                     colSideColors[i] <- "blue"
                                 } else {
                                     colSideColors[i] <- "yellow"
@@ -2705,8 +2704,8 @@ validateGraph <-
                         col.sums <- colMedians(abs(egenefit))
                         sig.mismatch <- which(col.sums >= 2)
                         sig.mismatch <-
-                            sig.mismatch[-which(egenefit[nrow(egenefit), ]
-                                                != 0)]
+                            sig.mismatch[!egenefit[nrow(egenefit), ]
+                                         != 0]
                         get.cols <-
                             unique(c(sig.mismatch,
                                      which(egenefit[nrow(egenefit), ]
@@ -2800,8 +2799,9 @@ validateGraph <-
                             colnames(egenefit) <-
                                 gene2protein(
                                     myCN2bioCN(colnames(egenefit),
-                                               colnames(CNOlist@stimuli),
-                                               colnames(CNOlist@inhibitors)))
+                                               colnames(getStimuli(CNOlist)),
+                                               colnames(
+                                                   getInhibitors(CNOlist))))
                         }
                         print(HeatmapOP(egenefit, main = mainlab, xrot = xrot,
                                         breaks = real.breaks, coln = 11,
@@ -2810,10 +2810,10 @@ validateGraph <-
                                         dendrogram = dendrogram, col = col,
                                         clusterx = clusterdata, ...))
                     } else {
-                        print("one effect is not a matrix")
+                        stop("one effect is not a matrix")
                     }
                 } else {
-                    print("min equals max in data matrix")
+                    stop("min equals max in data matrix")
                 }
             } else {
                 if (csc) {
@@ -2821,26 +2821,26 @@ validateGraph <-
                     for (i in seq_len(length(colnames(egenefit)))) {
                         names <- unlist(strsplit(colnames(egenefit)[i], "_"))
                         if (length(names) > 1) {
-                            if (names[1] %in% colnames(CNOlist@inhibitors) &
+                            if (names[1] %in% colnames(getInhibitors(CNOlist)) &
                                 names[length(names)] %in%
-                                colnames(CNOlist@stimuli)) {
+                                colnames(getStimuli(CNOlist))) {
                                 colSideColors[i] <- "brown"
                             }
-                            if (names[1] %in% colnames(CNOlist@stimuli) &
+                            if (names[1] %in% colnames(getStimuli(CNOlist)) &
                                 names[length(names)] %in%
-                                colnames(CNOlist@inhibitors)) {
+                                colnames(getInhibitors(CNOlist))) {
                                 colSideColors[i] <- "orange"
                             }
                             if (names[1] %in% "Ctrl" & names[length(names)] %in%
-                                colnames(CNOlist@stimuli)) {
+                                colnames(getStimuli(CNOlist))) {
                                 colSideColors[i] <- "yellow"
                             }
                             if (names[1] %in% "Ctrl" & names[length(names)] %in%
-                                colnames(CNOlist@inhibitors)) {
+                                colnames(getInhibitors(CNOlist))) {
                                 colSideColors[i] <- "blue"
                             }
                         } else {
-                            if (names %in% colnames(CNOlist@inhibitors)) {
+                            if (names %in% colnames(getInhibitors(CNOlist))) {
                                 colSideColors[i] <- "blue"
                             } else {
                                 colSideColors[i] <- "yellow"
@@ -2874,7 +2874,7 @@ validateGraph <-
                     col.sums <- colMedians(abs(egenefit))
                     sig.mismatch <- which(col.sums >= 2)
                     sig.mismatch <-
-                        sig.mismatch[-which(egenefit[nrow(egenefit), ] != 0)]
+                        sig.mismatch[!egenefit[nrow(egenefit), ] != 0]
                     get.cols <-
                         unique(c(sig.mismatch,
                                  which(egenefit[nrow(egenefit), ] != 0)))
@@ -2924,7 +2924,7 @@ validateGraph <-
                     } else {
                         geneorder <-
                             rownames(EtoS)[which(EtoS[, 2] ==
-                                                 Sgene)[seq_len(Egenes)]]
+                                                     Sgene)[seq_len(Egenes)]]
                         egenefit_genes <-
                             egenefit_genes[order(match(rownames(egenefit_genes),
                                                        geneorder),
@@ -2964,21 +2964,21 @@ validateGraph <-
                 clusterdata <- NULL
                 low <-
                     sum(egenefit[nrow(egenefit), ] ==
-                        min(egenefit[nrow(egenefit), ]))
+                            min(egenefit[nrow(egenefit), ]))
                 high <-
                     sum(egenefit[nrow(egenefit), ] ==
-                        max(egenefit[nrow(egenefit), ]))
+                            max(egenefit[nrow(egenefit), ]))
                 egenefit2 <- egenefit
-                egenefit2[which(rownames(egenefit2) %in%
-                                rownames(EtoS)[which(EtoS[, 3] == -1)]), ] <-
-                    egenefit2[which(rownames(egenefit2) %in%
-                                    rownames(EtoS)[which(EtoS[, 3] ==
-                                                         -1)]), ]*(-1)
+                egenefit2[rownames(egenefit2) %in%
+                              rownames(EtoS)[EtoS[, 3] == -1], ] <-
+                    egenefit2[rownames(egenefit2) %in%
+                                  rownames(EtoS)[EtoS[, 3] ==
+                                                     -1], ]*(-1)
                 egenefit2 <- t(apply(egenefit2, 1, rank))
-                high2 <- which(egenefit2 > ncol(egenefit2)-high)
-                low2 <- which(egenefit2 < low)
-                mid <- which(egenefit2 >= low & egenefit2 <=
-                             ncol(egenefit2)-high)
+                high2 <- egenefit2 > ncol(egenefit2)-high
+                low2 <- egenefit2 < low
+                mid <- egenefit2 >= low & egenefit2 <=
+                    ncol(egenefit2)-high
                 egenefit2[high2] <- 1
                 egenefit2[low2] <- -1
                 egenefit2[mid] <- 0
@@ -2994,7 +2994,9 @@ validateGraph <-
                     breaks <-
                         c(0, sort(unique(egenefit[nrow(egenefit), ])),
                           ncol(egenefit)+1)
-                    print(breaks)
+                    if (verbose) {
+                        message(breaks)
+                    }
                 }
                 if (ranks) {
                     if (is.null(breaks)) {
@@ -3004,8 +3006,8 @@ validateGraph <-
                         colnames(egenefit2) <-
                             gene2protein(
                                 myCN2bioCN(colnames(egenefit2),
-                                           colnames(CNOlist@stimuli),
-                                           colnames(CNOlist@inhibitors)))
+                                           colnames(getStimuli(CNOlist)),
+                                           colnames(getInhibitors(CNOlist))))
                     }
                     print(HeatmapOP(egenefit2, main = mainlab, xrot = xrot,
                                     breaks = breaks, coln = 11, Colv = Colv,
@@ -3021,8 +3023,8 @@ validateGraph <-
                         colnames(egenefit) <-
                             gene2protein(
                                 myCN2bioCN(colnames(egenefit),
-                                           colnames(CNOlist@stimuli),
-                                           colnames(CNOlist@inhibitors)))
+                                           colnames(getStimuli(CNOlist)),
+                                           colnames(getInhibitors(CNOlist))))
                     }
                     print(HeatmapOP(egenefit, main = mainlab, xrot = xrot,
                                     breaks = breaks, coln = 11, Colv = Colv,
@@ -3040,7 +3042,7 @@ validateGraph <-
                                 Colv = FALSE, Rowv = FALSE, col = "RdBu",
                                 coln = 12, breaks = seq(0,8,0.1)), ...)
             }
-            print("min equals max in data matrix")
+            stop("min equals max in data matrix")
             bad.data <- TRUE
         }
         if (sum(EtoS[, 2] == Sgene) == 0) {
@@ -3056,13 +3058,13 @@ validateGraph <-
                 return(NULL)
             }
         } else {
-            if (!is.na(rownames(as.matrix(EtoS[which(EtoS[, 2] ==
-                                                     Sgene), ]))[1])) {
+            if (!is.na(rownames(as.matrix(EtoS[EtoS[, 2] ==
+                                               Sgene, ]))[1])) {
                 if (sum(EtoS[, 2] == Sgene) > 1) {
-                    genesInfo <- EtoS[which(EtoS[, 2] == Sgene), ]
+                    genesInfo <- EtoS[EtoS[, 2] == Sgene, ]
                 } else {
-                    names.backup <- rownames(EtoS)[which(EtoS[, 2] == Sgene)]
-                    genesInfo <- t(as.matrix(EtoS[which(EtoS[, 2] == Sgene), ]))
+                    names.backup <- rownames(EtoS)[EtoS[, 2] == Sgene]
+                    genesInfo <- t(as.matrix(EtoS[EtoS[, 2] == Sgene, ]))
                     rownames(genesInfo) <- names.backup
                 }
                 if (affyIds == FALSE) {
@@ -3144,7 +3146,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param exprs Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data 
 #' for m E-genes and l experiments.
 #' @param model Model object including the search space, if available.
 #' See CellNOptR::preprocessing.
@@ -3174,7 +3176,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' sim <- simBoolGtn()
 #' scoreDnf(sim$bString, sim$CNOlist, sim$fc, model=sim$model)
 scoreDnf <- function(bString, CNOlist, fc, 
-                     exprs=NULL, model, method = "cosine",
+                     expression=NULL, model, method = "cosine",
                      sizeFac=10^-10,NAFac=1,
                      parameters = list(cutOffs = c(0,1,0),
                                        scoring = c(0.25,0.5,2)),
@@ -3182,13 +3184,13 @@ scoreDnf <- function(bString, CNOlist, fc,
                      verbose = FALSE) {
     approach <- "fc"
     if (is.null(fc)) { approach <- "abs" }
-    if (is.null(fc) & is.null(exprs)) {
-        stop(paste0("please either provide a matrix of foldchanges 'fc' ",
-                    "or a matrix of expression values 'exprs'"))
+    if (is.null(fc) & is.null(expression)) {
+        stop("please either provide a matrix of foldchanges 'fc' ",
+             "or a matrix of expression values 'expression'")
     }
     NEMlist <- list()
     NEMlist$fc <- fc
-    NEMlist$exprs <- exprs
+    NEMlist$expression <- expression
     NEMlist <- checkNEMlist(NEMlist, CNOlist=CNOlist,
                             parameters = parameters, approach = approach,
                             method=method)
@@ -3229,17 +3231,17 @@ plot.bnemsim <- function(x, ...) {
 #' @examples
 #' sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 #' c("C", 1, "D"))
-#' write.table(sifMatrix, file = "temp.sif", sep = "\t",
+#' temp.file <- tempfile(pattern="interaction",fileext=".sif")
+#' write.table(sifMatrix, file = temp.file, sep = "\t",
 #' row.names = FALSE, col.names = FALSE,
 #' quote = FALSE)
-#' PKN <- CellNOptR::readSIF("temp.sif")
-#' unlink('temp.sif')
+#' PKN <- CellNOptR::readSIF(temp.file)
 #' CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 #' maxInhibit = 2, signals = c("A", "B","C","D"))
 #' model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-#' exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+#' expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 #' nrow(slot(CNOlist, "cues")))
-#' fc <- computeFc(CNOlist, exprs)
+#' fc <- computeFc(CNOlist, expression)
 #' initBstring <- rep(0, length(model$reacID))
 #' res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
 #' fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),

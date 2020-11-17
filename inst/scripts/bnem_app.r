@@ -106,7 +106,7 @@ if (is.na(commandArgs(TRUE)[2])) {
     verbose <- FALSE
     draw <- FALSE
     
-    methnames <- c("greedy", "greedy_ia", "genetic_quick", "genetic_long", "genetic_stall","random")
+    methnames <- c("greedy", "greedy_ia", "greedy_cor", "genetic_quick", "genetic_long", "genetic_stall","random")
     storenames <- c("time", "accracy truth table", "accuracy differential effects", "score","tp","fp","tn","fn")
     result <- array(0, c(maxrun, length(methnames), length(storenames)), list(paste0("run", seq_len(maxrun)), methnames, storenames))
     
@@ -192,62 +192,76 @@ if (is.na(commandArgs(TRUE)[2])) {
         maxTime <- result[run, 2, 1]
         
         start <- as.numeric(Sys.time())
-        res2 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
+        res1 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = "s", verbose = verbose, draw = draw)
         result[run, 3, 1] <- as.numeric(Sys.time()) - start
-        ETT2 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res2$bString))
-        result[run, 3, 2] <- sum(ETT2 == ETT)/length(ETT)
-        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT2)
-        ERS2 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        ETT1 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res1$bString))
+        result[run, 3, 2] <- sum(ETT1 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT1)
+        ERS1 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
         result[run, 3, 3] <- sum(ERS == sim$ERS)/length(ERS)
-        result[run, 3, 4] <- min(res2$scores)
+        result[run, 3, 4] <- min(res1$scores[[1]])
         result[run, 3, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
         result[run, 3, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 3, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 3, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
         
-        maxTime <- result[run, 2, 1]*10
-        
         start <- as.numeric(Sys.time())
-        res3 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
+        res2 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
         result[run, 4, 1] <- as.numeric(Sys.time()) - start
-        ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res3$bString))
-        result[run, 4, 2] <- sum(ETT3 == ETT)/length(ETT)
-        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT3)
-        ERS3 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        ETT2 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res2$bString))
+        result[run, 4, 2] <- sum(ETT2 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT2)
+        ERS2 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
         result[run, 4, 3] <- sum(ERS == sim$ERS)/length(ERS)
-        result[run, 4, 4] <- min(res3$scores)
+        result[run, 4, 4] <- min(res2$scores)
         result[run, 4, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
         result[run, 4, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 4, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 4, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
         
+        maxTime <- result[run, 2, 1]*10
+        
         start <- as.numeric(Sys.time())
-        res4 <- bnem(search = "genetic", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
+        res3 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
         result[run, 5, 1] <- as.numeric(Sys.time()) - start
-        ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res4$bString))
+        ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res3$bString))
         result[run, 5, 2] <- sum(ETT3 == ETT)/length(ETT)
         ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT3)
         ERS3 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
         result[run, 5, 3] <- sum(ERS == sim$ERS)/length(ERS)
-        result[run, 5, 4] <- min(res4$scores)
+        result[run, 5, 4] <- min(res3$scores)
         result[run, 5, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
         result[run, 5, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 5, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 5, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
         
         start <- as.numeric(Sys.time())
-        rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
+        res4 <- bnem(search = "genetic", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
         result[run, 6, 1] <- as.numeric(Sys.time()) - start
-        ETT4 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=rand))
-        result[run, 6, 2] <- sum(ETT4 == ETT)/length(ETT)
-        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT4)
-        ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        ETT3 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res4$bString))
+        result[run, 6, 2] <- sum(ETT3 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT3)
+        ERS3 <- ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
         result[run, 6, 3] <- sum(ERS == sim$ERS)/length(ERS)
-        result[run, 6, 4] <- scoreDnf(rand, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method)
+        result[run, 6, 4] <- min(res4$scores)
         result[run, 6, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
         result[run, 6, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 6, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 6, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
+        
+        start <- as.numeric(Sys.time())
+        rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
+        result[run, 7, 1] <- as.numeric(Sys.time()) - start
+        ETT4 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=rand))
+        result[run, 7, 2] <- sum(ETT4 == ETT)/length(ETT)
+        ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT4)
+        ERS <- ERS[, which(colnames(ERS) %in% colnames(sim$ERS))]
+        result[run, 7, 3] <- sum(ERS == sim$ERS)/length(ERS)
+        result[run, 7, 4] <- scoreDnf(rand, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method)
+        result[run, 7, 5] <- sum(ERS == 1 & sim$ERS == 1)+sum(ERS==-1 & sim$ERS == -1)
+        result[run, 7, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
+        result[run, 7, 7] <- sum(ERS == 0 & sim$ERS == 0)
+        result[run, 7, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
 
         ## result[1,,]; par(mfrow=c(1,4)); plotDnf(sim$model$reacID[as.logical(res1$bString)]); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$model$reacID[as.logical(res2$bString)]); plotDnf(sim$model$reacID[as.logical(res3$bString)]);
         ## result[run,,]
@@ -260,9 +274,7 @@ if (is.na(commandArgs(TRUE)[2])) {
     
 ## general:
 
-system("scp ~/Documents/B-NEM/R/bnem_low.r euler:")
-system("scp ~/Documents/B-NEM/R/bnem_main.r euler:")
-system("scp ~/Documents/B-NEM/other/bnem_app.r euler:")
+## system("scp ~/Documents/bnem/R/bnem_low.r euler:"); system("scp ~/Documents/bnem/R/bnem_main.r euler:"); system("scp ~/Documents/bnem/other/bnem_app.r euler:")
 
 ram=1000
 rm error.txt
@@ -314,6 +326,9 @@ done
 
 ## plot sim:
 
+source("~/Documents/mnem/R/mnems.r")
+source("~/Documents/mnem/R/mnems_low.r")
+
 path <- "~/Mount/Eulershare/"
 n <- 20
 s <- 4
@@ -346,15 +361,21 @@ for (n in c(10,20,30)) {
     results[[count]] <- result
 }
 
-methods <- c("greedy","greedy\n(inverse absorption)","genetic\n(time-limit)","genetic","genetic (stall)","random")
-cols <- c("darkred","red","darkgreen","green","lightgreen","grey")
+n.meth <- dim(results[[1]])[2]
+if (n.meth==7) {
+    methods <- c("greedy","greedy\n(inverse absorption)","greedy\n(spearman)","genetic\n(time-limit)","genetic","genetic (stall)","random")
+    cols <- c("darkred","red","blue","darkgreen","green","lightgreen","grey")
+} else {
+    methods <- c("greedy","greedy\n(inverse absorption)","genetic\n(time-limit)","genetic","genetic (stall)","random")
+    cols <- c("darkred","red","darkgreen","green","lightgreen","grey")
+}
 
 wilcox <- array(NA,c(3,length(methods),length(methods)),list(Sgenes=c(10,20,30),methods=methods,methods2=methods))
 idx1 <- 5
-idx2 <- 8
+idx2 <- 6
 for (i in 1:3) {
-    for (j in 1:6) {
-        for (k in 1:6) {
+    for (j in 1:n.meth) {
+        for (k in 1:n.meth) {
         wilcox[i,j,k] <- wilcox.test(results[[i]][,j,idx1]/(results[[i]][,j,idx1]+results[[i]][,j,idx2]),results[[i]][,k,idx1]/(results[[i]][,k,idx1]+results[[i]][,k,idx2]),alternative="less")$p.value
         }
     }
@@ -363,7 +384,7 @@ for (i in 1:3) {
 box <- 1
 time <- 1
 if (box) {
-    restime <- cbind(results[[1]][,1:6,1],results[[2]][,1:6,1],results[[3]][,1:6,1])
+    restime <- cbind(results[[1]][,1:n.meth,1],results[[2]][,1:n.meth,1],results[[3]][,1:n.meth,1])
     if (time) {
         # pdf("temp.pdf", width = 11, height = 6)
         # laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,29),rep(5,21)),2,byrow=TRUE)
@@ -376,25 +397,29 @@ if (box) {
         print(apply(restime,2,mean))
     }
     layout(laymat)
-    v.idx <- c(6.5,12.5)
-    axis.idx <- c(3.5,9.5,15.5)
+    v.idx <- c(n.meth+0.5,n.meth*2+0.5)
+    #v.idx <- c(6.5,12.5)
+    axis.idx <- c(n.meth/2+0.5,n.meth*1.5+0.5,n.meth*2.5+0.5)
+    #axis.idx <- c(3.5,9.5,15.5)
     if (time) {
         myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y")
         abline(v=v.idx)
         axis(1,axis.idx,c(10,20,30))
     }
-    resacc <- cbind(results[[1]][,1:6,3],results[[2]][,1:6,3],results[[3]][,1:6,3])
-    resacc <- cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])/(cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])+cbind(results[[1]][,1:6,6],results[[2]][,1:6,6],results[[3]][,1:6,6]))
+    resacc <- cbind(results[[1]][,1:n.meth,3],results[[2]][,1:n.meth,3],results[[3]][,1:n.meth,3])
+    resacc <- cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])/(cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])+cbind(results[[1]][,1:n.meth,6],results[[2]][,1:n.meth,6],results[[3]][,1:n.meth,6]))
     myboxplot(resacc, col = cols,border=cols,medcol="black",ylab = "precision", main = "Precision of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))
     abline(v=v.idx)
     axis(1,axis.idx,c(10,20,30))
-    resll <- -cbind(results[[1]][,1:6,4],results[[2]][,1:6,4],results[[3]][,1:6,4])
-    resll <- cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])/(cbind(results[[1]][,1:6,5],results[[2]][,1:6,5],results[[3]][,1:6,5])+cbind(results[[1]][,1:6,8],results[[2]][,1:6,8],results[[3]][,1:6,8]))
+    resll <- -cbind(results[[1]][,1:n.meth,4],results[[2]][,1:n.meth,4],results[[3]][,1:n.meth,4])
+    resll <- cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])/(cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])+cbind(results[[1]][,1:n.meth,8],results[[2]][,1:n.meth,8],results[[3]][,1:n.meth,8]))
     myboxplot(resll, col = cols,border=cols,medcol="black",ylab = "recall", main = "Recall of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))#, ylim = c(0,1),dens=0,bordercol=cols)
     abline(v=v.idx)
     axis(1,axis.idx,c(10,20,30))
-    plot(1:10,col="transparent",yaxt="n",xaxt="n",bty="n",xlab="",ylab="")
-    legend("top",legend=methods,col=cols,fill=cols,border=FALSE,box.lwd=0,box.col="transparent",y.intersp=1.5)
+    op <- par(mar = rep(0, 4))
+    plot(1:100,col="transparent",yaxt="n",xaxt="n",bty="n",xlab="",ylab="")
+    legend('top',legend=methods,col=cols,fill=cols,border=FALSE,box.lwd=0,box.col="transparent",y.intersp=2)
+    par(op)
     dev.off()
 }
 

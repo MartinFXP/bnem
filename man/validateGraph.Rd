@@ -7,7 +7,7 @@
 validateGraph(
   CNOlist,
   fc = NULL,
-  exprs = NULL,
+  expression = NULL,
   model,
   bString,
   Egenes = 25,
@@ -43,7 +43,7 @@ equivalent input
 NULL, the gene expression
 data is used to calculate naive foldchanges.}
 
-\item{exprs}{Optional normalized m x l matrix of gene expression data 
+\item{expression}{Optional normalized m x l matrix of gene expression data 
 for m E-genes and l experiments.}
 
 \item{model}{Model object including the search space, if available.
@@ -54,7 +54,7 @@ See CellNOptR::preprocessing.}
 \item{Egenes}{Maximal number of visualized E-genes.}
 
 \item{Sgene}{Integer denoting the S-gene. See
-colnames(CNOlist@signals[[1]]) to match integer with S-gene name.}
+colnames(getSignals(CNOlist)[[1]]) to match integer with S-gene name.}
 
 \item{parameters}{parameters for discrete case (not recommended);
 has to be a list with entries cutOffs and scoring:
@@ -121,17 +121,17 @@ expected differential effects of the regulating signalling gene
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-col.names = FALSE,
+temp.file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = temp.file, sep = "\t",
+row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- CellNOptR::readSIF("temp.sif")
-unlink('temp.sif')
+PKN <- CellNOptR::readSIF(temp.file)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
 model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 nrow(slot(CNOlist, "cues")))
-fc <- computeFc(CNOlist, exprs)
+fc <- computeFc(CNOlist, expression)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", CNOlist = CNOlist, fc = fc,
 model = model, parallel = NULL, initBstring = initBstring, draw = FALSE,

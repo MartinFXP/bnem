@@ -23,11 +23,11 @@ reduces the size of a graph, if possible, to an equivalent sub-graph
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-col.names = FALSE,
+temp.file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = temp.file, sep = "\t",
+row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- CellNOptR::readSIF("temp.sif")
-unlink('temp.sif')
+PKN <- CellNOptR::readSIF(temp.file)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signal = c("A", "B","C","D"))
 model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)

@@ -16,5 +16,4 @@ res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
 fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
 parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
 maxSteps = Inf)
-score <- scoreDnf(res$bString, CNOlist, fc, model)
-checkEqualsNumeric(min(res$scores[[1]]),score)
+checkTrue(all(res$scores[[1]][-1]-res$scores[[1]][-length(res$scores[[1]])]<=0))

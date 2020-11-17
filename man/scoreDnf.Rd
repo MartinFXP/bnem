@@ -8,7 +8,7 @@ scoreDnf(
   bString,
   CNOlist,
   fc,
-  exprs = NULL,
+  expression = NULL,
   model,
   method = "cosine",
   sizeFac = 10^-10,
@@ -30,7 +30,7 @@ equivalent input
 NULL, the gene expression
 data is used to calculate naive foldchanges.}
 
-\item{exprs}{Optional normalized m x l matrix of gene expression data 
+\item{expression}{Optional normalized m x l matrix of gene expression data 
 for m E-genes and l experiments.}
 
 \item{model}{Model object including the search space, if available.

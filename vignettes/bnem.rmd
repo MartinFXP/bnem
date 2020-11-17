@@ -53,6 +53,7 @@ fig.cap2 <- "Expected and observed data. The expected data pattern
 E-genes attached to S1."
 fig.cap3 <- "BCR signalling. The PKN (left) and the greedy optimum 
 with an empty start network (right)."
+
 ```
 
 Install the package with the devtools library or via Bioconductor.
@@ -84,17 +85,10 @@ the function generates data given the ground truth.
 
 ```{r}
 set.seed(9247)
-
 sim <- simBoolGtn(Sgenes = 10, maxEdges = 10, keepsif = TRUE, negation=0.1,
                   layer=1)
-fc <- sim$fc
-pos <- which(fc == 1)
-neg <- which(fc == -1)
-zero <- which(fc == 0)
-fc[pos] <- rnorm(length(pos),1,1)
-fc[neg] <- rnorm(length(neg),-1,1)
-fc[zero] <- rnorm(length(zero),0,1)
-exprs <- sim$exprs
+fc <- addNoise(sim,sd=1)
+expression <- sim$expression
 CNOlist <- sim$CNOlist
 model <- sim$model
 bString <- sim$bString
@@ -149,7 +143,7 @@ parallel <- NULL # NULL for serialization
 ## greedy search:
 greedy <- bnem(search = "greedy",
                fc=fc,
-               exprs=exprs, # not used, if fc is defined
+               expression=expression, # not used, if fc is defined
                CNOlist=CNOlist,
                model=model,
                parallel=parallel,
@@ -163,7 +157,7 @@ greedy <- bnem(search = "greedy",
 
 greedy2 <- bnem(search = "greedy",
                 fc=fc,
-                exprs=exprs,
+                expression=expression,
                 CNOlist=CNOlist,
                 model=model,
                 parallel=parallel,
@@ -181,22 +175,20 @@ inferred networks. We first look at the respective scores
 specificity of the edges for both results.
 
 ```{r}
-print(greedy$scores) # rank correlation = normalized
-print(greedy2$scores) # scaled log foldchanges
+greedy$scores # rank correlation = normalized
+greedy2$scores # scaled log foldchanges
 
-resString <- greedy$bString
+accuracy <- function(gtn,inferred) {
+  sens <- sum(gtn == 1 & inferred == 1)/
+    (sum(gtn == 1 & inferred == 1) + sum(gtn == 1 & inferred == 0))
+  spec <- sum(gtn == 0 & inferred == 0)/
+      (sum(gtn == 0 & inferred == 0) + sum(gtn == 0 & inferred == 1))
+  return(c(sens,spec))
+}
 
-print(sum(bString == 1 & resString == 1)/
-      (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
-print(sum(bString == 0 & resString == 0)/
-      (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
-
+accuracy(bString,greedy$bString)
+accuracy(bString,greedy2$bString)
 resString <- greedy2$bString
-
-print(sum(bString == 1 & resString == 1)/
-      (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
-print(sum(bString == 0 & resString == 0)/
-      (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
 ```
 
 We take a look at the efficiency of the search algorithm with
@@ -207,19 +199,11 @@ hyper-graph can differ from the GTN and still be $100\%$ accurate.
 
 ```{r, fig.width = 15, fig.height = 5, fig.cap = fig.cap1}
 par(mfrow=c(1,2))
-
 ## GTN:
 plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
-
 ## greedy optimum:
 plotDnf(model$reacID[as.logical(resString)], main = "greedy optimum",
         stimuli = stimuli)
-
-## hyper-edge sensitivity and specificity:
-print(sum(bString == 1 & resString == 1)/
-      (sum(bString == 1 & resString == 1) + sum(bString == 1 & resString == 0)))
-print(sum(bString == 0 & resString == 0)/
-      (sum(bString == 0 & resString == 0) + sum(bString == 0 & resString == 1)))
 
 ## accuracy of the expected response scheme (can be high even, if
 ## the networks differ):
@@ -233,7 +217,7 @@ After optimization we look at the data and how well the greedy optimum
 explains the E-genes. The lower the score the better the fit.
 
 ```{r, fig.width = 15, fig.height = 10, fig.cap = fig.cap3}
-fitinfo <- validateGraph(CNOlist, fc=fc, exprs=exprs, model = model,
+fitinfo <- validateGraph(CNOlist, fc=fc, expression=expression, model = model,
                          bString = resString,
                          Sgene = 4, Egenes = 1000, cexRow = 0.8,
                          cexCol = 0.7,
@@ -255,7 +239,7 @@ recommended for search spaces with more than 20 hyper-edges.
 ## genetic algorithm:
 genetic <- bnem(search = "genetic",
            fc=fc,
-           exprs=exprs,
+           expression=expression,
            parallel = parallel,
            CNOlist=CNOlist,
            model=model,
@@ -265,7 +249,6 @@ genetic <- bnem(search = "genetic",
            draw = FALSE,
            verbose = FALSE
            )
-resString <- genetic$bString
 ```
 
 ```{r, eval = FALSE}
@@ -274,10 +257,9 @@ exhaustive <- bnem(search = "exhaustive",
                    parallel = parallel,
                    CNOlist=CNOlist,
                    fc=fc,
-                   exprs=exprs,
+                   expression=expression,
                    model=model
                    )
-resString <- exhaustive$bString
 ```
 
 # Stimulated and inhibited S-genes can overlap
@@ -298,14 +280,8 @@ is inhibited the inhibitor S-gene is set to 0.
 set.seed(9247)
 sim <- simBoolGtn(Sgenes = 4, maxEdges = 50, dag = FALSE,
                   negation = 0, allstim = TRUE,frac=0.1)
-fc <- sim$fc
-pos <- which(fc == 1)
-neg <- which(fc == -1)
-zero <- which(fc == 0)
-fc[pos] <- rnorm(length(pos),1,1)
-fc[neg] <- rnorm(length(neg),-1,1)
-fc[zero] <- rnorm(length(zero),0,1)
-exprs <- sim$exprs
+fc <- addNoise(sim,sd=1)
+expression <- sim$expression
 CNOlist <- sim$CNOlist
 model <- sim$model
 bString <- sim$bString
@@ -330,7 +306,7 @@ plotDnf(sim$model$reacID[as.logical(bString)], stimuli = stimuli)
 greedy3 <- bnem(search = "greedy",
                 CNOlist=CNOlist,
                 fc=fc,
-                exprs=exprs,
+                expression=expression,
                 model=model,
                 parallel=parallel,
                 initBstring=bString*0,
@@ -350,12 +326,7 @@ plotDnf(model$reacID[as.logical(bString)], main = "GTN", stimuli = stimuli)
 plotDnf(model$reacID[as.logical(resString2)], main = "greedy optimum",
         stimuli = stimuli)
 
-print(sum(bString == 1 & resString2 == 1)/
-      (sum(bString == 1 & resString2 == 1) + sum(bString == 1 &
-                                                 resString2 == 0)))
-print(sum(bString == 0 & resString2 == 0)/
-      (sum(bString == 0 & resString2 == 0) + sum(bString == 0 &
-                                                 resString2 == 1)))
+accuracy(bString,resString2)
 ERS.res <- computeFc(CNOlist, t(simulateStatesRecursive(CNOlist, model,
                                                         resString2)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
@@ -382,7 +353,7 @@ initBstring <- reduceGraph(rep(0, length(model$reacID)), model, CNOlist)
 greedy2b <- bnem(search = "greedy",
                  CNOlist=CNOlist,
                  fc=fc,
-                 exprs=exprs,
+                 expression=expression,
                  egenes=egenes,
                  model=model,
                  parallel=parallel,
@@ -403,12 +374,7 @@ just a subset of S-genes. This way S-genes, which do not have the
 E-genes included in their E-gene set are excluded as potential parents.
 
 ```{r}
-print(sum(bString == 1 & resString3 == 1)/
-      (sum(bString == 1 & resString3 == 1) + sum(bString == 1 &
-                                                 resString3 == 0)))
-print(sum(bString == 0 & resString3 == 0)/
-      (sum(bString == 0 & resString3 == 0) + sum(bString == 0 &
-                                                 resString3 == 1)))
+accuracy(bString,resString3)
 ERS.res <- computeFc(CNOlist,
                      t(simulateStatesRecursive(CNOlist, model, resString3)))
 ERS.res <- ERS.res[, which(colnames(ERS.res) %in% colnames(ERS))]
@@ -441,7 +407,7 @@ with up to triple inhibitions. See Pirkl et al. 2016 for more details.
 data(bcr)
 ## head(fc)
 fc <- bcr$fc
-exprs <- bcr$exprs
+expression <- bcr$expression
 ```
 
 We build a PKN to incorporate biological knowledge and account for
@@ -477,11 +443,10 @@ for (i in c("Ikk2", "p38", "Jnk")) {
         }
     }
 }
-
-write.table(sifMatrix, file = "temp.sif", sep = "\t",
+file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = file, sep = "\t",
             row.names = FALSE, col.names = FALSE, quote = FALSE)
-PKN <- readSIF("temp.sif")
-unlink("temp.sif")
+PKN <- readSIF(file)
 ```
 
 In the next step, we create the meta information. This ensures, that

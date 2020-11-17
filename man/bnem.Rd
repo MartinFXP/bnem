@@ -7,7 +7,7 @@
 bnem(
   search = "greedy",
   fc = NULL,
-  exprs = NULL,
+  expression = NULL,
   egenes = NULL,
   pkn = NULL,
   design = NULL,
@@ -64,7 +64,7 @@ equivalent input
 NULL, the gene expression
 data is used to calculate naive foldchanges.}
 
-\item{exprs}{Optional normalized m x l matrix of gene expression data 
+\item{expression}{Optional normalized m x l matrix of gene expression data 
 for m E-genes and l experiments.}
 
 \item{egenes}{list object; each list entry is named after an S-gene and
@@ -167,7 +167,9 @@ algorithm would take longer (only "genetic").}
 
 \item{delcyc}{If TRUE deletes cycles in all hyper-graphs (not recommended).}
 
-\item{seeds}{how many starts for the greedy search? (default: 1)}
+\item{seeds}{how many starts for the greedy search? (default: 1); uses 
+the n-dimensional cube (n = number of S-genes) to maximize search 
+space coverage}
 
 \item{maxSteps}{Maximal number of steps (only "greedy").}
 
@@ -195,17 +197,17 @@ as input and trains logical functions on that prior network
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\t",
+temp.file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = temp.file, sep = "\t",
 row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- CellNOptR::readSIF("temp.sif")
-unlink('temp.sif')
+PKN <- CellNOptR::readSIF(temp.file)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
 maxInhibit = 2, signals = c("A", "B","C","D"))
 model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 nrow(slot(CNOlist, "cues")))
-fc <- computeFc(CNOlist, exprs)
+fc <- computeFc(CNOlist, expression)
 initBstring <- rep(0, length(model$reacID))
 res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
 fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),

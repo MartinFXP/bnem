@@ -18,8 +18,25 @@ plot of boolean network
 plots the boolen network as disjunctive normal form
 }
 \examples{
-sim <- simBoolGtn()
-plot(sim)
+sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
+c("C", 1, "D"))
+temp.file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = temp.file, sep = "\t",
+row.names = FALSE, col.names = FALSE,
+quote = FALSE)
+PKN <- CellNOptR::readSIF(temp.file)
+CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1,
+maxInhibit = 2, signals = c("A", "B","C","D"))
+model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
+expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+nrow(slot(CNOlist, "cues")))
+fc <- computeFc(CNOlist, expression)
+initBstring <- rep(0, length(model$reacID))
+res <- bnem(search = "greedy", model = model, CNOlist = CNOlist,
+fc = fc, pkn = PKN, stimuli = "A", inhibitors = c("B","C","D"),
+parallel = NULL, initBstring = initBstring, draw = FALSE, verbose = FALSE,
+maxSteps = Inf, seeds = 10)
+plot(res)
 }
 \author{
 Martin Pirkl

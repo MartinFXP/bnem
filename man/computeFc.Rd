@@ -21,17 +21,17 @@ computes differential effects given an activation pattern
 \examples{
 sifMatrix <- rbind(c("A", 1, "B"), c("A", 1, "C"), c("B", 1, "D"),
 c("C", 1, "D"))
-write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
-col.names = FALSE,
+temp.file <- tempfile(pattern="interaction",fileext=".sif")
+write.table(sifMatrix, file = temp.file, sep = "\t",
+row.names = FALSE, col.names = FALSE,
 quote = FALSE)
-PKN <- CellNOptR::readSIF("temp.sif")
-unlink('temp.sif')
+PKN <- CellNOptR::readSIF(temp.file)
 CNOlist <- dummyCNOlist("A", c("B","C","D"), maxStim = 1, maxInhibit = 2,
 signals = c("A", "B","C","D"))
 model <- CellNOptR::preprocessing(CNOlist, PKN, maxInputsPerGate = 100)
-exprs <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
+expression <- matrix(rnorm(nrow(slot(CNOlist, "cues"))*10), 10,
 nrow(slot(CNOlist, "cues")))
-fc <- computeFc(CNOlist, exprs)
+fc <- computeFc(CNOlist, expression)
 }
 \author{
 Martin Pirkl
