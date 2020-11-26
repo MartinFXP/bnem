@@ -1670,12 +1670,12 @@ same.") }
         p1 <- HeatmapOP(resDiff3[, seq_len(ncol(NEMlist$fc))],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (positive effects)", sub = "",
-                        xrot = "60", breaks = res.breaks, colorkey = FALSE)
+                        xrot = "60", breaks = res.breaks, colorkey = NULL)
         
         p2 <- HeatmapOP(resDiff3[, (ncol(NEMlist$fc)+2):(2*ncol(NEMlist$fc)+1)],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (negative effects)", sub = "",
-                        xrot = "60", breaks = res.breaks, colorkey = TRUE)
+                        xrot = "60", breaks = res.breaks)
         
         if (verbose) {
             print(p1, position=c(0, 0, .48, 1), more=TRUE)
