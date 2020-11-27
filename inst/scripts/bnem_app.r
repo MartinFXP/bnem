@@ -1,25 +1,11 @@
-## install stuff:
-
-## if (!requireNamespace("BiocManager", quietly = TRUE))
-##     install.packages("BiocManager")
-
-## BiocManager::install("CellNOptR")
-
-## bootstraps:
-
 if (is.na(commandArgs(TRUE)[2])) {
     run <- as.numeric(commandArgs(TRUE)[1])
-    
     path <- "/cluster/work/bewi/members/mpirkl/"
-    
-    source("bnem_main.r")
-    source("bnem_low.r")
+    library(bnem)
     library(CellNOptR)
     library(matrixStats)
-    
     load("bcr.rda")
     fc <- bcr$fc
-    
     sifMatrix <- rbind(c("BCR", 1, "Pi3k"),
                        c("BCR", 1, "Tak1"),
                        c("Tak1", 1, "Erk"),
@@ -42,80 +28,44 @@ if (is.na(commandArgs(TRUE)[2])) {
                 quote = FALSE)
     PKN <- readSIF(paste0("temp", uniquesample, ".sif"))
     unlink(paste0("temp", uniquesample, ".sif"))
-    
     CNOlist <- dummyCNOlist("BCR", c("Erk", "Ikk2", "Jnk", "p38", "Pi3k", "Tak1"), 1, 3)
-    
     model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-    
     initBstring = rbind(rep(0, length(model$reacID)),
                         rep(1, length(model$reacID)))
-    
-    ## initBstring <- initBstring[1, ]
-    
     nemfc <- bcr$fc[, c(1,2,6,8,9,10)]
     colnames(nemfc) <- gsub(".*_", "", colnames(nemfc))
     nemfc[which(abs(nemfc) >= log2(1.5))] <- 1
     nemfc[which(nemfc != 1)] <- 0
     nemres <- mnem:::mynem(nemfc, method = "disc")
-    
     bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", startString = initBstring, verbose = 0)
-    
     save(bsres, file = paste0(path, "bnem/bcr_boot_", run, ".rda"))
-    
     stop("bcr done")
-    
 } else {
-    
     ## load stuff:
-    
-    print(version)
-    
-    source("bnem_main.r")
-    source("bnem_low.r")
+    library(bnem)
     library(CellNOptR)
     library(matrixStats)
-    
-    ## source("~/Documents/B-NEM/R/bnem_main.r"); source("~/Documents/B-NEM/R/bnem_low.r")
-    
+    ## parameters:
     maxrun <- as.numeric(commandArgs(TRUE)[1])
-    
     frac <- as.numeric(commandArgs(TRUE)[2])
-    
     part <- as.numeric(commandArgs(TRUE)[3])
-    
     maxEdges <- as.numeric(commandArgs(TRUE)[4])
-    
     maxSize <- as.numeric(commandArgs(TRUE)[5])
-    
     s <- as.numeric(commandArgs(TRUE)[6])
-    
     sd <- as.numeric(commandArgs(TRUE)[7])
-    
     n <- as.numeric(commandArgs(TRUE)[8])
-    
     m <- as.numeric(commandArgs(TRUE)[9])
-    
-    ## maxrun <- 10; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 2; s <- 6; sd <- 1; n <- 30; m <- 10
-    
     runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
-    
     maxStim <- 2
     maxInhibit <- 1
     method <- "cosine"
-    
     verbose <- FALSE
     draw <- FALSE
-    
     methnames <- c("greedy", "greedy_ia", "greedy_cor", "genetic_quick", "genetic_long", "genetic_stall","random")
     storenames <- c("time", "accracy truth table", "accuracy differential effects", "score","tp","fp","tn","fn")
     result <- array(0, c(maxrun, length(methnames), length(storenames)), list(paste0("run", seq_len(maxrun)), methnames, storenames))
-    
     path <- "/cluster/work/bewi/members/mpirkl/"
-    
     for (run in runs) {
-        
-        ## run <- 1
-        
         cat(run)
         bString <- numeric(100000)
         while(length(bString) > 1000) {
@@ -123,7 +73,6 @@ if (is.na(commandArgs(TRUE)[2])) {
             bString <- sim$bString
             cat(".")
         }
-        
         double <- NULL
         for (i in colnames(sim$CNOlist@stimuli)) {
             for (j in colnames(sim$CNOlist@stimuli)) {
@@ -132,7 +81,6 @@ if (is.na(commandArgs(TRUE)[2])) {
             }
         }
         double <- unique(double)
-        
         sim$fc <- sim$fc[, grep(paste(c(paste0("^", colnames(sim$CNOlist@stimuli), "_vs"),
                                         paste0("^", double, "_vs"),
                                         paste0("Ctrl_vs_", colnames(sim$CNOlist@stimuli), "$"),
@@ -142,28 +90,15 @@ if (is.na(commandArgs(TRUE)[2])) {
         sim$ERS <- sim$ERS[, unique(colnames(sim$fc))]
         
         ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
-        
         pos <- which(sim$fc == 1)
         neg <- which(sim$fc == -1)
         zero <- which(sim$fc == 0)
         sim$fc[pos] <- rnorm(length(pos),1,sd)
         sim$fc[neg] <- rnorm(length(neg),-1,sd)
         sim$fc[zero] <- rnorm(length(zero),0,sd)
-        
-        ## par(mfrow=c(1,2)); mnem::plotDnf(sim$model$reacID[as.logical(sim$bString)]); mnem::plotDnf(sim$PKN$reacID)
-        
-        ## ## runtime:
-        # source("~/Documents/B-NEM/R/bnem_low.r"); source("~/Documents/B-NEM/R/bnem_main.r")
-        # Rprof("temp.txt", line.profiling=TRUE)
-        # res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE, maxSteps = 3)
-        # Rprof(NULL)
-        # summaryRprof("temp.txt", lines = "show")$sampling.time
-        # head(summaryRprof("temp.txt", lines = "show")$by.self, 10)
-        
         start <- as.numeric(Sys.time())
         res0 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw, absorpII = FALSE)
         result[run, 1, 1] <- as.numeric(Sys.time()) - start
-        
         ETT0 <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=res0$bString))
         result[run, 1, 2] <- sum(ETT0 == ETT)/length(ETT)
         ERS <- computeFc(CNOlist=sim$CNOlist, y = ETT0)
@@ -174,7 +109,6 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 1, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 1, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 1, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         start <- as.numeric(Sys.time())
         res1 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
         result[run, 2, 1] <- as.numeric(Sys.time()) - start
@@ -188,9 +122,7 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 2, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 2, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 2, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         maxTime <- result[run, 2, 1]
-        
         start <- as.numeric(Sys.time())
         res1 <- bnem(search = "greedy", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = "s", verbose = verbose, draw = draw)
         result[run, 3, 1] <- as.numeric(Sys.time()) - start
@@ -204,7 +136,6 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 3, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 3, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 3, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         start <- as.numeric(Sys.time())
         res2 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
         result[run, 4, 1] <- as.numeric(Sys.time()) - start
@@ -218,9 +149,7 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 4, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 4, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 4, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         maxTime <- result[run, 2, 1]*10
-        
         start <- as.numeric(Sys.time())
         res3 <- bnem(search = "genetic", maxTime = maxTime, fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw,stallGenMax=Inf)
         result[run, 5, 1] <- as.numeric(Sys.time()) - start
@@ -234,7 +163,6 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 5, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 5, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 5, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         start <- as.numeric(Sys.time())
         res4 <- bnem(search = "genetic", fc = sim$fc, CNOlist = sim$CNOlist, model = sim$model, method = method, verbose = verbose, draw = draw)
         result[run, 6, 1] <- as.numeric(Sys.time()) - start
@@ -248,7 +176,6 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 6, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 6, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 6, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-        
         start <- as.numeric(Sys.time())
         rand <- sample(c(0,1), length(sim$model$reacID), replace = TRUE)
         result[run, 7, 1] <- as.numeric(Sys.time()) - start
@@ -262,19 +189,12 @@ if (is.na(commandArgs(TRUE)[2])) {
         result[run, 7, 6] <- sum(abs(ERS) == 1 & sim$ERS == 0)
         result[run, 7, 7] <- sum(ERS == 0 & sim$ERS == 0)
         result[run, 7, 8] <- sum(ERS == 0 & abs(sim$ERS) == 1)
-
-        ## result[1,,]; par(mfrow=c(1,4)); plotDnf(sim$model$reacID[as.logical(res1$bString)]); plotDnf(sim$model$reacID[as.logical(sim$bString)]); plotDnf(sim$model$reacID[as.logical(res2$bString)]); plotDnf(sim$model$reacID[as.logical(res3$bString)]);
-        ## result[run,,]
-
     }
-    
     save(result, file = paste0(path, paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")))
     stop("simulation done")
 }
     
-## general:
-
-## system("scp ~/Documents/bnem/R/bnem_low.r euler:"); system("scp ~/Documents/bnem/R/bnem_main.r euler:"); system("scp ~/Documents/bnem/other/bnem_app.r euler:")
+## HPC commands to run simulations:
 
 ram=1000
 rm error.txt
@@ -324,11 +244,9 @@ for i in {1..100}; do
         bsub -M ${ram} -q normal.4h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --silent --vanilla --no-save --args '${i}' < bnem_app.r"
 done
 
-## plot sim:
+## plot results:
 
-source("~/Documents/mnem/R/mnems.r")
-source("~/Documents/mnem/R/mnems_low.r")
-
+library(mnem)
 path <- "~/Mount/Eulershare/"
 n <- 20
 s <- 4
@@ -386,8 +304,6 @@ time <- 1
 if (box) {
     restime <- cbind(results[[1]][,1:n.meth,1],results[[2]][,1:n.meth,1],results[[3]][,1:n.meth,1])
     if (time) {
-        # pdf("temp.pdf", width = 11, height = 6)
-        # laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,29),rep(5,21)),2,byrow=TRUE)
         pdf("temp.pdf", width = 11, height = 3)
         laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,32)),1,byrow=TRUE)
     } else {
@@ -398,9 +314,7 @@ if (box) {
     }
     layout(laymat)
     v.idx <- c(n.meth+0.5,n.meth*2+0.5)
-    #v.idx <- c(6.5,12.5)
     axis.idx <- c(n.meth/2+0.5,n.meth*1.5+0.5,n.meth*2.5+0.5)
-    #axis.idx <- c(3.5,9.5,15.5)
     if (time) {
         myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y")
         abline(v=v.idx)
@@ -425,10 +339,9 @@ if (box) {
 
 ## analyze BCR:
 
-data(bcr) # load("~/Documents/B-NEM/data/bcr.rda")
-
+data(bcr) ## load data
+bcr <- processDataBCR() ## alternative
 fc <- bcr$fc
-
 sifMatrix <- rbind(c("BCR", 1, "Pi3k"),
                    c("BCR", 1, "Tak1"),
                    c("Tak1", 1, "Erk"),
@@ -450,40 +363,22 @@ write.table(sifMatrix, file = "temp.sif", sep = "\t", row.names = FALSE,
             quote = FALSE)
 PKN <- readSIF("temp.sif")
 unlink('temp.sif')
-
 CNOlist <- dummyCNOlist("BCR", c("Erk", "Ikk2", "Jnk", "p38", "Pi3k", "Tak1"), 1, 3)
-
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-
 source("~/Documents/B-NEM/R/bnem_main.r"); source("~/Documents/B-NEM/R/bnem_low.r")
-
 greedy0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy")
-
 greedy1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", initBstring = rep(1, length(model$reacID)))
-
 ga0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "genetic",draw=0)
-
 ga1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "genetic", initBstring = rep(1, length(model$reacID)),draw=0)
-
 which.min(c(min(greedy0$scores[[1]]), min(greedy1$scores[[1]]), min(ga0$scores), min(ga1$scores)))
-
 print(c(min(greedy0$scores[[1]]), min(greedy1$scores[[1]]), min(ga0$scores), min(ga1$scores)), 22)
-
 plotDnf(greedy1$graph)
-
 initBstring = rbind(rep(0, length(model$reacID)),
                     rep(1, length(model$reacID)))
 
-## initBstring <- initBstring[1, ]
-
-## takes long use hpc
-
-bsres <- bnemBs(fc = fc, 10, f = 0.5, CNOlist = CNOlist, model = model, method = "llr", search = "greedy", startString = initBstring, verbose = 0)
-
-## read hpc results:
+## read and plot bootstrap results:
 
 bsfull <- NULL
-
 for (i in 1:100) {
     file <- paste0("~/Mount/Eulershare/bnem/bcr_boot_", i, ".rda")
     if (!file.exists(file)) { cat(i); next() }
@@ -491,18 +386,14 @@ for (i in 1:100) {
     bsfull <- c(bsfull, bsres$x)
     cat(".")
 }
-
 bsfull <- list(x = toupper(bsfull), n = 1000)
 class(bsfull) <- "bnembs"
-
 dnf2016 <- c("BCR=TAK1","BCR=PI3K","PI3K=JNK","TAK1=ERK","TAK1=IKK2","PI3K=IKK2","JNK=p38","PI3K+IKK2=p38")
 pdf("temp.pdf", width = 10, height = 8)
 par(mfrow=c(1,2))
 plotDnf(dnf2016, nodeshape = list(BCR = "diamond"),edgelwd=3)
 plot(bsfull, cut = 0.5, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"))
 dev.off()
-
-bcr2 <- processDataBCR(path = "~/Downloads/celfiles/", combsign = 0)
 
 
 
