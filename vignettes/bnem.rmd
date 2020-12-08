@@ -1,7 +1,7 @@
 ---
-title: "Boolean Nested Effects Models \n
-Inferring the logical signalling of pathways from indirect measurements
-and biological perturbations."
+title: | 
+  | Boolean Nested Effects Models:
+  | Inferring the logical signalling of pathways from indirect measurements and biological perturbations.
 author: "Martin Pirkl"
 date: "`r Sys.Date()`"
 graphics: yes
