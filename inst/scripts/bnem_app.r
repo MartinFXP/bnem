@@ -201,24 +201,37 @@ rm error.txt
 rm output.txt
 rm .RData
 
-Sgenes=30
+Sgenes=40
 queue=4
 frac=10
 Egenes=10
 Stimuli=2
-Noise=1
+Noise=3
 
 if [ ${Sgenes} == '20' ]
 then
 Stimuli=4
-ram=4000
 frac=50
+ram=4000
+fi
+if [ ${Sgenes} == '25' ]
+then
+Stimuli=5
+frac=50
+ram=6000
 fi
 if [ ${Sgenes} == '30' ]
 then
 Stimuli=6
 frac=100
 ram=8000
+queue=24
+fi
+if [ ${Sgenes} == '40' ]
+then
+Stimuli=8
+frac=100
+ram=16000
 queue=24
 fi
 
@@ -257,8 +270,9 @@ results <- list()
 count <- 0
 result2 <- NULL
 maxrun <- 100
-for (n in c(10,20,30)) {
-    if (n==10) {s<-2;frac<-10} else if (n==20) {s<-4;frac<-50} else if (n==30) {s<-6;frac<-100}
+Sgenes <- c(10,20,25,30,40)
+for (n in Sgenes) {
+    if (n==10) {s<-2;frac<-10} else if (n==20) {s<-4;frac<-50} else if (n==25) {s<-5;frac<-50} else if (n==30) {s<-6;frac<-100} else if (n==40) {s<-8;frac<-100}
     for (part in seq_len(frac)) {
         runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
         file <- paste0(path,paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_"))
@@ -288,21 +302,25 @@ if (n.meth==7) {
     cols <- c("darkred","red","darkgreen","green","lightgreen","grey")
 }
 
-wilcox <- array(NA,c(3,length(methods),length(methods)),list(Sgenes=c(10,20,30),methods=methods,methods2=methods))
+wilcox <- array(NA,c(length(results),length(methods),length(methods)),list(Sgenes=Sgenes,methods=methods,methods2=methods))
 idx1 <- 5
-idx2 <- 6
-for (i in 1:3) {
+idx2 <- 8
+pw <- TRUE
+for (i in 1:length(Sgenes)) {
     for (j in 1:n.meth) {
         for (k in 1:n.meth) {
-        wilcox[i,j,k] <- wilcox.test(results[[i]][,j,idx1]/(results[[i]][,j,idx1]+results[[i]][,j,idx2]),results[[i]][,k,idx1]/(results[[i]][,k,idx1]+results[[i]][,k,idx2]),alternative="less")$p.value
+            if (j==k) next()
+        wilcox[i,j,k] <- wilcox.test(results[[i]][,j,idx1]/(results[[i]][,j,idx1]+results[[i]][,j,idx2]),results[[i]][,k,idx1]/(results[[i]][,k,idx1]+results[[i]][,k,idx2]),alternative="less",paired=pw)$p.value
         }
     }
 }
-    
+
+myboxplot <- mnem:::myboxplot
 box <- 1
 time <- 1
+idxs <- c(1,3,5)
 if (box) {
-    restime <- cbind(results[[1]][,1:n.meth,1],results[[2]][,1:n.meth,1],results[[3]][,1:n.meth,1])
+    restime <- cbind(results[[idxs[1]]][,1:n.meth,1],results[[idxs[2]]][,1:n.meth,1],results[[idxs[3]]][,1:n.meth,1])
     if (time) {
         pdf("temp.pdf", width = 11, height = 3)
         laymat <- matrix(c(rep(1,50),rep(2,50),rep(3,50),rep(4,32)),1,byrow=TRUE)
@@ -318,18 +336,18 @@ if (box) {
     if (time) {
         myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y")
         abline(v=v.idx)
-        axis(1,axis.idx,c(10,20,30))
+        axis(1,axis.idx,Sgenes[idxs])
     }
-    resacc <- cbind(results[[1]][,1:n.meth,3],results[[2]][,1:n.meth,3],results[[3]][,1:n.meth,3])
-    resacc <- cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])/(cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])+cbind(results[[1]][,1:n.meth,6],results[[2]][,1:n.meth,6],results[[3]][,1:n.meth,6]))
+    resacc <- cbind(results[[idxs[1]]][,1:n.meth,3],results[[idxs[2]]][,1:n.meth,3],results[[idxs[3]]][,1:n.meth,3])
+    resacc <- cbind(results[[idxs[1]]][,1:n.meth,5],results[[idxs[2]]][,1:n.meth,5],results[[idxs[3]]][,1:n.meth,5])/(cbind(results[[idxs[1]]][,1:n.meth,5],results[[idxs[2]]][,1:n.meth,5],results[[idxs[3]]][,1:n.meth,5])+cbind(results[[idxs[1]]][,1:n.meth,6],results[[idxs[2]]][,1:n.meth,6],results[[idxs[3]]][,1:n.meth,6]))
     myboxplot(resacc, col = cols,border=cols,medcol="black",ylab = "precision", main = "Precision of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))
     abline(v=v.idx)
-    axis(1,axis.idx,c(10,20,30))
-    resll <- -cbind(results[[1]][,1:n.meth,4],results[[2]][,1:n.meth,4],results[[3]][,1:n.meth,4])
-    resll <- cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])/(cbind(results[[1]][,1:n.meth,5],results[[2]][,1:n.meth,5],results[[3]][,1:n.meth,5])+cbind(results[[1]][,1:n.meth,8],results[[2]][,1:n.meth,8],results[[3]][,1:n.meth,8]))
+    axis(1,axis.idx,Sgenes[idxs])
+    resll <- -cbind(results[[idxs[1]]][,1:n.meth,4],results[[idxs[2]]][,1:n.meth,4],results[[idxs[3]]][,1:n.meth,4])
+    resll <- cbind(results[[idxs[1]]][,1:n.meth,5],results[[idxs[2]]][,1:n.meth,5],results[[idxs[3]]][,1:n.meth,5])/(cbind(results[[idxs[1]]][,1:n.meth,5],results[[idxs[2]]][,1:n.meth,5],results[[idxs[3]]][,1:n.meth,5])+cbind(results[[idxs[1]]][,1:n.meth,8],results[[idxs[2]]][,1:n.meth,8],results[[idxs[3]]][,1:n.meth,8]))
     myboxplot(resll, col = cols,border=cols,medcol="black",ylab = "recall", main = "Recall of expected differential effects", box = box,dens=0,xaxt="n",bordercol=cols,ylim=c(0,1))#, ylim = c(0,1),dens=0,bordercol=cols)
     abline(v=v.idx)
-    axis(1,axis.idx,c(10,20,30))
+    axis(1,axis.idx,Sgenes[idxs])
     op <- par(mar = rep(0, 4))
     plot(1:100,col="transparent",yaxt="n",xaxt="n",bty="n",xlab="",ylab="")
     legend('top',legend=methods,col=cols,fill=cols,border=FALSE,box.lwd=0,box.col="transparent",y.intersp=2)
@@ -376,25 +394,45 @@ plotDnf(greedy1$graph)
 initBstring = rbind(rep(0, length(model$reacID)),
                     rep(1, length(model$reacID)))
 
-## read and plot bootstrap results:
+if (min(greedy0$scores[[1]]) < min(greedy0$scores[[1]])) {
+    bcrbest <- greedy0
+} else {
+    bcrbest <- greedy1
+}
 
+## reduce further:
+cbind(bcrbest$bString,model$reacID)
+bestString <- bcrbest$bString
+bestString[12] <- 0
+bestString[9] <- 1
+scoreDnf(bcrbest$bString,CNOlist,fc,model=model)
+scoreDnf(bestString,CNOlist,fc,model=model)
+
+
+## read and plot bootstrap results:
 bsfull <- NULL
 for (i in 1:100) {
-    file <- paste0("~/Mount/Eulershare/bnem/bcr_boot_", i, ".rda")
+    file <- paste0("~/Mount/Eulershare/bnem_old/bcr_boot_", i, ".rda")
     if (!file.exists(file)) { cat(i); next() }
     load(file)
     bsfull <- c(bsfull, bsres$x)
     cat(".")
 }
+## check the result:
+initString <- numeric(length(model$reacID))
+initString[model$reacID %in% names(table(bsfull))[table(bsfull)>0.5*1000]] <- 1
+greedyBS <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy",initBstring = initString)
 bsfull <- list(x = toupper(bsfull), n = 1000)
-class(bsfull) <- "bnembs"
+class(bsfull) <- "bnemBs"
 dnf2016 <- c("BCR=TAK1","BCR=PI3K","PI3K=JNK","TAK1=ERK","TAK1=IKK2","PI3K=IKK2","JNK=p38","PI3K+IKK2=p38")
-pdf("temp.pdf", width = 10, height = 8)
-par(mfrow=c(1,2))
+library(bnem)
+pdf("temp.pdf", width = 12, height = 6)
+par(mfrow=c(1,3))
 plotDnf(dnf2016, nodeshape = list(BCR = "diamond"),edgelwd=3)
-plot(bsfull, cut = 0.5, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"))
+plotDnf(model$reacID[as.logical(bestString)], nodeshape = list(BCR = "diamond"),edgelwd=3)
+plot(bsfull, cut = 0.1, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"),
+     fontsize = 14,labelcol='blue')
 dev.off()
-
 
 
 
