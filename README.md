@@ -23,7 +23,14 @@ with its parents A_i, i ∈ {1,...,n}.
 Install:
 --------
 
-Open R and input:
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("epiNEM")
+```
+
+Most recent (devel) version:
 
 ```r
 install.packages("devtools")
