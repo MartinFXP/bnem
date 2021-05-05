@@ -27,7 +27,7 @@ Install:
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install("epiNEM")
+BiocManager::install("bnem")
 ```
 
 Most recent (devel) version:
@@ -37,7 +37,7 @@ install.packages("devtools")
 
 library(devtools)
 
-install_github("MartinFXP/B-NEM")
+install_github("MartinFXP/bnem")
 
 library(bnem)
 ```
