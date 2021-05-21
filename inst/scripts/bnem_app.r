@@ -88,7 +88,7 @@ if (is.na(commandArgs(TRUE)[2])) {
         ),
         collapse = "|"), colnames(sim$fc))]
         sim$ERS <- sim$ERS[, unique(colnames(sim$fc))]
-        
+
         ETT <- t(simulateStatesRecursive(CNOlist=sim$CNOlist, model=sim$model, bString=sim$bString))
         pos <- which(sim$fc == 1)
         neg <- which(sim$fc == -1)
@@ -193,7 +193,7 @@ if (is.na(commandArgs(TRUE)[2])) {
     save(result, file = paste0(path, paste("bnem/bnem_sim", n, m, s, sd, maxrun, frac, part, ".rda", sep = "_")))
     stop("simulation done")
 }
-    
+
 ## HPC commands to run simulations:
 
 ram=1000
@@ -201,7 +201,7 @@ rm error.txt
 rm output.txt
 rm .RData
 
-Sgenes=40
+Sgenes=10
 queue=4
 frac=10
 Egenes=10
@@ -296,7 +296,7 @@ for (n in Sgenes) {
 n.meth <- dim(results[[1]])[2]
 if (n.meth==7) {
     methods <- c("greedy","greedy\n(inverse absorption)","greedy\n(spearman)","genetic\n(time-limit)","genetic","genetic (stall)","random")
-    cols <- c("darkred","red","blue","darkgreen","green","lightgreen","grey")
+    cols <- c("darkred","red","#FF8888","darkgreen","green","lightgreen","grey")
 } else {
     methods <- c("greedy","greedy\n(inverse absorption)","genetic\n(time-limit)","genetic","genetic (stall)","random")
     cols <- c("darkred","red","darkgreen","green","lightgreen","grey")
