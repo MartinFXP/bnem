@@ -2,72 +2,72 @@
 preprocessInput <- function(stimuli=NULL, inhibitors=NULL, signals=NULL,
                             design = NULL, expression=NULL, fc=NULL, pkn,
                             maxInputsPerGate=100) {
-    
-    if (is.null(design)) {
-        
+
+    if (is.null(design[1])) {
+
         stimcols <- stimcols2 <- matrix(0, length(stimuli), ncol(fc))
-        
+
         for (i in seq_len(length(stimuli))) {
-            
+
             tmp <- numeric(ncol(fc))
-            
+
             tmp[grep(stimuli[i], gsub("_vs_.*", "", colnames(fc)))] <- 1
-            
+
             stimcols[i, ] <- tmp
-            
+
             tmp <- numeric(ncol(fc))
-            
+
             tmp[grep(stimuli[i], gsub(".*_vs_", "", colnames(fc)))] <- 1
-            
+
             stimcols2[i, ] <- tmp
-            
+
         }
-        
+
         maxStim <- max(c(colSums(stimcols), colSums(stimcols2)))
-        
+
         inhibitcols <- inhibitcols2 <- matrix(0, length(inhibitors), ncol(fc))
-        
+
         for (i in seq_len(length(inhibitors))) {
-            
+
             tmp <- numeric(ncol(fc))
-            
+
             tmp[grep(inhibitors[i], gsub("_vs_.*", "", colnames(fc)))] <- 1
-            
+
             inhibitcols[i, ] <- tmp
-            
+
             tmp <- numeric(ncol(fc))
-            
+
             tmp[grep(inhibitors[i], gsub(".*_vs_", "", colnames(fc)))] <- 1
-            
+
             inhibitcols2[i, ] <- tmp
-            
+
         }
-        
+
         maxInhibit <- max(c(colSums(inhibitcols), colSums(inhibitcols2)))
-        
-        if (is.null(signals)) { signals <- unique(c(stimuli, inhibitors)) }
-        
+
+        if (is.null(signals[1])) { signals <- unique(c(stimuli, inhibitors)) }
+
         CNOlist <- dummyCNOlist(stimuli=stimuli, inhibitors=inhibitors,
                                 maxStim=maxStim, maxInhibit=maxInhibit,
                                 signals=signals)
-        
+
         model <- preprocessing(CNOlist, pkn, maxInputsPerGate=maxInputsPerGate)
-        
+
     }
-    
+
     NEMlist <- list()
-    
+
     NEMlist$fc <- fc
-    
-    if (is.null(expression)) {
+
+    if (is.null(expression[1])) {
         NEMlist$expression <- matrix(rnorm(nrow(getCues(CNOlist))*10), 10,
                                 nrow(getCues(CNOlist)))
     } else {
         NEMlist$expression <- expression
     }
-    
+
     return(list(CNOlist=CNOlist, model=model, NEMlist=NEMlist))
-    
+
 }
 #' @importFrom graphics abline axis legend mtext par screen split.screen
 #' @importFrom utils combn write.table
@@ -109,7 +109,7 @@ addSignal <-
             c(colnames(getSignals(CNOlist)[[1]]), s)
         colnames(CNOlist2$signals[[2]]) <-
             c(colnames(getSignals(CNOlist)[[2]]), s)
-        if (!is.null(inhibit)) {
+        if (!is.null(inhibit[1])) {
             CNOlist2@cues <- cbind(getCues(CNOlist2), 0)
             CNOlist2@cues <- rbind(getCues(CNOlist2),
                                    matrix(0, nrow =nrow(inhibit),
@@ -315,7 +315,7 @@ performing simple normalization")
                 rownames(NEMlist$fc) <- rownames.fc
             }
         }
-        if (!is.null(NEMlist$egenes) & is.null(NEMlist$geneGrid)) {
+        if (!is.null(NEMlist$egenes[1]) & is.null(NEMlist$geneGrid[1])) {
             sgeneAdd <- matrix(Inf, nrow = nrow(NEMlist$fc),
                                ncol = (ncol(getSignals(CNOlist)[[1]])*2))
             for (i in seq_len(nrow(NEMlist$fc))) {
@@ -335,7 +335,7 @@ performing simple normalization")
             sgeneAdd[sgeneAddCheck == Inf, ] <- 0
             NEMlist$geneGrid <- sgeneAdd
         }
-        if (!is.null(NEMlistTmp$weights)) {
+        if (!is.null(NEMlistTmp$weights[1])) {
             NEMlist$weights <- NEMlistTmp$weights
         }
         NEMlist$signalStates <- NEMlistTmp$signalStates
@@ -363,7 +363,7 @@ computeFcII <-
                                         colnames(design))])
             colnames(inhibitorsDesign) <- inhibitors
         }
-        if (is.null(stimuli) == TRUE) {
+        if (is.null(stimuli[1]) == TRUE) {
             stimuliSum <- numeric(nrow(design))
         } else {
             if (length(stimuli) == 1) {
@@ -375,7 +375,7 @@ computeFcII <-
                                                     colnames(design))])
             }
         }
-        if (is.null(inhibitors) == TRUE) {
+        if (is.null(inhibitors[1]) == TRUE) {
             inhibitorsSum <- numeric(nrow(design))
         } else {
             if (length(inhibitors) == 1) {
@@ -576,7 +576,7 @@ computeScoreNemT1 <-
             if (sum(bString == 1) > 0) {
                 bs = as.logical(bString)
                 newmodel <- list()
-                if (is.null(dim(model$interMat))) {
+                if (is.null(dim(model$interMat)[1])) {
                     newmodel$interMat <- model$interMat[bs]
                     newmodel$notMat <- model$notMat[bs]
                     newmodel$reacID <- model$reacID[bs]
@@ -592,12 +592,12 @@ computeScoreNemT1 <-
             }
             return(newmodel)
         }
-        
+
         method <- checkMethod(method)
-        ## if (is.null(simList) == TRUE) {
+        ## if (is.null(simList[1]) == TRUE) {
         ##   simList = prep4sim(model)
         ## }
-        ## if (is.null(indexList) == TRUE) {
+        ## if (is.null(indexList[1]) == TRUE) {
         ##   indexList = indexFinder(CNOlist, model)
         ## }
         if (sim == 0) {
@@ -652,82 +652,82 @@ computeSm <-
         fitMult <- parameters$scoring[2] # multiplicator for match of low degree
         errorMult <- parameters$scoring[2] # multi. mismatch of low degree
         zeroMult <- parameters$scoring[1]
-        
+
         CompMat <- CompMatCont
         Epos <- CompMat
         Eneg <- CompMat
         E0 <- CompMat
         EposI <- CompMat*(-1)
         EnegI <- CompMat*(-1)
-        
+
         beta <- parameters$cutOffs[2]
         alpha <- parameters$cutOffs[1]
-        
+
         wrongPos <- Epos < -beta
         rightPosII <- Epos > alpha & Epos < beta
         rightPosI <- Epos >= beta
         zerosPosI <- Epos <= alpha & Epos >= -alpha
         zerosPosII <- Epos < -alpha & Epos > -beta
-        
+
         wrongNeg <- Eneg > beta
         rightNegII <- zerosPosII # Eneg < -alpha & Eneg > -beta
         rightNegI <- Eneg <= -beta
         zerosNegI <- zerosPosI # Eneg >= -alpha & Eneg <= alpha
         zerosNegII <- rightPosII # Eneg > alpha & Eneg < beta
-        
+
         right0I <- abs(E0) <= alpha
         right0II <- abs(E0) > alpha & abs(E0) < beta
         wrong0 <- abs(E0) >= beta
-        
+
         if ("mLL" %in% method | "cp" %in% method) {
-            
+
             E0 <- E0*0
             E0[right0I] <- 1
-            
+
             Epos <- Epos*0
             Epos[rightPosI] <- 1
-            
+
             Eneg <- Eneg*0
             Eneg[rightNegI] <- 1
-            
+
             EposI <- EposI*0
             EposI[rightPosII] <- 1
-            
+
             EnegI <- EnegI*0
             EnegI[rightNegII] <- 1
-            
+
         } else {
-            
+
             E0[wrong0] <- errorScore*zeroMult
             E0[right0II] <- fitScore*zeroMult*fitMult
             E0[right0I] <- fitScore*zeroMult
-            
+
             Epos[zerosPosI] <- errorScore*errorMult*zeroMult
             Epos[zerosPosII] <- errorScore*errorMult
             Epos[wrongPos] <- errorScore
             Epos[rightPosI] <- fitScore
             Epos[rightPosII] <- fitScore*fitMult
-            
+
             Eneg[zerosNegI] <- -errorScore*errorMult*zeroMult
             Eneg[zerosNegII] <- -errorScore*errorMult
             Eneg[wrongNeg] <- -errorScore
             Eneg[rightNegI] <- -fitScore
             Eneg[rightNegII] <- -fitScore*fitMult
-            
+
             EposI[zerosNegI] <- errorScore*errorMult*zeroMult
             EposI[zerosNegII] <- errorScore*errorMult
             EposI[wrongNeg] <- errorScore
             EposI[rightNegI] <- fitScore
             EposI[rightNegII] <- fitScore*fitMult
-            
+
             EnegI[zerosPosI] <- -errorScore*errorMult*zeroMult
             EnegI[zerosPosII] <- -errorScore*errorMult
             EnegI[wrongPos] <- -errorScore
             EnegI[rightPosI] <- -fitScore
             EnegI[rightPosII] <- -fitScore*fitMult
-            
+
         }
-        
+
         return(list(expression = NEMlist$expression, fc = CompMatCont, E0 = E0,
                     Epos = Epos, Eneg = Eneg, EposI = EposI, EnegI = EnegI))
     }
@@ -786,7 +786,7 @@ deleteSignal <-
                 if (!is.null(
                     dim(getStimuli(CNOlist2)[
                         , colnames(getStimuli(CNOlist2))
-                        %in% i]))) {
+                        %in% i])[1])) {
                     CNOlist2@stimuli <-
                         getStimuli(CNOlist2)[
                             , !colnames(getStimuli(CNOlist2)) %in% i]
@@ -803,7 +803,7 @@ deleteSignal <-
                 if (!is.null(
                     dim(getInhibitors(CNOlist2)[
                         , !colnames(getInhibitors(CNOlist2))
-                        %in% i]))) {
+                        %in% i])[1])) {
                     CNOlist2@inhibitors <-
                         getInhibitors(CNOlist2)[
                             , !colnames(getInhibitors(CNOlist2))
@@ -992,7 +992,7 @@ drawScores <-
 #' @noRd
 expandNEM <-
     function(model, ignoreList=NA,maxInputsPerGate=2){
-        
+
         Model = model
         # check that Model is a Model list
         if(!is.list(Model)) stop("This function expects as input a Model
@@ -1011,10 +1011,10 @@ as output by readSIF")
 as output by readSIF")
             }
         }
-        
+
         SplitANDs <- list(initialReac=c("split1","split2"))
         splitR <- 1
-        
+
         ## split all the ANDs
         ## remove any ANDs 2/3 and save >3 to add later
         ## +3 won't get added here again but are part of prior
@@ -1023,12 +1023,12 @@ as output by readSIF")
         remove.and = c()
         reacs2Ignore = c()
         initialReacN <- length(Model$reacID)
-        
+
         ## TODO: move into readSIF ?
         if (initialReacN == 1){
             Model$interMat <- as.matrix(Model$interMat)
         }
-        
+
         ## which reactions have ignoreList as output?
         if(!is.na(ignoreList[1])) {
             for(s in seq_len(initialReacN)) {
@@ -1037,7 +1037,7 @@ as output by readSIF")
                 }
             }
         }
-        
+
         for(r in seq_len(initialReacN)) {
             inNodes <- which(Model$interMat[,r] == -1)
             if(length(inNodes) > 1) {
@@ -1045,7 +1045,7 @@ as output by readSIF")
                     andToAdd = c(andToAdd, r)
                 }
                 remove.and = c(remove.and, r)
-                
+
                 if(!any(reacs2Ignore == r)) {
                     outNode <- which(Model$interMat[,r] == 1)
                     newReacs <- matrix(data=0,nrow=nrow(Model$interMat),
@@ -1075,7 +1075,7 @@ as output by readSIF")
                 }
             }
         }
-        
+
         if(length(andToAdd)) {
             toAdd = list()
             toAdd$notMat <- Model$notMat[,andToAdd]
@@ -1084,18 +1084,18 @@ as output by readSIF")
         } else {
             toAdd <- NA
         }
-        
+
         if(length(remove.and)) {
             Model$notMat <- Model$notMat[,-remove.and]
             Model$interMat <- Model$interMat[,-remove.and]
             Model$reacID <- Model$reacID[-remove.and]
         }
-        
+
         newANDs <- list(finalReac=c("or1","or2"))
         ANDsadded <- 1
         total.list = seq_len(length(Model$namesSpecies))
-        
-        
+
+
         ## functions to get lhs and rhs of reactions
         getlhs <- function(x) {
             spec1 = strsplit(x, "=")[[1]][1]
@@ -1103,7 +1103,7 @@ as output by readSIF")
         getrhs <- function(x) {
             spec2 = strsplit(x, "=")[[1]][2]
         }
-        
+
         ## scan all species and build and gates if required
         for(sp in total.list) {
             inReacsIndex <- which(Model$interMat[sp,] == 1)
@@ -1113,26 +1113,26 @@ as output by readSIF")
                     inNode<-which(x == -1)
                 }
                 inSp <- apply(inReacs,2,findInput)
-                
+
                 ## let
                 ## find the input species first and store in a vector
                 inSpecies = apply(as.matrix(colnames(inReacs)), 1, getlhs)
                 outname = Model$namesSpecies[sp]
-                
+
                 ## just for sanity check, all outputs must be the same
                 outnames = apply(as.matrix(colnames(inReacs)), 1, getrhs)
                 if (length(unique(outnames))!=1 | outname!=outnames[1]){
                     stop("error in expandGates.
 should not happen here. please report")
                 }
-                
+
                 # an alias
                 myrownames = rownames(Model$interMat)
-                
+
                 # first the 2 inputs cases
-                
+
                 combinations = combn(seq(1,length(inSpecies)), 2)
-                
+
                 for (this in seq(1, ncol(combinations))){
                     i = combinations[1,this]
                     j = combinations[2,this]
@@ -1144,13 +1144,13 @@ should not happen here. please report")
                     realname2 = ifelse(substr(inSpecies[j], 1,1) =="!",
                                        substr(inSpecies[j],2,10000),
                                        inSpecies[j])
-                    
+
                     realnames = c(realname1,realname2)
                     if (any(combn(realnames,2)[1,] == combn(realnames,2)[2,])){
                         ## exclude reaction if any name are indentical
                         next()
                     }
-                    
+
                     ## create the new reaction Id to be used as a column name
                     newcolname = paste(paste(inSpecies[i],
                                              inSpecies[j],sep="+"),
@@ -1159,7 +1159,7 @@ should not happen here. please report")
                         next() # skip if exist already
                     }
                     Model$reacID <- c(Model$reacID,newcolname)
-                    
+
                     ## fill the interMat (-1 if in lhs, 1 if in rhs)
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1167,7 +1167,7 @@ should not happen here. please report")
                     values[myrownames == realname2]<- -1
                     values[myrownames == outname]<- 1
                     Model$interMat= cbind(Model$interMat, values)
-                    
+
                     # now, the notMat, 0 by default
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1178,14 +1178,14 @@ should not happen here. please report")
                         values[myrownames == realname2]<- 1
                     }
                     Model$notMat= cbind(Model$notMat, values)
-                    
+
                     # finally, fill the newAnd list
                     newreac1 = paste(inSpecies[i], outname, sep="=")
                     newreac2 = paste(inSpecies[j], outname, sep="=")
                     newANDs[[length(newANDs)+1]] <- c(newreac1, newreac2)
                     names(newANDs)[[length(newANDs)]] <- newcolname
                 }
-                
+
                 ## Same code as above but to create the 3 inputs combinations
                 if (length(inSpecies)>=3 & maxInputsPerGate>=3){
                     combinations = combn(seq(1,length(inSpecies)), 3)
@@ -1194,7 +1194,7 @@ should not happen here. please report")
                 else{
                     indices = seq(length=0)
                 }
-                
+
                 for (this in indices){
                     i = combinations[1,this]
                     j = combinations[2,this]
@@ -1208,7 +1208,7 @@ should not happen here. please report")
                     realname3 = ifelse(substr(inSpecies[k], 1,1) =="!",
                                        substr(inSpecies[k],2,10000),
                                        inSpecies[k])
-                    
+
                     realnames = c(realname1,realname2, realname3)
                     if (any(combn(realnames,2)[1,] == combn(realnames,2)[2,])){
                         ## exclude reaction if any name are indentical
@@ -1221,7 +1221,7 @@ should not happen here. please report")
                         next() # skip if exist already
                     }
                     Model$reacID <- c(Model$reacID,newcolname)
-                    
+
                     # intermat first
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1232,7 +1232,7 @@ should not happen here. please report")
                     }
                     values[myrownames == outname]<- 1
                     Model$interMat= cbind(Model$interMat, values)
-                    
+
                     # now, the notMat
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1244,7 +1244,7 @@ should not happen here. please report")
                         }
                     }
                     Model$notMat= cbind(Model$notMat, values)
-                    
+
                     # finally the newAnd
                     newreac1 = paste(inSpecies[i], outname, sep="=")
                     newreac2 = paste(inSpecies[j], outname, sep="=")
@@ -1253,7 +1253,7 @@ should not happen here. please report")
                                                       newreac3)
                     names(newANDs)[[length(newANDs)]] <- newcolname
                 }
-                
+
                 ## Same code as above but to create the 4 inputs combinations
                 if (length(inSpecies)>=4 & maxInputsPerGate>=4){
                     combinations = combn(seq(1,length(inSpecies)), 4)
@@ -1262,7 +1262,7 @@ should not happen here. please report")
                 else{
                     indices = seq(length=0)
                 }
-                
+
                 for (this in indices){
                     i = combinations[1,this]
                     j = combinations[2,this]
@@ -1292,7 +1292,7 @@ should not happen here. please report")
                         next() # skip if exist already
                     }
                     Model$reacID <- c(Model$reacID,newcolname)
-                    
+
                     # intermat first
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1303,7 +1303,7 @@ should not happen here. please report")
                     }
                     values[myrownames == outname]<- 1
                     Model$interMat= cbind(Model$interMat, values)
-                    
+
                     # now, the notMat
                     values = as.matrix(rep(0, length(Model$namesSpecies)))
                     colnames(values)<-newcolname
@@ -1315,7 +1315,7 @@ should not happen here. please report")
                         }
                     }
                     Model$notMat= cbind(Model$notMat, values)
-                    
+
                     # finally the newAnd
                     newreac1 = paste(inSpecies[i], outname, sep="=")
                     newreac2 = paste(inSpecies[j], outname, sep="=")
@@ -1324,7 +1324,7 @@ should not happen here. please report")
                     newANDs[[length(newANDs)+1]] <- c(newreac1, newreac2,
                                                       newreac3, newreac4)
                     names(newANDs)[[length(newANDs)]] <- newcolname
-                    
+
                 } # end if length(inSp) == 2
                 if (maxInputsPerGate >= 5) {
                     for (mip in 5:maxInputsPerGate) {
@@ -1396,16 +1396,16 @@ should not happen here. please report")
                         }
                     }
                 }
-                
+
             }
         }
-        
+
         if(!is.na(toAdd)) {
             Model$notMat = cbind(Model$notMat, toAdd$notMat)
             Model$interMat = cbind(Model$interMat, toAdd$interMat)
             Model$reacID = c(Model$reacID, toAdd$reacID)
         }
-        
+
         modelExp <- Model
         modelExp$SplitANDs <- SplitANDs
         modelExp$newANDs <- newANDs
@@ -1487,12 +1487,12 @@ exSearch <-
              parameters=list(cutOffs=c(0,1,0), scoring=c(0.1,0.2,0.9)),
              parallel = NULL, method = "s", relFit = FALSE, verbose = TRUE,
              reduce = TRUE, approach = "fc", ...) {
-        
+
         cutModel2 <- function (model, bString) {
             if (sum(bString == 1) > 0) {
                 bs = as.logical(bString)
                 newmodel <- list()
-                if (is.null(dim(model$interMat))) {
+                if (is.null(dim(model$interMat)[1])) {
                     newmodel$interMat <- model$interMat[bs]
                     newmodel$notMat <- model$notMat[bs]
                     newmodel$reacID <- model$reacID[bs]
@@ -1508,14 +1508,14 @@ exSearch <-
             }
             return(newmodel)
         }
-        
-        
+
+
         bin2dec <- function(x) {
             exp2 <- 2^c((length(x)-1):0)
             y <- exp2%*%x
             return(y)
         }
-        
+
         dec2bin <- function(x) {
             if (x == 0) {
                 y <- 0
@@ -1525,7 +1525,7 @@ exSearch <-
             }
             return(y)
         }
-        
+
         dec2binOld <- function(x) {
             if (x == 0) {
                 y <- 0
@@ -1547,8 +1547,8 @@ exSearch <-
             }
             return(y)
         }
-        
-        if (!is.null(parallel)) {
+
+        if (!is.null(parallel[1])) {
             if (is.list(parallel)) {
                 if (length(parallel[[1]]) != length(parallel[[2]])) {
                     stop("The nodes (second list object in parallel) and
@@ -1580,7 +1580,7 @@ must be the same.") }
             return(tmp)
         }
         pop <- matrix(NA, nrow = spaceExp, ncol = length(model$reacID))
-        if (!is.null(parallel)) {
+        if (!is.null(parallel[1])) {
             pop <- sfLapply(as.list(seq_len(spaceExp)), bigBang)
         } else {
             pop <- lapply(as.list(seq_len(spaceExp)), bigBang)
@@ -1609,7 +1609,7 @@ must be the same.") }
                                            approach=approach)
             return(scores[j])
         }
-        if (!is.null(parallel)) {
+        if (!is.null(parallel[1])) {
             res <- sfApply(as.matrix(realSpace), 1, getBinScore)
         } else {
             res <- apply(as.matrix(realSpace), 1, getBinScore)
@@ -1631,7 +1631,7 @@ must be the same.") }
         }
         dtmRatio <- mean(abs(res - mean(res)))/abs(min(res) - mean(res))
         dtmRatio2 <- 1 - abs(min(res) - mean(res))/abs(min(res) - max(res))
-        if (!is.null(parallel)) {
+        if (!is.null(parallel[1])) {
             sfStop()
         }
         if (verbose) {
@@ -1696,10 +1696,10 @@ gaBinaryNemT1 <-
             parameters$cutOffs <- sort(parameters$cutOffs)
             stop("Your're cutoff parameters don't make any sense.")
         }
-        if (is.null(elitism) == TRUE) { elitism <- ceiling(popSize*0.1) }
+        if (is.null(elitism[1]) == TRUE) { elitism <- ceiling(popSize*0.1) }
         if (elitism >= popSize) { elitism <- floor(0.1*popSize) }
-        if (is.null(inversion) == TRUE) { inversion <- 0 }
-        if (is.null(initBstring) == TRUE) {
+        if (is.null(inversion[1]) == TRUE) { inversion <- 0 }
+        if (is.null(initBstring[1]) == TRUE) {
             initBstring <- rep(1, length(model$reacID))
         }
         if (length(initBstring) == 1 & length(model$reacID) > 1) {
@@ -1780,7 +1780,7 @@ the search space is only ", spaceExp,
             simList <- NULL
             indexList <- indexFinder(CNOlist, model)
             ## initialize starting population
-            if (is.null(nrow(initBstring))) {
+            if (is.null(nrow(initBstring)[1])) {
                 initBstring <- t(as.matrix(initBstring))
             }
             Pop <-
@@ -1857,7 +1857,7 @@ the search space is only ", spaceExp,
                 bestMemTurn <- 0
                 bestMem <- "off"
             }
-            if (!is.null(parallel)) {
+            if (!is.null(parallel[1])) {
                 if (is.list(parallel)) {
                     if (length(parallel[[1]]) != length(parallel[[2]])) {
                         stop("The nodes (second list object in parallel) and
@@ -1896,7 +1896,7 @@ the same.")
             lh.samples <- character()
             while (!stop) {
                 if (delcyc) {
-                    if (!is.null(parallel)) {
+                    if (!is.null(parallel[1])) {
                         Pop <- t(sfApply(Pop, 1, removeCycles, model))
                     } else {
                         Pop <- t(apply(Pop, 1, removeCycles, model))
@@ -1907,7 +1907,7 @@ the same.")
                     Pop[1, ] <- bestReduced
                 }
                 scores <- numeric(nrow(Pop))
-                if (!is.null(parallel)) {
+                if (!is.null(parallel[1])) {
                     scores <- sfApply(Pop, 1, getObj)
                 } else {
                     scores <- apply(Pop, 1, getObj)
@@ -1988,8 +1988,8 @@ the same.")
                     breaks <- c(breaks, breaks +
                                     ((seq_len((popSize - 1))))/popSize)
                     sel <- rep(1, popSize)
-                    
-                    if (!is.null(parallel) & popSize > 10000) {
+
+                    if (!is.null(parallel[1]) & popSize > 10000) {
                         sel <- sfApply(as.matrix(seq_len(popSize)), 1, susSel,
                                        wheel1, breaks)
                     } else {
@@ -1998,7 +1998,7 @@ the same.")
                     }
                 }
                 if ("t" %in% selection) {
-                    
+
                     pRanks <- sample(seq_len(popSize), popSize)
                     t.size <- min(popSize/2, selPress)
                     ppRanks <- matrix(0, popSize, t.size)
@@ -2012,8 +2012,8 @@ the same.")
                                                     (i-1)]
                         }
                     }
-                    
-                    if (!is.null(parallel) & popSize > 10000) {
+
+                    if (!is.null(parallel[1]) & popSize > 10000) {
                         sel <-
                             as.vector(unlist(sfApply(
                                 cbind(pRanks, ppRanks), 1, tsReduce, scores)))
@@ -2021,31 +2021,31 @@ the same.")
                         sel <- as.vector(unlist(apply(
                             cbind(pRanks, ppRanks), 1, tsReduce, scores)))
                     }
-                    
+
                 }
                 if ("r" %in% selection) {
-                    
+
                     sel <- rep(seq_len(popSize),
                                round((seq_len(popSize))/sum(seq_len(popSize))*
                                          popSize))
-                    
+
                     if (length(sel) < popSize) {
                         sel <- c(sel, sel[length(sel)])
                     }
-                    
+
                 }
                 if ("f" %in% selection) {
-                    
+
                     scoresF <- scores*(-1)
                     scoresF <- scoresF - min(scoresF)
-                    
+
                     sel <- rep(seq_len(popSize),
                                round((scoresF)/sum(seq_len(scoresF))*popSize))
-                    
+
                     if (length(sel) < popSize) {
                         sel <- c(sel, sel[seq_len((popSize-length(sel)))])
                     }
-                    
+
                 }
                 ##message(sel)
                 ##message(scores)
@@ -2229,13 +2229,13 @@ the same.")
                 res <- rbind(res, resThisGen)
                 Criteria <- c((stallGen > stallGenMax),
                               (as.numeric((t[length(t)] -
-                                               t[1]), units = "secs") > 
+                                               t[1]), units = "secs") >
                                    maxTime), (g > maxGens))
                 ## introduce a stop criteria for a target network
                 if (targetBstring[1] != "none" & g >= 2) {
                     Criteria <- c((stallGen > stallGenMax),
                                   (as.numeric((t[length(t)] -
-                                                   t[1]), units = "secs") > 
+                                                   t[1]), units = "secs") >
                                        maxTime),
                                   (g > maxGens),
                                   (computeScoreNemT1(CNOlist=CNOlist,
@@ -2245,19 +2245,19 @@ the same.")
                                                      NAFac=NAFac,
                                                      approach = approach,
                                                      NEMlist = NEMlist,
-                                                     parameters=parameters, 
+                                                     parameters=parameters,
                                                      tellme = 0,
                                                      relFit = relFit, ...) <=
-                                       computeScoreNemT1(CNOlist=CNOlist, 
+                                       computeScoreNemT1(CNOlist=CNOlist,
                                                          model=model,
                                                          bString=targetBstring,
                                                          sizeFac=sizeFac,
-                                                         NAFac=NAFac, 
+                                                         NAFac=NAFac,
                                                          approach = approach,
-                                                         NEMlist = NEMlist, 
+                                                         NEMlist = NEMlist,
                                                          parameters=parameters,
                                                          tellme = 0,
-                                                         relFit = relFit, 
+                                                         relFit = relFit,
                                                          ...)))
                 }
                 if (any(Criteria)) {
@@ -2375,7 +2375,7 @@ the same.")
             PopTolScores <- PopTolScores[TolBs]
             PopTolT <- cbind(PopTol, PopTolScores)
             PopTolT <- unique(PopTolT, MARGIN = 1)
-            if (!is.null(dim(PopTolT))) {
+            if (!is.null(dim(PopTolT)[1])) {
                 PopTol <- PopTolT[, seq_len((ncol(PopTolT) - 1))]
                 PopTolScores <- PopTolT[, ncol(PopTolT)]
             }
@@ -2385,7 +2385,7 @@ the same.")
             }
             res <- res[2:nrow(res), ]
             rownames(res) <- NULL
-            if (!is.null(parallel)) {
+            if (!is.null(parallel[1])) {
                 sfStop()
             }
             bestbit <- reduceGraph(bestbit, model, CNOlist)
@@ -2494,7 +2494,7 @@ getNemFit <-
             SCompMat <- SCompMat*signtmp
             SCompMat <- t(SCompMat)
             SCompMat <- rbind(SCompMat, null = 0)
-            if (is.null(rownames(SCompMat))) {
+            if (is.null(rownames(SCompMat)[1])) {
                 SCompMat <- SCompMat[, colnames(NEMlist$fc)]
             } else {
                 SCompMat <- SCompMat[colnames(NEMlist$fc), ]
@@ -2698,13 +2698,13 @@ getNemFit <-
                         R <- R#/ncol(NEMlist$fc)
                     }
                 }
-                if (is.null(NEMlist$egenes)) {
+                if (is.null(NEMlist$egenes[1])) {
                     MSEE <- rowMins(R)
                 } else {
                     MSEE <- numeric()
                     R <- R+NEMlist$geneGrid
                     R[is.na(R)] <- Inf
-                    if (is.null(NEMlist$weights)) {
+                    if (is.null(NEMlist$weights[1])) {
                         MSEE <- rowMins(R)
                     } else {
                         R[is.infinite(R)] <- 0
@@ -2778,7 +2778,7 @@ getNemFit <-
             subtopo <- matrix(0, nrow = length(MSEE),
                               ncol = ncol(getSignals(CNOlist)[[1]]))
             colnames(subtopo) <- colnames(getSignals(CNOlist)[[1]])
-            if (is.null(NEMlist$weights)) {
+            if (is.null(NEMlist$weights[1])) {
                 Epos <- which(R == MSEE, arr.ind = TRUE)
             } else {
                 Epos <-
@@ -2787,7 +2787,7 @@ getNemFit <-
                         == 0, arr.ind = TRUE)
             }
             if (length(Epos) != 0) {
-                if (is.null(dim(Epos))) {
+                if (is.null(dim(Epos)[1])) {
                     Epos <- t(as.matrix(Epos))
                 }
                 posReg <- Epos[Epos[, 2] <= ncol(getSignals(CNOlist)[[1]]), ]
@@ -2810,19 +2810,19 @@ getNemFit <-
                         subtopo[negReg[1], negReg[2]] <- -1
                     }
                 }
-                
+
                 EtoS <- matrix(0, nrow = nrow(Epos), ncol = 4)
                 colnames(EtoS) <- c("Egene", "Sgene", "Type", "MSE")
                 rownames(EtoS) <- names(MSEE)[Epos[, 1]]
-                
+
                 Epos[Epos[, 2] > ncol(subtopo), 2] <-
                     Epos[Epos[, 2] > ncol(subtopo), 2] - ncol(subtopo)
-                
+
                 EtoS[, 1] <- Epos[, 1]
                 EtoS[, 2] <- Epos[, 2]
                 EtoS[, 3] <- subtopo[cbind(Epos[, 1], Epos[, 2])]
                 EtoS[, 4] <- MSEE[Epos[, 1]]
-                
+
                 EtoS <- EtoS[order(EtoS[, 4], decreasing = FALSE), ]
                 sgeneScore <- numeric(ncol(subtopo))
             } else {
@@ -2849,7 +2849,7 @@ getNemFit <-
                     used <- nrow(EtoS)
                 }
                 message("Unique genes used: ",
-                        (used), " (", round((used/nrow(NEMlist$fc))*100, 2), " 
+                        (used), " (", round((used/nrow(NEMlist$fc))*100, 2), "
                         %)")
                 message("Duplicated genes: ", dups)
                 message("Overall fit:")
@@ -2912,7 +2912,7 @@ graph2adj <-
         for (i in seq_len(length(nodes(gR)))) {
             adj.matrix[nodes(gR)[i],adj(gR,nodes(gR)[i])[[1]]] <- 1
         }
-        
+
         return(adj.matrix)
     }
 #' @noRd
@@ -2921,7 +2921,7 @@ isDag <-
         if (any(bString != 0)) {
             graph <- model$reacID[bString == 1]
         }
-        if (!is.null(graph)) {
+        if (!is.null(graph[1])) {
             adjmat <- dnf2adj(graph)
             get.order2 <- colSums(adjmat)
             adjmat <- adjmat[order(get.order2, decreasing = FALSE),
@@ -2983,7 +2983,7 @@ localSearch <-
              parallel=NULL, parallel2 = 1, relFit = FALSE, method = "s",
              max.steps = Inf, max.time = Inf, node = NULL, absorpII = TRUE,
              draw = TRUE, prior = NULL) {
-        if (is.null(prior)) {
+        if (is.null(prior[1])) {
             prior <- rep(0, length(model$reacID))
         }
         method <- checkMethod(method)
@@ -3011,7 +3011,7 @@ localSearch <-
         if (n >= 1) {
             bitStrings[1, ] <- c(0, rep(0, bLength-1))
         }
-        if (!is.null(initSeed)) {
+        if (!is.null(initSeed[1])) {
             bitStrings[1, ] <- reduceGraph(initSeed, model, CNOlist)
         }
         ## add a few random (but good) strings:
@@ -3026,7 +3026,7 @@ localSearch <-
         }
         bitStringsMem <- numeric()
         bitStringsScores <- numeric()
-        if (!is.null(parallel)) {
+        if (!is.null(parallel[1])) {
             if (is.list(parallel)) {
                 if (length(parallel[[1]]) != length(parallel[[2]])) {
                     stop("The nodes (second list object in parallel) and the
@@ -3117,7 +3117,7 @@ localSearch <-
                                       approach = approach, NEMlist = NEMlist,
                                       parameters, tellme = 0, relFit = relFit,
                                       method = method, ...) {
-                    if (!is.null(node)) {
+                    if (!is.null(node[1])) {
                         if (length(grep(paste(node, collapse = "|"),
                                         model$reacID[i])) == 0) {
                             return(Inf)
@@ -3193,7 +3193,7 @@ localSearch <-
                 if (sum(prior != 0) > 0) {
                     edge.matrix <- as.matrix(edge.matrix[!prior != 0, ])
                 }
-                if (parallel2 == 1 & !is.null(parallel)) {
+                if (parallel2 == 1 & !is.null(parallel[1])) {
                     scores <- sfApply(edge.matrix, 1, scoreThem, CNOlist, model,
                                       simList = NULL, indexList, sizeFac, NAFac,
                                       approach = approach, NEMlist = NEMlist,
@@ -3416,7 +3416,7 @@ localSearch <-
             return(list(A=score,B=bitString,row=row, C=save.scores,
                         D=edges.changed, E=edge.history))
         }
-        if (!is.null(parallel) & parallel2 == 0) {
+        if (!is.null(parallel[1]) & parallel2 == 0) {
             bsTemp <- sfApply(as.matrix(seq_len(n)), 1, processSeed, bitStrings,
                               CNOlist, model, simList = NULL, indexList,
                               sizeFac, NAFac, approach = approach,
@@ -3442,7 +3442,7 @@ localSearch <-
             edge.history[[i]] <- bsTemp[[i]]$E
         }
         bitString <- bitStrings
-        if (!is.null(parallel)) {
+        if (!is.null(parallel[1])) {
             sfStop()
         }
         bitString <- bitStrings # cbind(bitStrings, bitStringsScores)
@@ -3471,7 +3471,7 @@ makeDesignFull <-
                                                         colnames(design))])
             colnames(inhibitorsDesign) <- inhibitors
         }
-        if (is.null(stimuli) == TRUE) {
+        if (is.null(stimuli[1]) == TRUE) {
             stimuliSum <- numeric(nrow(design))
         } else {
             if (length(stimuli) == 1) {
@@ -3480,7 +3480,7 @@ makeDesignFull <-
                 stimuliSum <- rowSums(stimuliDesign)
             }
         }
-        if (is.null(inhibitors) == TRUE) {
+        if (is.null(inhibitors[1]) == TRUE) {
             inhibitorsSum <- numeric(nrow(design))
         } else {
             if (length(inhibitors) == 1) {
@@ -3495,7 +3495,7 @@ makeDesignFull <-
         maxStim <- max(stimuliSum)
         maxKd <- max(inhibitorsSum)
         maxCue <- max(cuesSum)
-        
+
         grepCtrl <- which(cuesSum == 0)
         grepStims <- intersect(which(stimuliSum != 0),
                                which(inhibitorsSum == 0))
@@ -3503,13 +3503,13 @@ makeDesignFull <-
                              which(inhibitorsSum != 0))
         grepStimsKds <- intersect(which(stimuliSum != 0),
                                   which(inhibitorsSum != 0))
-        
+
         design <- numeric()
         designNames <- character()
         design <- rep(0, ncol(x))
         design[grepCtrl] <- 1
         designNames <- "Ctrl"
-        
+
         for (i in grepStims) {
             stimNames <- paste(sort(names(which(stimuliDesign[i, ] >= 1))),
                                collapse = "_")
@@ -3521,7 +3521,7 @@ makeDesignFull <-
                 design[i, designNames %in% stimNames] <- 1
             }
         }
-        
+
         for (i in grepKds) {
             stimNames <- paste(sort(names(which(inhibitorsDesign[i, ] >= 1))),
                                collapse = "_")
@@ -3533,7 +3533,7 @@ makeDesignFull <-
                 design[i, designNames %in% stimNames] <- 1
             }
         }
-        
+
         for (i in grepStimsKds) {
             stimNames <- paste(c(sort(names(which(inhibitorsDesign[i, ] >= 1))),
                                  sort(names(which(stimuliDesign[i, ] >= 1)))),
@@ -3546,10 +3546,10 @@ makeDesignFull <-
                 design[i, designNames %in% stimNames] <- 1
             }
         }
-        
-        if (!is.null(batches))  {
+
+        if (!is.null(batches[1]))  {
             for (i in batches) {
-                if (!is.null(runs)) {
+                if (!is.null(runs[1])) {
                     for (j in runs) {
                         tmp <- numeric(ncol(x))
                         tmp[intersect(grep(i, colnames(x)),
@@ -3639,7 +3639,7 @@ pamNorm <-
 #' @noRd
 removeCycles <-
     function(bString, model, dnf = NULL) {
-        if (is.null(dnf)) {
+        if (is.null(dnf[1])) {
             if (any(bString != 0)) {
                 graph <- model$reacID[bString == 1]
                 adjmat <- abs(dnf2adj(graph))
@@ -3927,7 +3927,7 @@ simulateStatesRecursiveAdd <-
                                         pobMult2 <- add1 - subResult2[, j2]
                                     }
                                     pobMult2[pobMult2 == 2] <- 1
-                                    
+
                                     pobNA <- numeric(length(pob))
                                     pobNA[is.na(pob)] <- 1
                                     pobNA[is.na(pobMult)] <- 1
@@ -3935,10 +3935,10 @@ simulateStatesRecursiveAdd <-
                                     pobMult[is.na(pobMult)] <- 1
                                     pobMult[pobMult != pobMult2] <- 1
                                     pob[is.na(pob)] <- 1
-                                    
+
                                     ##pobMult[pobMult == -1] <- 0
                                     pob <- rowMin(cbind(pob,pobMult))
-                                    
+
                                     pobNA[pob == 0] <- 0
                                     pob[pobNA > 0] <- NA
                                 } else {
@@ -3968,23 +3968,23 @@ simulateStatesRecursiveAdd <-
                                                         signalStatesTemp,
                                                     graph = subGraph,
                                                     children = NULL, NEMlist)
-                                    
+
                                     if (add1 == 0) {
                                         pobMult <- subResult[, j2]
                                     } else {
                                         pobMult <- add1 - subResult[, j2]
                                     }
                                     pobMult[pobMult == 2] <- 1
-                                    
+
                                     pobNA <- numeric(length(pob))
                                     pobNA[is.na(pob)] <- 1
                                     pobNA[is.na(pobMult)] <- 1
                                     pobMult[is.na(pobMult)] <- 1
                                     pob[is.na(pob)] <- 1
-                                    
+
                                     ##pobMult[pobMult == -1] <- 0
                                     pob <- rowMin(cbind(pob,pobMult))
-                                    
+
                                     pobNA[pob == 0] <- 0
                                     pob[pobNA > 0] <- NA
                                 }
@@ -4003,23 +4003,23 @@ simulateStatesRecursiveAdd <-
                                                 children =
                                                     unique(c(children, node2)),
                                                 NEMlist)
-                                
+
                                 if (add1 == 0) {
                                     pobMult <- signalStates[, j2]
                                 } else {
                                     pobMult <- add1 - signalStates[, j2]
                                 }
                                 pobMult[pobMult == 2] <- 1
-                                
+
                                 pobNA <- numeric(length(pob))
                                 pobNA[is.na(pob)] <- 1
                                 pobNA[is.na(pobMult)] <- 1
                                 pobMult[is.na(pobMult)] <- 1
                                 pob[is.na(pob)] <- 1
-                                
+
                                 ##pobMult[pobMult == -1] <- 0
                                 pob <- rowMin(cbind(pob,pobMult))
-                                
+
                                 pobNA[pob == 0] <- 0
                                 pob[pobNA > 0] <- NA
                             }
@@ -4029,21 +4029,21 @@ simulateStatesRecursiveAdd <-
                             } else {
                                 add1 <- 1
                             }
-                            
+
                             if (add1 == 0) {
                                 pobMult <- signalStates[, j2]
                             } else {
                                 pobMult <- add1 - signalStates[, j2]
                             }
                             pobMult[pobMult == 2] <- 1
-                            
+
                             pobNA <- numeric(length(pob))
                             pobNA[is.na(pob)] <- 1
                             pobNA[is.na(pobMult)] <- 1
                             pobMult[is.na(pobMult)] <- 1
                             pob[is.na(pob)] <- 1
                             pob <- rowMin(cbind(pob,pobMult))
-                            
+
                             pobNA[pob == 0] <- 0
                             pob[pobNA > 0] <- NA
                         }
@@ -4079,7 +4079,7 @@ simulateStatesRecursiveAdd <-
                                        colnames(getInhibitors(CNOlist)))])
         graph <- model$reacID[bString == 1]
         stimuliStates <- getStimuli(CNOlist)
-        if (!is.null(NEMlist$signalStates)) {
+        if (!is.null(NEMlist$signalStates[1])) {
             signalStates <- NEMlist$signalStates
         } else {
             signalStates <- matrix(NA, nrow = nrow(getSignals(CNOlist)[[2]]),

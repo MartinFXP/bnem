@@ -136,7 +136,7 @@ processDataBCR <- function(path = "", combsign = FALSE) {
     targets <- targets[-grep("Myc|LY294|U0126|Vivit|BCR_BCR|BCR_Ctrl", targets)]
     fc2 <- fc[, c("Ctrl_vs_BCR", targets)]
     rownames(fc) <- rownames(data)
-    
+
     fc2 <- fc2[abs(fc2[, "Ctrl_vs_BCR"]) > 1 &
                    rowMaxs(abs(fc2[, !colnames(fc2) %in%
                                        "Ctrl_vs_BCR"])) >
@@ -266,7 +266,7 @@ bnemBs <- function(fc, x = 10, f = 0.5, replace = TRUE, startString = NULL,
         cat(i)
         fcsub <- fc[sample(seq_len(nrow(fc)), ceiling(nrow(fc)*f),
                            replace = replace), ]
-        if (is.null(startString)) {
+        if (is.null(startString[1])) {
             tmp <- bnem(fc = fcsub, ...)
         } else {
             if (!is(startString, "matrix")) {
@@ -316,7 +316,7 @@ NA
 #' @param Sgenes number of S-genes
 #' @param maxEdges number of maximum edges (upper limit) in the DAG
 #' @param stimGenes number of stimulated S-genes
-#' @param layer scaling factor for the sampling of next Sgene layerof the 
+#' @param layer scaling factor for the sampling of next Sgene layerof the
 #' prior. high (5-10) mean more depth and low (0-2) means more breadth
 #' @param frac fraction of hyper-edges in the ground truth (GTN)
 #' @param maxInDeg maximum number of incoming hyper-edges
@@ -531,7 +531,7 @@ simBoolGtn <-
 #' absorptionII(graph)
 absorptionII <-
     function(bString, model=NULL) {
-        if (is.null(model)) {
+        if (is.null(model[1])) {
             graph <- bString
             nodes <-
                 unique(gsub("!", "",
@@ -570,7 +570,7 @@ absorptionII <-
             }
             if (length(targets) > 1) {
                 targets <- targets[!targets %in% which(graph %in% i)]
-                if (is.null(model)) {
+                if (is.null(model[1])) {
                     if (sum(bString %in% graph[targets]) > 0) {
                         bString <- bString[!bString %in% graph[targets]]
                     }
@@ -595,7 +595,7 @@ absorptionII <-
 #' absorption(graph)
 absorption <-
     function(bString, model=NULL) {
-        if (is.null(model)) {
+        if (is.null(model[1])) {
             graph <- bString
         } else {
             graph <- model$reacID[bString == 1]
@@ -617,7 +617,7 @@ absorption <-
             }
             if (length(targets) > 1) {
                 targets <- targets[!targets == which(graph %in% i)]
-                if (is.null(model)) {
+                if (is.null(model[1])) {
                     if (sum(bString %in% graph[targets]) > 0) {
                         bString <- bString[!bString %in% graph[targets]]
                     }
@@ -637,12 +637,12 @@ absorption <-
 #' neighbourhood of a initial hyper-graph. "genetic" uses a genetic algorithm.
 #' "exhaustive" searches through the complete search space and is not
 #' recommended.
-#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' @param fc m x l matrix of foldchanges of gene expression values or
 #' equivalent input
-#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param expression Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data
 #' for m E-genes and l experiments.
 #' @param egenes list object; each list entry is named after an S-gene and
 #' contains the names of egenes which are potential children
@@ -705,13 +705,13 @@ absorption <-
 #' @param parallel2 if TRUE parallelises the starts and not the search itself
 #' @param selection "t" for tournament selection and "s" for stochastic
 #' universal sampling (only "genetic").
-#' @param type type of the paralellisation on multpile machines (default: 
+#' @param type type of the paralellisation on multpile machines (default:
 #' "SOCK")
 #' @param exhaustive If TRUE an exhaustive search is conducted if the genetic
 #' algorithm would take longer (only "genetic").
 #' @param delcyc If TRUE deletes cycles in all hyper-graphs (not recommended).
-#' @param seeds how many starts for the greedy search? (default: 1); uses 
-#' the n-dimensional cube (n = number of S-genes) to maximize search 
+#' @param seeds how many starts for the greedy search? (default: 1); uses
+#' the n-dimensional cube (n = number of S-genes) to maximize search
 #' space coverage
 #' @param maxSteps Maximal number of steps (only "greedy").
 #' @param node vector of S-gene names, which are used in the greedy
@@ -753,7 +753,7 @@ absorption <-
 #' maxSteps = Inf)
 bnem <-
     function(search = "greedy",
-             
+
              fc=NULL,
              expression=NULL,
              egenes=NULL,
@@ -773,7 +773,7 @@ bnem <-
              verbose = TRUE,
              reduce = TRUE,
              parallel2 = 1,
-             
+
              initBstring = NULL,
              popSize = 100,
              pMutation = 0.5,
@@ -791,7 +791,7 @@ bnem <-
              type = "SOCK",
              exhaustive = FALSE,
              delcyc = FALSE,
-             
+
              seeds = 1,
              maxSteps = Inf,
              node = NULL,
@@ -801,18 +801,18 @@ bnem <-
              maxInputsPerGate = 2
     ) {
         approach <- "fc"
-        if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(expression)) {
+        if (is.null(fc[1])) { approach <- "abs" }
+        if (is.null(fc[1]) & is.null(expression[1])) {
             stop("please either provide a matrix of foldchanges 'fc' ",
                  "or a matrix of expression values 'expression'")
         }
-        if (is.null(model) | is.null(CNOlist)) {
+        if (is.null(model[1]) | is.null(CNOlist[1])) {
             tmp <- preprocessInput(stimuli=stimuli,inhibitors=inhibitors,
                                    signals=signals,design=design,
                                    expression=expression,
                                    fc=fc,pkn=pkn,
                                    maxInputsPerGate=maxInputsPerGate)
-            
+
             CNOlist <- tmp$CNOlist
             NEMlist <- tmp$NEMlist
             model <- tmp$model
@@ -828,7 +828,7 @@ bnem <-
                                 parameters = parameters, approach = approach,
                                 method)
         if (search %in% c("greedy", "genetic", "exhaustive")) {
-            
+
             if (search %in% "greedy") {
                 res <- localSearch(CNOlist=CNOlist, NEMlist=NEMlist,
                                    model=model,
@@ -1134,7 +1134,7 @@ convertGraph <-
 dummyCNOlist <-
     function(stimuli = NULL, inhibitors = NULL, maxStim = 0, maxInhibit = 0,
              signals = NULL) {
-        if (is.null(signals)) {
+        if (is.null(signals[1])) {
             signals <- c(stimuli, inhibitors)
         }
         stimn <- length(stimuli)
@@ -1231,7 +1231,7 @@ dummyCNOlist <-
                               matrix(0, nrow(stimDesign),
                                      (ncol(design) - ncol(stimDesign)))),
                         cbind(matrix(0, nrow(inhibDesign),
-                                     (ncol(design) - ncol(inhibDesign))), 
+                                     (ncol(design) - ncol(inhibDesign))),
                               inhibDesign), design)
         colnames(design) <- colnamesdesign
         ## make signalmatrix:
@@ -1296,7 +1296,7 @@ epiNEM2Bg <- function(t) {
         tmp <- rowSums(t$origModel)
         stim <- rownames(t$origModel)[tmp == min(tmp)]
         graph <- NULL
-        
+
         for (i in seq_len(length(t$column))) {
             parents <-
                 sort(rownames(t$origModel)[t$origModel[
@@ -1414,12 +1414,12 @@ epiNEM2Bg <- function(t) {
 #' @param CNOlist CNOlist object (see package CellNOptR), if available.
 #' @param model Model object including the search space, if available.
 #' See CellNOptR::preprocessing.
-#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' @param fc m x l matrix of foldchanges of gene expression values or
 #' equivalent input
-#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param expression Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data
 #' for m E-genes and l experiments.
 #' @param egenes list object; each list entry is named after an S-gene and
 #' contains the names of egenes which are potential children
@@ -1487,8 +1487,8 @@ findResiduals <-
                           "effects"),
              cut = TRUE, parallel = NULL, verbose = TRUE, ...) {
         approach <- "fc"
-        if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(expression)) {
+        if (is.null(fc[1])) { approach <- "abs" }
+        if (is.null(fc[1]) & is.null(expression[1])) {
             stop("please either provide a matrix of foldchanges 'fc' ",
                  "or a matrix of expression values 'expression'")
         }
@@ -1514,20 +1514,20 @@ findResiduals <-
                                  parameters = parameters, method = method,
                                  verbose = verbose, sizeFac = sizeFac)
         EtoS <- tmp$EtoS
-        
+
         if (verbose) {
             message("calculating residuals for ",
                     ncol(getSignals(CNOlist)[[1]]),
                     " S-genes based on ", length(unique(EtoS[, 1])),
                     " E-genes.")
         }
-        
+
         resMat <- matrix(0, nrow = ncol(getSignals(CNOlist)[[1]]),
                          ncol = 2*ncol(NEMlist$fc))
         resVec <- numeric(ncol(getSignals(CNOlist)[[1]]))
         resType <- matrix(0, nrow = ncol(getSignals(CNOlist)[[1]]),
                           ncol = 2*ncol(NEMlist$fc))
-        
+
         checkSgene <- function(i) {
             resType <- numeric(2*ncol(NEMlist$fc))
             resMat <- numeric(2*ncol(NEMlist$fc))
@@ -1553,7 +1553,7 @@ findResiduals <-
                 resVec <- sum(abs(cor(SCompMat[i, ], t(data.tmp),
                                       method = method)))
                 for (j in seq_len(ncol(data.tmp))) { # parallel this!
-                    
+
                     if (verbose) {
                         cat('\r',
                             paste(floor(((i-1)*ncol(data.tmp) + j)/
@@ -1561,7 +1561,7 @@ findResiduals <-
                                                  ncol(data.tmp))*100), "%",
                                   sep = ""))
                     }
-                    
+
                     sgene <- SCompMat[i, ]
                     mem <- sgene[j]
                     if (mem == 0) {
@@ -1602,8 +1602,8 @@ findResiduals <-
             }
             return(list(resMat = resMat, resType = resType, resVec = resVec))
         }
-        
-        if (!is.null(parallel)) {
+
+        if (!is.null(parallel[1])) {
             if (is.list(parallel)) {
                 if (length(parallel[[1]]) != length(parallel[[2]])) {
                     stop("The nodes (second list object in parallel) and the
@@ -1620,14 +1620,14 @@ same.") }
             }
             sfLibrary("CellNOptR")
         }
-        
-        if (!is.null(parallel)) {
+
+        if (!is.null(parallel[1])) {
             resTmp <- sfLapply(as.list(seq_len(nrow(resMat))), checkSgene)
             sfStop()
         } else {
             resTmp <- lapply(as.list(seq_len(nrow(resMat))), checkSgene)
         }
-        
+
         for (i in seq_len(nrow(resMat))) {
             resMat[i, ] <- resTmp[[i]]$resMat
             resType[i, ] <- resTmp[[i]]$resType
@@ -1639,21 +1639,21 @@ same.") }
         rownames(resDiff) <- colnames(getSignals(CNOlist)[[1]])
         resDiff1 <- cbind(resDiff[, seq_len(ncol(NEMlist$fc))], max(resDiff),
                           resDiff[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
-        
+
         p1 <- HeatmapOP(resDiff1, Rowv = FALSE, Colv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
-        
+
         resDiff2 <- cbind(resDiff[, seq_len(ncol(NEMlist$fc))], min(resDiff),
                           resDiff[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
         resType2 <- cbind(resType[, seq_len(ncol(NEMlist$fc))], min(resType),
                           resType[, (ncol(NEMlist$fc)+1):(2*ncol(NEMlist$fc))])
         resDiff2[resDiff2 > 0] <- 0
-        
+
         p2 <- HeatmapOP(resDiff2, Colv = FALSE, Rowv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
-        
+
         resDiff3 <- resDiff2*resType2
-        
+
         p3 <- HeatmapOP(resDiff3, Colv = FALSE, Rowv = FALSE, main = main,
                         sub = sub, bordercol = "grey", ...)
         res.breaks <-
@@ -1666,17 +1666,17 @@ same.") }
                      -max(abs(min(resDiff3, na.rm = TRUE)),
                           abs(max(resDiff3,
                                   na.rm = TRUE))))/100)
-        
+
         p1 <- HeatmapOP(resDiff3[, seq_len(ncol(NEMlist$fc))],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (positive effects)", sub = "",
                         xrot = "60", breaks = res.breaks, colorkey = NULL)
-        
+
         p2 <- HeatmapOP(resDiff3[, (ncol(NEMlist$fc)+2):(2*ncol(NEMlist$fc)+1)],
                         bordercol = "grey", Colv = FALSE, Rowv = FALSE,
                         main = "residuals (negative effects)", sub = "",
                         xrot = "60", breaks = res.breaks)
-        
+
         if (verbose) {
             print(p1, position=c(0, 0, .48, 1), more=TRUE)
             print(p2, position=c(.48, 0, 1, 1))
@@ -1886,7 +1886,7 @@ simulateStatesRecursive <-
                              colnames(getInhibitors(CNOlist)))]))
         graph0 <- model$reacID[bString == 1]
         stimuliStates <- getStimuli(CNOlist)
-        if (!is.null(NEMlist$signalStates)) {
+        if (!is.null(NEMlist$signalStates[1])) {
             signalStates <- NEMlist$signalStates
         } else {
             signalStates <- matrix(NA, nrow = nrow(getSignals(CNOlist)[[2]]),
@@ -1930,7 +1930,7 @@ transClose <-
     function(g, max.iter = NULL, verbose = FALSE) {
         v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")),
                                                   "\\+"))))
-        if (is.null(max.iter)) {
+        if (is.null(max.iter[1])) {
             h <- getHierarchy(g)
             max.iter <- length(h) - 2 # should be sufficient
         }
@@ -1941,7 +1941,7 @@ transClose <-
         g.closed <- g
         for (iter in seq_len(max.iter)) {
             g.old <- g.closed
-            
+
             if (verbose) {
                 cat('\r', paste("iteration: ", iter, sep = ""))
             }
@@ -2028,7 +2028,7 @@ transRed <-
     function(g, max.iter = NULL, verbose = FALSE) {
         v <- unique(gsub("!", "", unlist(strsplit(unlist(strsplit(g, "=")),
                                                   "\\+"))))
-        if (is.null(max.iter)) {
+        if (is.null(max.iter[1])) {
             max.iter <- length(v) - 2
         }
         a <- dnf2adj(g)
@@ -2066,12 +2066,12 @@ transRed <-
 #' plotting the observed differential effects of an effect reporter and the
 #' expected differential effects of the regulating signalling gene
 #' @param CNOlist CNOlist object (see package CellNOptR), if available.
-#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' @param fc m x l matrix of foldchanges of gene expression values or
 #' equivalent input
-#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param expression Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data
 #' for m E-genes and l experiments.
 #' @param model Model object including the search space, if available.
 #' See CellNOptR::preprocessing.
@@ -2157,8 +2157,8 @@ validateGraph <-
              breaks = NULL, col = "RdYlGn", sizeFac = 10^-10,
              order = "rank", verbose = TRUE, ...) {
         approach <- "fc"
-        if (is.null(fc)) { approach <- "abs" }
-        if (is.null(fc) & is.null(expression)) {
+        if (is.null(fc[1])) { approach <- "abs" }
+        if (is.null(fc[1]) & is.null(expression[1])) {
             stop("please either provide a matrix of foldchanges 'fc' ",
                  "or a matrix of expression values 'expression'")
         }
@@ -2166,11 +2166,11 @@ validateGraph <-
         colnames <- "bio"
         complete <- FALSE
         sim <- 0
-        
+
         NEMlist <- list()
         NEMlist$fc <- fc
         NEMlist$expression <- expression
-        
+
         myCN2bioCN <- function(x, stimuli, inhibitors) {
             y <- gsub("_vs_", ") vs (", x)
             for (i in inhibitors) {
@@ -2189,14 +2189,14 @@ validateGraph <-
                          "MAP3K7", "MAPK8", "PIK3CA", "RBCK1", "RELA",
                          "RIPK1", "RIPK3", "RNF31", "SHARPIN", "TAB2",
                          "TCF4", "TCF7L2", "TNFRSF10A", "TNFRSF10B",
-                         "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS", 
+                         "TNFRSF1A", "TNIK", "TRAF2", "USP2", "WLS",
                          "WNT11", "WNT5A", "TNFa", "TRAIL")
         genes.lower <- c("Apc", "Atf2", "cIap1", "cIap2", "Casp4", "Casp8",
                          "c-Flip", "Ikka", "Beta-Cat.", "Dkk1", "Dkk4",
                          "Casp8ap2", "Ikkb", "Nemo", "cJun", "Mekk", "Nik",
                          "Tak1", "Jnk", "Pi3k", "Hoil1", "RelA", "Rip1",
                          "Rip3", "Hoip", "Sharpin", "Tab2", "fake", "Tcf4",
-                         "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2", 
+                         "Dr4", "Dr5", "Tnfr1", "Tnik", "Traf2", "Usp2",
                          "Evi", "Wnt11", "Wnt5A", "Tnfa", "Trail")
         gene2protein <- function(genes, strict = FALSE) {
             if (strict) {
@@ -2215,7 +2215,7 @@ validateGraph <-
             }
             return(genes)
         }
-        
+
         protein2gene <- function(proteins, strict = FALSE) {
             if (strict) {
                 gene2prot <- cbind(
@@ -2233,7 +2233,7 @@ validateGraph <-
             }
             return(proteins)
         }
-        
+
         colSideColorsSave <- NULL
         bad.data <- FALSE
         errorMat <- function() {
@@ -2301,7 +2301,7 @@ validateGraph <-
             message(summary(EtoS[, 4]))
         }
         indexList <- NULL
-        if (is.null(indexList) == TRUE) {
+        if (is.null(indexList[1]) == TRUE) {
             indexList = indexFinder(CNOlist, model)
         }
         modelCut = cutModel(model, bString)
@@ -2326,7 +2326,7 @@ validateGraph <-
                                      colnames(getSignals(CNOlist)[[1]])]
         SCompMat <- computeFc(CNOlist, t(simResults))
         SCompMat <- SCompMat[, colnames(NEMlist$fc)]
-        
+
         if (parameters$cutOffs[3] == -1) {
             method <- checkMethod(method)
             S.mat <- SCompMat
@@ -2368,7 +2368,7 @@ validateGraph <-
             R[is.na(R)] <- max(R[!is.na(R)])
             MSEE <- matrixStats::rowMins(R)
         }
-        
+
         ## matrix visualisation for egenes fitted:
         if ("fc" %in% approach) {
             check.data <- NEMlist$fc
@@ -2380,11 +2380,11 @@ validateGraph <-
             check.model <- simResults
             colnames(check.model) <- colnames(getSignals(CNOlist)[[2]])
         }
-        
+
         Egenes <- Egenes
-        
+
         Egenes <- min(Egenes, sum(EtoS[, 2] == Sgene))
-        
+
         if (Egenes == 0) {
             mainlab <- paste("Regulated by ",
                              rownames(check.model)[Sgene], "\n", sep = "")
@@ -2397,14 +2397,14 @@ validateGraph <-
             rownames(genesInfo) <- "dummy"
             return(list(genesInfo = genesInfo, data = genesInfo))
         }
-        
+
         if (complete) {
             egenefit <- matrix(0, nrow = (sum(EtoS[, 2] == Sgene)+1),
                                ncol = ncol(check.data))
         } else {
             egenefit <- matrix(0, nrow = (Egenes+1), ncol = ncol(check.data))
         }
-        
+
         egenefit[1,] <- check.model[Sgene, ]
         rownames(egenefit) <- seq_len(nrow(egenefit))
         rownames(egenefit)[1] <- rownames(check.model)[Sgene]
@@ -2415,7 +2415,7 @@ validateGraph <-
         } else {
             activatedEgenes <- numeric(Egenes+1)
         }
-        
+
         count <- 0
         for (i in seq_len(nrow(EtoS))) {
             if (EtoS[i, 2] == Sgene) {
@@ -2430,9 +2430,9 @@ validateGraph <-
             }
             if (count >= Egenes & !complete) { break() }
         }
-        
+
         Egenes <- count
-        
+
         if (affyIds == FALSE) {
             temp <-
                 as.vector(unlist(mget(unique(rownames(egenefit)[-1]),
@@ -2444,7 +2444,7 @@ validateGraph <-
             }
             rownames(egenefit)[-1] <- temp
         }
-        
+
         rownames(egenefit)[is.na(rownames(egenefit))] <- "NA"
         count <- 0
         if (min(egenefit) != max(egenefit)) {
@@ -2479,7 +2479,7 @@ validateGraph <-
                                             parameters$cutOffs[2]))
                             onePosII <-
                                 which(egenefit[1, ] == 1 & egenefit[i, ] >
-                                          parameters$cutOffs[1] & 
+                                          parameters$cutOffs[1] &
                                           egenefit[i, ] <=
                                           parameters$cutOffs[2])
                             oneNegI <-
@@ -2491,7 +2491,7 @@ validateGraph <-
                                             -parameters$cutOffs[2]))
                             oneNegII <-
                                 which(egenefit[1, ] == -1 & egenefit[i, ] <
-                                          -parameters$cutOffs[1] & 
+                                          -parameters$cutOffs[1] &
                                           egenefit[i, ] >=
                                           -parameters$cutOffs[2])
                             zeros <-
@@ -2499,7 +2499,7 @@ validateGraph <-
                                             abs(egenefit[i, ]) <=
                                             parameters$cutOffs[2]),
                                   which(egenefit[1, ] == 1 &
-                                            egenefit[i, ] <= 
+                                            egenefit[i, ] <=
                                             parameters$cutOffs[1] &
                                             egenefit[i, ] >=
                                             -parameters$cutOffs[2]),
@@ -2513,26 +2513,26 @@ validateGraph <-
                                             abs(egenefit[i, ]) <=
                                             parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <=
-                                            parameters$cutOffs[1] & 
+                                            parameters$cutOffs[1] &
                                             egenefit[i, ] >=
                                             -parameters$cutOffs[1]),
-                                  which(egenefit[1, ] == -1 & 
+                                  which(egenefit[1, ] == -1 &
                                             egenefit[i, ] <=
-                                            parameters$cutOffs[1] & 
+                                            parameters$cutOffs[1] &
                                             egenefit[i, ] >=
                                             -parameters$cutOffs[1]))
                             zerosII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] <=
-                                            parameters$cutOffs[2] & 
+                                            parameters$cutOffs[2] &
                                             egenefit[i, ] >
                                             parameters$cutOffs[1]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                            parameters$cutOffs[1] & 
+                                            parameters$cutOffs[1] &
                                             egenefit[i, ] <=
                                             parameters$cutOffs[2]))
                             zerosIII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] >=
-                                            -parameters$cutOffs[2] & 
+                                            -parameters$cutOffs[2] &
                                             egenefit[i, ] <
                                             -parameters$cutOffs[1]),
                                   which(egenefit[1, ] == 1 & egenefit[i, ] <
@@ -2566,7 +2566,7 @@ validateGraph <-
                                             parameters$cutOffs[2]))
                             onePosII <-
                                 which(egenefit[1, ] == -1 & egenefit[i, ] >
-                                          parameters$cutOffs[1] & 
+                                          parameters$cutOffs[1] &
                                           egenefit[i, ] <=
                                           parameters$cutOffs[2])
                             oneNegI <-
@@ -2605,7 +2605,7 @@ validateGraph <-
                                             parameters$cutOffs[2]))
                             zerosIII <-
                                 c(which(egenefit[1, ] == 0 & egenefit[i, ] >=
-                                            -parameters$cutOffs[2] & 
+                                            -parameters$cutOffs[2] &
                                             egenefit[i, ] <
                                             -parameters$cutOffs[1]),
                                   which(egenefit[1, ] == -1 & egenefit[i, ] <
@@ -2635,7 +2635,7 @@ validateGraph <-
                     }
                 }
                 egenefit[1, ] <- egenefit[1, ]*4
-                if (!is.null(colSideColors)) {
+                if (!is.null(colSideColors[1])) {
                     colSideColorsSave <- colSideColors
                 }
                 if (min(egenefit) != max(egenefit)) {
@@ -2676,7 +2676,7 @@ validateGraph <-
                                 }
                             }
                         }
-                        if (!is.null(colSideColorsSave)) {
+                        if (!is.null(colSideColorsSave[1])) {
                             colSideColors <- rbind(colSideColorsSave,
                                                    colSideColors)
                         }
@@ -2778,7 +2778,7 @@ validateGraph <-
                             rownames(tmp)
                         egenefit[seq_len((nrow(egenefit)-2)), ] <- tmp
                     }
-                    if (!is.null(dim(egenefit)) & plot) {
+                    if (!is.null(dim(egenefit)[1]) & plot) {
                         if (Rowv & nrow(egenefit) > 3) {
                             Rowv <- FALSE
                             d <- dist(egenefit[-c(nrow(egenefit)-1,
@@ -2847,7 +2847,7 @@ validateGraph <-
                             }
                         }
                     }
-                    if (!is.null(colSideColorsSave)) {
+                    if (!is.null(colSideColorsSave[1])) {
                         colSideColors <- rbind(colSideColorsSave,
                                                colSideColors)
                     }
@@ -2999,7 +2999,7 @@ validateGraph <-
                     }
                 }
                 if (ranks) {
-                    if (is.null(breaks)) {
+                    if (is.null(breaks[1])) {
                         breaks <- c(-2,-0.5,0.5,2)
                     }
                     if ("bio" %in% colnames) {
@@ -3016,7 +3016,7 @@ validateGraph <-
                                     colSideColorsPos = "top", col = col,
                                     clusterx = clusterdata, ...))
                 } else {
-                    if (is.null(breaks)) {
+                    if (is.null(breaks[1])) {
                         breaks <- seq(-1,1,0.1)
                     }
                     if ("bio" %in% colnames) {
@@ -3104,10 +3104,10 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
             vertices <- paste("S", seq_len(vertices)-1, "g", sep = "")
         }
     }
-    if (is.null(max.edge.size)) {
+    if (is.null(max.edge.size[1])) {
         max.edge.size <- length(vertices) - 1
     }
-    if (is.null(max.edges)) {
+    if (is.null(max.edges[1])) {
         max.edges <- length(vertices) - 1
     }
     for (i in seq_len(max.edges)) {
@@ -3141,12 +3141,12 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' computes the score of a boolean network given the model and data
 #' @param bString binary string denoting the boolean network
 #' @param CNOlist CNOlist object (see package CellNOptR), if available.
-#' @param fc m x l matrix of foldchanges of gene expression values or 
+#' @param fc m x l matrix of foldchanges of gene expression values or
 #' equivalent input
-#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left 
+#' (normalized pvalues, logodds, ...) for m E-genes and l contrasts. If left
 #' NULL, the gene expression
 #' data is used to calculate naive foldchanges.
-#' @param expression Optional normalized m x l matrix of gene expression data 
+#' @param expression Optional normalized m x l matrix of gene expression data
 #' for m E-genes and l experiments.
 #' @param model Model object including the search space, if available.
 #' See CellNOptR::preprocessing.
@@ -3175,7 +3175,7 @@ randomDnf <- function(vertices = 10, negation = TRUE, max.edge.size = NULL,
 #' @examples
 #' sim <- simBoolGtn()
 #' scoreDnf(sim$bString, sim$CNOlist, sim$fc, model=sim$model)
-scoreDnf <- function(bString, CNOlist, fc, 
+scoreDnf <- function(bString, CNOlist, fc,
                      expression=NULL, model, method = "cosine",
                      sizeFac=10^-10,NAFac=1,
                      parameters = list(cutOffs = c(0,1,0),
@@ -3183,8 +3183,8 @@ scoreDnf <- function(bString, CNOlist, fc,
                      NEMlist = NULL,relFit = FALSE,
                      verbose = FALSE) {
     approach <- "fc"
-    if (is.null(fc)) { approach <- "abs" }
-    if (is.null(fc) & is.null(expression)) {
+    if (is.null(fc[1])) { approach <- "abs" }
+    if (is.null(fc[1]) & is.null(expression[1])) {
         stop("please either provide a matrix of foldchanges 'fc' ",
              "or a matrix of expression values 'expression'")
     }
