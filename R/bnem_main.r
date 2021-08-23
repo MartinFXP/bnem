@@ -507,7 +507,7 @@ simBoolGtn <-
                           collapse = "|"), colnames(ERS))
         ERS <- ERS[, ind]
         fc <- ERS[rep(seq_len(nrow(ERS)), m), rep(seq_len(ncol(ERS)), r)]
-        flip <- sample(seq_len(nrow(fc)), floor(mflip*row(fc)))
+        flip <- sample(seq_len(nrow(fc)), floor(mflip*nrow(fc)))
         fc[flip, ] <- fc[flip, ]*(-1)
         rownames(fc) <- paste(rownames(fc), seq_len(nrow(fc)), sep = "_")
         sim <- list(PKN = PKN, CNOlist = CNOlist, model = model,
