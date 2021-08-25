@@ -806,7 +806,7 @@ bnem <-
             stop("please either provide a matrix of foldchanges 'fc' ",
                  "or a matrix of expression values 'expression'")
         }
-        if (is.null(model[1]) | is.null(CNOlist[1])) {
+        if (is.null(model[1]) | length(CNOlist) == 0) {
             tmp <- preprocessInput(stimuli=stimuli,inhibitors=inhibitors,
                                    signals=signals,design=design,
                                    expression=expression,
