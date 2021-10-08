@@ -32,13 +32,11 @@ if (is.na(commandArgs(TRUE)[2])) {
     model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
     initBstring = rbind(rep(0, length(model$reacID)),
                         rep(1, length(model$reacID)))
-    nemfc <- bcr$fc[, c(1,2,6,8,9,10)]
-    colnames(nemfc) <- gsub(".*_", "", colnames(nemfc))
-    nemfc[which(abs(nemfc) >= log2(1.5))] <- 1
-    nemfc[which(nemfc != 1)] <- 0
-    nemres <- mnem:::mynem(nemfc, method = "disc")
-    bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", startString = initBstring, verbose = 0)
-    save(bsres, file = paste0(path, "bnem/bcr_boot_", run, ".rda"))
+    start <- Sys.time()
+    bsres <- bnemBs(fc = fc, 10, f = 1, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", startString = initBstring, verbose = 0, draw = 0)
+    end <- Sys.time()
+    print(end-start)
+    # save(bsres, file = paste0(path, "bnem/bcr_boot_", run, ".rda"))
     stop("bcr done")
 } else {
     ## load stuff:
@@ -55,6 +53,7 @@ if (is.na(commandArgs(TRUE)[2])) {
     sd <- as.numeric(commandArgs(TRUE)[7])
     n <- as.numeric(commandArgs(TRUE)[8])
     m <- as.numeric(commandArgs(TRUE)[9])
+    ## maxrun <- 1; frac <- 1; part <- 1; maxEdges <- 100; maxSize <- 4; s <- 8; sd <- 1; n <- 40; m <- 10;
     runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
     maxStim <- 2
     maxInhibit <- 1
@@ -73,6 +72,7 @@ if (is.na(commandArgs(TRUE)[2])) {
             bString <- sim$bString
             cat(".")
         }
+        ## mnem::plotDnf(sim$PKN$reacID)
         double <- NULL
         for (i in colnames(sim$CNOlist@stimuli)) {
             for (j in colnames(sim$CNOlist@stimuli)) {
@@ -196,17 +196,22 @@ if (is.na(commandArgs(TRUE)[2])) {
 
 ## HPC commands to run simulations:
 
+## scp bnem_app.r mpirkl@euler:
+
 ram=1000
 rm error.txt
 rm output.txt
 rm .RData
+maxedges=100
+maxin=4
+R=/cluster/work/bewi/members/mpirkl/miniconda3/bin/R
 
-Sgenes=10
+Sgenes=25
 queue=4
 frac=10
 Egenes=10
 Stimuli=2
-Noise=3
+Noise=1
 
 if [ ${Sgenes} == '20' ]
 then
@@ -235,15 +240,18 @@ ram=16000
 queue=24
 fi
 
+ram=$(expr $ram \* 2)
+
 ## maxrun frac part maxedges maxgatesize stims noise sgenes egenes
 
-bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --vanilla --silent --no-save --args '100' '${frac}' '1' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
+bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "${R} --vanilla --silent --no-save --args '100' '${frac}' '1' '${maxedges}' '${maxin}' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
 
-for i in $( eval echo {2..$frac} ) ## {2..100}; do
+for i in $(eval echo {2..$frac}) ## {2..100}; do
 do
     #if [ ! -f /cluster/work/bewi/members/mpirkl/mnem_sim_results/${i}_${j}.rda ]; then
-	bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "R/bin/R --vanilla --silent --no-save --args '100' '${frac}' '${i}' '100' '2' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
-	#fi
+    if [[ $i == 3 || $i == 26 || $i == 27 || $i == 29 || $i == 33 || $i == 36 || $i == 39 || $i == 40 || $i == 43 || $i == 46 || $i == 50 ]]; then
+	bsub -M ${ram} -q normal.${queue}h -n 1 -e error.txt -o output.txt -R "rusage[mem=${ram}]" "${R} --vanilla --silent --no-save --args '100' '${frac}' '${i}' '${maxedges}' '${maxin}' '${Stimuli}' '${Noise}' '${Sgenes}' '${Egenes}' < bnem_app.r"
+	fi
 done
 
 ## bootstrap:
@@ -260,18 +268,18 @@ done
 ## plot results:
 
 library(mnem)
-path <- "~/Mount/Eulershare/"
-n <- 20
-s <- 4
+path <- "Z:/" # "~/Mount/Eulershare/"
+n <- 10
+s <- 2
 m <- 10
 sd <- 1
 frac <- 50
 results <- list()
 count <- 0
-result2 <- NULL
 maxrun <- 100
 Sgenes <- c(10,20,25,30,40)
 for (n in Sgenes) {
+    result2 <- NULL
     if (n==10) {s<-2;frac<-10} else if (n==20) {s<-4;frac<-50} else if (n==25) {s<-5;frac<-50} else if (n==30) {s<-6;frac<-100} else if (n==40) {s<-8;frac<-100}
     for (part in seq_len(frac)) {
         runs <- (maxrun/frac*part - maxrun/frac + 1):(maxrun/frac*part)
@@ -289,6 +297,7 @@ for (n in Sgenes) {
         }
     }
     result <- result2
+    if (is.null(result)) { result <- results[[count]] }
     count <- count + 1
     results[[count]] <- result
 }
@@ -334,7 +343,8 @@ if (box) {
     v.idx <- c(n.meth+0.5,n.meth*2+0.5)
     axis.idx <- c(n.meth/2+0.5,n.meth*1.5+0.5,n.meth*2.5+0.5)
     if (time) {
-        myboxplot(restime, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y")
+        myboxplot(restime+10^-10, col = cols,border=cols,medcol="black",ylab = "seconds (log10-scale)", main = "Running time", box = box,dens=0,xaxt="n",bordercol=cols,log="y",
+                  ylim=c(max(min(restime[,-(n.meth*(1:3))]),10^-1),max(restime[,-(n.meth*(1:3))])))
         abline(v=v.idx)
         axis(1,axis.idx,Sgenes[idxs])
     }
@@ -383,7 +393,7 @@ PKN <- readSIF("temp.sif")
 unlink('temp.sif')
 CNOlist <- dummyCNOlist("BCR", c("Erk", "Ikk2", "Jnk", "p38", "Pi3k", "Tak1"), 1, 3)
 model <- preprocessing(CNOlist, PKN, maxInputsPerGate=100, verbose = TRUE)
-source("~/Documents/B-NEM/R/bnem_main.r"); source("~/Documents/B-NEM/R/bnem_low.r")
+devtools::load_all("../../")
 greedy0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy")
 greedy1 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "greedy", initBstring = rep(1, length(model$reacID)))
 ga0 <- bnem(fc = fc, CNOlist = CNOlist, model = model, method = "cosine", search = "genetic",draw=0)
@@ -405,9 +415,11 @@ cbind(bcrbest$bString,model$reacID)
 bestString <- bcrbest$bString
 bestString[12] <- 0
 bestString[9] <- 1
+par(mfrow=c(1,2))
+plotDnf(model$reacID[as.logical(bcrbest$bString)])
+plotDnf(model$reacID[as.logical(bestString)])
 scoreDnf(bcrbest$bString,CNOlist,fc,model=model)
 scoreDnf(bestString,CNOlist,fc,model=model)
-
 
 ## read and plot bootstrap results:
 bsfull <- NULL
@@ -434,12 +446,20 @@ plot(bsfull, cut = 0.1, dec = 2, ci = 0, nodeshape = list(BCR = "diamond"),
      fontsize = 14,labelcol='blue')
 dev.off()
 
-
-
-
-
-
-
+## compare old (2016) and new bootstrap:
+dnf2016 <- c("BCR=Pi3k","BCR=Tak1","Pi3k=Ikk2","Pi3k=Jnk","Tak1=Ikk2","Tak1=Erk","Jnk=p38","Pi3k+Ikk2=p38")
+dnfBoot <- c("BCR=Pi3k","BCR=Tak1","Pi3k=Erk","Pi3k=Jnk","Tak1=Ikk2","Tak1=Erk","Tak1+Ikk2+Jnk=p38")
+string2016 <- numeric(length(model$reacID))
+string2016[model$reacID %in% dnf2016] <- 1
+stringBoot <- numeric(length(model$reacID))
+stringBoot[model$reacID %in% dnfBoot] <- 1
+scoreDnf(string2016,CNOlist,fc,model=model)
+scoreDnf(stringBoot,CNOlist,fc,model=model)
+scoreDnf(string2016,CNOlist,fc,model=model,method="s")
+scoreDnf(stringBoot,CNOlist,fc,model=model,method="s")
+par(mfrow=c(2,2))
+plotDnf(model$reacID[as.logical(string2016)])
+plotDnf(model$reacID[as.logical(stringBoot)])
 
 
 
