@@ -45,7 +45,8 @@ VignetteBuilder: knitr
 Suggests:
     knitr, 
     BiocGenerics,
-    MatrixGenerics
+    MatrixGenerics,
+    BiocStyle
 BugReports: https://github.com/MartinFXP/bnem/issues
 URL: https://github.com/MartinFXP/bnem/
 RoxygenNote: 7.1.1
